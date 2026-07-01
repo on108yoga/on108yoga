@@ -60,7 +60,8 @@ header{
     z-index: 1000;     /* 본문 내용이나 이미지보다 무조건 위에 보이도록 레이어 순서 지정 */
 }
     
-
+.manu{  position: sticky; }
+    
 
 .top{
     display: flex;
