@@ -1,11 +1,103 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <title>나의 첫 깃허브 홈페이지</title>
+        <style>        
+        h1{
+            background-color: black;
+            text-align: center;
+            letter-spacing: 0.3em;
+            text-shadow: 2px 2px 2px #fff, -2px -2px 2px #fff;
+        }
+        ul{
+            display: center;
+        }
+        li{            
+            display: inline-block;
+            margin-right: 10px;
+        }
+        li:hover{
+            color: red;
+        }
+        .menu{
+            display: flex;
+            text-align: center;
+            letter-spacing: 0.3em;
+        }
+
+        /* 테두리를 예쁘게 보기 위한 간단한 스타일 CSS */
+        table {
+            width: 100%;
+            border-collapse: collapse; /* 테두리 겹침 방지 */
+            text-align: center;
+        }
+        th, td {
+            width: 14.28%; /* 7개의 열이므로 100%를 7로 나눈 값 */
+            border: 1px solid #ccc;
+            padding: 7px;
+            height: 40px; /* 셀 높이 조절 */
+        }
+        th {
+            background-color: #f2f2f2; /* 제목 행 배경색 */
+        }
+    </style>
 </head>
 <body>
     <h1>🎉 축하합니다! 홈페이지가 열렸습니다! 온108 오신것을 환영합니다</h1>
     <p>깃허브 패이지(GitHub Pages)를 통해 만든 나만의 웹사이트입니다.</p>
+
+    <header>
+    <h1>YOGA</h1>
+    <hr>
+    <nav>
+        <ul class="menu">
+            <li>home</li>
+            <li>about</li>
+            <li>work</li>
+                <ul>
+                    <li>class</li>
+                    <li>photo</li>
+                    <li>video</li>
+                </ul>
+            <li>contact</li>
+        </ul>
+    </nav>
+    </header>
+
+    <table>
+        <thead>
+            <tr>
+                <th>시간</th>
+                <th>월</th>
+                <th>화</th>
+                <th>수</th>
+                <th>목</th>
+                <th>금</th>
+                <th>토</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>10:00 - 11:00</td><td>교정하타</td><td>빈야사</td><td>교정하타</td><td>빈야사</td><td>교정하타</td><td rowspan="5">휴일</td>
+            </tr>
+            <tr>
+                <td>11:00 - 12:00</td><td>빈야사</td><td>교정하타</td><td>빈야사</td><td>교정하타</td><td>빈야사</td>
+            <tr>
+                <td>12:00 - 18:00</td><td colspan="5">1:1개인</td>
+            </tr>
+             <tr>
+                <td>18:00 - 19:00</td><td>빈야사</td><td>교정하타</td><td>빈야사</td><td>교정하타</td><td>빈야사</td>
+            </tr>
+            <tr>
+                <td>19:30 - 20:30</td><td>교정하타</td><td>빈야사</td><td>교정하타</td><td>빈야사</td><td>교정하타</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <footer>
+
+    </footer>
 </body>
 </html>
