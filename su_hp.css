@@ -1,4 +1,7 @@
 #topBtn {
+      /* 모바일 터치 시 파란색 하이라이트가 생기는 현상 방지 */
+    -webkit-tap-highlight-color: transparent;
+    
     position: fixed;       /* 화면의 특정 위치에 고정 */
     bottom: 30px;          /* 밑에서 30px 띄우기 */
     right: 30px;           /* 오른쪽에서 30px 띄우기 */
