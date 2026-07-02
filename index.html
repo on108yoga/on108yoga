@@ -337,5 +337,30 @@
             </dl>
         </div>
     </footer>
+
+           <script>
+          // 사용자가 스크롤을 할 때마다 브라우저가 이 함수를 실행합니다
+          window.onscroll = function() { scrollFunction() };
+        
+          function scrollFunction() {
+              const topButton = document.getElementById("topBtn");
+              
+              // 스크롤 위치가 300px보다 커지면 나타나고, 작아지면 다시 숨깁니다
+              if (document.body.scrollTop > 1500 || document.documentElement.scrollTop > 1500) {
+                  topButton.style.display = "block";
+              } else {
+                  topButton.style.display = "none";
+              }
+          }
+        
+          // 버튼을 클릭했을 때 맨 위로 부드럽게 올라가는 기능
+          function scrollToTop() {
+              window.scrollTo({
+                  top: 0,
+                  behavior: 'smooth'
+              });
+          }
+        </script>
+    
 </body>
 </html>
