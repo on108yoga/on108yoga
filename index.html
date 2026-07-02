@@ -15,6 +15,7 @@
             display: flex;
             justify-content: center; /* 가로 방향 중앙 정렬 */
             width: 500px;
+            margin: 0 auto;
             color: #fff;
             text-align: center;
             letter-spacing: 0.3em;
@@ -77,6 +78,10 @@
             justify-content: center; /* 가로 방향 중앙 정렬 */
             align-items: center;     /* 세로 방향 중앙 정렬 (필요할 경우) */
             width: 100%;             /* 부모 너비를 가득 채우기 */
+        }
+        section iframe, section video {
+          max-width: 100%; /* 화면이 작아지면 지도/영상도 같이 줄어듦 */
+          height: auto;    /* 비율 유지 */
         }
     </style>
 </head>
