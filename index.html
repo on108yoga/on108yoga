@@ -51,19 +51,19 @@
             justify-content: center;
            
         }
-        .about{
+        .notice{
             
             width: 800px;
             height: 500px;
             overflow: hidden;
             border: 2px solid #fff; /* 박스 테두리 */
         }
-        .about img {
+        .notice img {
             width: 100%;
             height: 100%;
             object-fit: cover; /* 이미지가 박스를 꽉 채우도록 조정 */
         }
-        .about:hover img {
+        .notice:hover img {
             transform: scale(1.1); /* 마우스 오버 시 이미지 확대 */
             transition: transform 0.3s ease; /* 부드러운 확대 효과 */
         }
@@ -151,24 +151,24 @@
      
     <nav>
         <ul class="menu">
-            <li>home</li>
-            <li>notice</li>
-            <li>class</li>
-            <li>about</li>
-            <li>photo</li>
-            <li>video</li>
-            <li>contact</li>
+            <li><a href="#home">home</a></li>
+            <li><a href="#notice">notice</a></li>
+            <li><a href="#class">class</a></li>
+            <li><a href="#about">about</a></li>
+            <li><a href="#photo">photo</a></li>
+            <li><a href="#video">video</a></li>
+            <li><a href="#location">location</a></li>
         </ul>
     </nav>
     <br><br><br>
     
     <h2>notice</h2><br>
-    <div class="about">
+    <div class="notice" id="notice">
         <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5ieWJaIsBoymrjKW_m2eQMEasCDSYqWib30T3HCULQw&s=10">        
     </div>
 <br>
     <h2>class</h2><br>
-    <table>
+    <table id="class">
         <thead>
             <tr>
                 <th>시간</th>
@@ -205,19 +205,33 @@
         주2회 &nbsp; <del>정가 000000원</del> -> <ins>할인가 000000원</ins>
     </p>
 <br><br><br><br>
+
     <h2>about</h2><br>
-    <div class="about">
+    <div class="about" id="about">
         <img src="" alt="로고 이미지">
     </div>
 <br><br><br><br>
+
+    <h2>photo</h2>
+    <section style="display: flex; justify-content: center; width: 100%;">
+  <!-- 블로그 포스팅 화면을 가져오는 iframe -->
+  <iframe 
+    src="https://example.com/blog-post-url" 
+    width="800px" 
+    height="700px" 
+    style="border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+  </iframe>
+</section>
+ <br><br><br><br>
+ 
      <h2>video</h2><br>
-        <section class="video-section">
+        <section class="video-section" id="video">
              <iframe src="https://www.youtube.com/embed/kPzgvh0sOSE?si=zhmBnNZGPvfBgPs9" title="YouTube video player"
              width="600"  frameborder="0" allowfullscreen></iframe>
           </section>
 <br><br><br><br>
-     <h2>rocation</h2><br>
-        <section class="map-section">
+     <h2>location</h2><br>
+        <section class="map-section" id="location">
             <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3259.7520461624617!2d129.0092626606202!3d35.21264470642503!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3568953982421f41%3A0xaefde9fbc3bc7283!2z7IiZ65Ox!5e0!3m2!1sko!2skr!4v1782349634599!5m2!1sko!2skr" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"
             width="100%"  style="border:0;" allowfullscreen="" loading="lazy"></iframe>
         </section>
