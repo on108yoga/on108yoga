@@ -1,234 +1,35 @@
-@charset "utf-8";
-*{
-
-    padding: 0;
-    margin: 0;
-}
-a{
-    color: inherit;
-    text-decoration: none;
-} /* -> 로고의 파란링크를 없애줌 */
-
-ul,li{
-    list-style: none;     
+/* 기본 PC 스타일 (원래 작성하던 코드) */
+h2 {
+  width: 500px; /* PC에서는 500px 상자 */
+  font-size: 24px;
 }
 
-.header-manu{
-    display: flex; /* 세로로 정렬되던 li들을 가로로 나열 */
-    justify-content: center;
-    align-items: center; /* 메뉴들을 세로 기준 가운데 정렬 */
-    gap: 20px; /* 메뉴와 메뉴 사이의 간격 (원하는 만큼 조절) */
-    padding: 20px 0; /* 기본 여백 */
-    width: 100%;
-
-    position: fixed;
-    top: 0;
-
-
-    /* ➡️ 기존의 porition: fixed; 대신 아래 3줄을 넣어보세요! */
-    position: sticky;
-    top: 0;           /* 스크롤이 상단 0 픽셀에 닿았을 때 고정 */
-   /* z-index: 100;     /* 다른 콘텐츠(section 등) 뒤로 숨지 않도록 맨 위로 올림 */
-    
-   /* background-color: #fff; /* 고정되었을 때 뒤의 글씨가 비치지 않도록 배경색 필수! */
-    
+/* ⭐ 모바일 스타일 (화면 너비가 768px 이하가 되면 작동) */
+@media (max-width: 768px) {
+  h2 {
+    width: 90% !important; /* 모바일 화면에서는 꽉 차지 않게 90%로 줄임 */
+    font-size: 18px;       /* 글씨 크기도 스마트폰에 맞게 작게 */
+  }
 }
 
-/* a태그의 메뉴에 컬러 넣기 hover:마우스를 올렸을때 */
-.header-manu a{
-    transition: .3s;
-}
-.header-manu a:hover{
-    color: orange;
-} /* 마우스를 올리면 바뀔 색상 */
-
-
-header{   
-    display: flex;        /* Flexbox 활성화 (이게 있어야 아래 정렬이 먹힙니다!) */
-    background-color: #fff; /* 1. 배경색을 흰색으로 설정 */
-    align-items: center;            /* (추천) 로고와 메뉴의 세로 높이를 가운데로 맞춤 */
-    justify-content: space-between; /* 2. 내부 요소들을 양 끝으로 배치 */
-    padding: 0 40px;  /* 위아래 여백은 0, 좌우 여백은 40px만큼 띄우기 */
-
-    /* ⬇️ 가로메뉴를 더 이쁘게 */
-    max-width: 1200px; /* 헤더의 최대 가로 길이를 1200픽셀로 제한 */
-    margin: 0 auto;    /* 가로 길이가 제한된 헤더를 화면 정가운데로 정렬 */
-
-    /* ⬇️ 메뉴를 스크롤에도 고정되게 ⬇️ */
-    position: sticky;  /* 스크롤 하다가 상단에 닿으면 고정 */
-    top: 0;            /* 화면 맨 위(0픽셀)에 고정시키겠다는 뜻 */
-    z-index: 1000;     /* 본문 내용이나 이미지보다 무조건 위에 보이도록 레이어 순서 지정 */
-}
-    
-.manu{  position: sticky; }
-    
-
-.top{
-    display: flex;
-    justify-content: space-between;
-   /* align-items: center; */
-    padding: 20px 0;
+.menu-container {
+  display: flex; /* PC에서는 가로로 나란히 */
 }
 
-.logo{
-    text-align: center;
-    padding: 20px 0;
+@media (max-width: 768px) {
+  .menu-container {
+    flex-direction: column; /* ⭐ 모바일에서는 세로로 차곡차곡 쌓기 */
+    gap: 20px;              /* 위아래 간격 조정 */
+  }
 }
 
-html{
-    scroll-behavior: smooth;
+img, video, iframe {
+  max-width: 100%; /* ⭐ 화면이 아무리 작아져도 가로로 절대 깨지거나 넘치지 않음 */
+  height: auto;    /* 세로 비율은 알아서 유지 */
 }
 
-
-section img {
-    /* 100% 대신 원하시는 적당한 이미지 크기를 지정해 주셔야 중앙 정렬이 티가 납니다! */
-    width: 60%;          /* 예시: 부모 크기의 60%만 차지하도록 설정 */
-    
-    display: block;      /* 글자 성질을 상자 성질로 변경 */
-    margin: 0 auto;      /* 남은 좌우 여백을 반반 나눠 가져서 정중앙 정렬 */
-    
-    /* ❌ justify-content: center; (삭제됨) */
-}
-
-section {
-    width: 1000px;
-    height: auto;        /* 💡 hight -> height 오타 수정 */
-    overflow: hidden;
-    margin: 0 auto;      /* (선택) 만약 1000px짜리 섹션 자체도 화면 중앙에 두고 싶다면 추가 */
-}
-
-/* 영상과 지도를 감싸는 섹션 공통 스타일 */
-.video-section, .map-section {
-    width: 1000px;
-    height: auto;
-    margin: 0 auto;      /* 섹션 자체를 화면 중앙에 정렬 */
-    overflow: hidden;
-    padding: 40px 0;     /* 위아래 적당한 여백 */
-}
-
-/* 섹션 안의 영상/지도(iframe)를 부모 크기에 맞추고 중앙 정렬 */
-.video-section iframe, .map-section iframe {
-    display: block;
-    width: 80%;          /* 부모(1000px)의 80% 크기인 800px로 지정 (원하는 대로 조절 가능) */
-    height: 450px;       /* 높이 지정 */
-    margin: 0 auto;      /* ⭐️ 좌우 여백을 자동으로 나눠 가져서 정중앙 정렬! */
-    border: none;
-}
-
-
-#01, #02, #03, #04, #05, #06{
-    background-color: #fff;
-}
-
-
-
-/*햄버거버튼디자인*/
-/* 1. 체크박스 자체는 화면에서 완전히 숨깁니다 */
-#m-btn{display: none;}
-
-/* 2. 햄버거 버튼 (label) */
-.ham-btn{
-    border: 2px solid red;   
-    display: none; /* 홈피 버전에선 햄버거 안보이게 */
-    width: 24px;
-    height: 24px;
-    position: relative;
-    cursor: pointer;    /* 마우스를 올렸을 때 손가락 모양으로 변경 */
-    margin-left: auto; /* <-햄버거버튼 오른쪽정렬 */
-    right: 5px;
-    }
-
-/* 3. 햄버거 버튼 안의 세 줄 막대기 */
-.ham-btn span{
-    position: absolute;
-    left: 0;                 /* 💡 기준점 좌측 정렬 추가 */
-    width: 100%;
-    height: 2px;
-    background-color: #444; /* 막대기 색상 */
-    transition: all 0.3s; /* 햄버거 버튼에 애니메이션 */
-}
-
-/* 4. 막대기 세 줄 위치 정확하게 잡아주기 */
-/* 💡 % 단위 대신 px 단위를 쓰거나 정확한 위치를 잡아주어야 겹치지 않습니다. */
-  .ham-btn span:nth-child(1){top: 20%}
-  .ham-btn span:nth-child(2){top: 50%; transform: translate(0, -50%);}
-  .ham-btn span:nth-child(3){top: 80%}
-
-
-@media all and (max-width:1024px){
-    /* 모바일: 디바이스 크기가 0-1020px 일때 적용되는 스타일 */
-    header{
-        background-color: rgb(175, 159, 185);
-       
-    }
-    .pc{
-        display: none;
-    }
-        
-    .ham-btn{
-        display: block; /* 💡 화면이 작아지면 비로소 나타나게 만듭니다! */
-    }
-
-    /* 기존에 만들었던 가로 메뉴(ul)는 모바일에선 숨기거나 세로로 바꿉니다 */
-    .header-manu.pc {
-        display: none; 
-    }
-
-    #m-btn~.header-manu{
-        display: block;
-        position: absolute; 
-        top: 100%;       /* 헤더 바로 아래에 붙도록 설정 */
-        right: -100%;    /* 처음에는 화면 오른쪽 바깥에 숨겨둠 */
-        width: 60%;      /* 메뉴판 너비 */
-        background-color: rgba(255, 255, 255, 0.95); /* 흰색 배경 약간 투명하게 */
-        transition: all 0.4s; /* 부동 부드럽게 열리는 애니메이션 */
-        box-shadow: -2px 5px 10px rgba(0,0,0,0.1);
-
-        /*
-        right: -60%; /* 포지션이 있어야 레프트가 먹힘
-        transition: all 3s;
-        position: relative;    */
-    }
-    
-    /* 햄버거 메뉴 나오는 부분 */
-    #m-btn:checked~.header-manu{
-        right: 0;        /* 숨겨진 메뉴가 오른쪽에서 스르륵 나타남 */
-        /*
-        display: flex;
-        flex-direction: column; 
-
-        display: block;
-        position: absolute; 
-        top: 100%;
-        width: 40%; 
-        left: 0; 
-        text-align: center;*/
-    }
-
-
-    #m-btn:checked~.ham-btn span:nth-child(1){
-        top: 50%;
-        transform: translate(0, 50%) rotate(45deg);}
-    #m-btn:checked~.ham-btn span:nth-child(2){
-        opacity: 0;}
-    #m-btn:checked~.ham-btn span:nth-child(3){
-        top: 50%; /* bottom 대신 top으로 맞춰야 축이 맞습니다 */
-        transform: translateY(50%) rotate(-45deg);}
-
-    .header-manu li{
-        text-align: center;
-        background-color: #ffffff80;
-        padding: 1px;
-    }
-    .header-manu li a {
-        display: block;
-        padding: 1px 0;
-        border-bottom: 1px solid #eee;
-        color: #333;
-    }
-
-    section iframe, section video {
-      max-width: 100%; /* 화면이 작아지면 지도/영상도 같이 줄어듦 */
-      height: auto;    /* 비율 유지 */
-    }
+.content-box {
+  /* 화면 전체 너비(100%)에서 양옆 여백 40px을 뺀 만큼만 꽉 채우기 */
+  width: calc(100% - 40px); 
+  margin: 0 auto;
 }
