@@ -2,256 +2,328 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <!-- 모바일 반응형을 위한 필수 태그 (하나만 남겨두었습니다) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <!-- 구글 폰트 및 프리텐다드 불러오기 -->
-  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;300;400&display=swap" rel="stylesheet">
-    <title>Document</title>
-   <!-- <link rel="stylesheet" href="./style.css"> -->
-    <!-- 모바일 반응형을 위한 필수 태그 -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;300;400&display=swap" rel="stylesheet">
+    
+    <title>Yoga Document</title>
+    
     <style>
-    header{
-        background-color: #fff5de;
-    }        
-        h1{
+        /* ─── [1] 공통 기본 스타일 ─── */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #fff5de; /* 기존 header 배경색을 전체 배경으로 지정 */
+        }
+        
+        header {
+            background-color: #fff5de;
+            padding-bottom: 20px;
+        }        
+        
+        h1 {
             background-color: rgb(64, 83, 70);
             text-align: center;
             letter-spacing: 0.3em;
             text-shadow: 2px 2px 2px #fff, -2px -2px 2px #fff;
             color: rgb(64, 83, 70);
+            margin: 0;
+            padding: 20px 0;
         }
 
-        h2{
+        h2 {
+            display: flex;
             justify-content: flex-end; /* 오른쪽 정렬 */
-            width: 100%;
+            width: 90%;               /* 100% 대신 좌우 여백을 주어 더 예쁘게 조절 */
             height: 50px;
-            margin: 0 auto; /* 상자 자체는 화면 중앙 유지 */
+            margin: 0 auto;           /* 상자 자체는 화면 중앙 유지 */
             color: #29462d;
-            text-align: right;
+            align-items: center;       /* 글자가 세로 중앙에 오도록 추가 */
             letter-spacing: 10px;     
-            padding-right: 20px;  /* 글씨가 오른쪽 끝에 너무 붙지 않도록 */
+            padding-right: 20px;  
 
             border-width: 1px 2px 0px 1px;
             border-style: dotted;
             border-color: #506e5c;
-            border-radius: 20px 0px; /* 테두리 모서리를 둥글게 */
-            border-shadow: 2px 2px 2px #fff, -2px -2px 2px #fff;
+            border-radius: 20px 0px; 
+            box-shadow: 2px 2px 2px #fff, -2px -2px 2px #fff; /* border-shadow 대신 box-shadow로 수정 */
 
             font-family: 'Noto Sans KR', sans-serif;
-             font-weight: 100; /* 아주 얇은 두께 */
+            font-weight: 100; 
         }
 
-        hr{
+        hr {
             color: #caaa95;
         }
 
-        div{
+        /* 메인 콘텐츠 감싸는 상자 생성 (좌우 여백 확보) */
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        div {
             max-width: 100%;
             display: flex;
             justify-content: center;
-           
         }
-        .notice{
-            
+
+        .notice {
             width: 800px;
             height: 500px;
             overflow: hidden;
-            border: 2px solid #fff; /* 박스 테두리 */
+            border: 2px solid #fff; 
+            margin: 0 auto;
         }
         .notice img {
             width: 100%;
             height: 100%;
-            object-fit: cover; /* 이미지가 박스를 꽉 채우도록 조정 */
+            object-fit: cover; 
         }
         .notice:hover img {
-            transform: scale(1.1); /* 마우스 오버 시 이미지 확대 */
-            transition: transform 0.3s ease; /* 부드러운 확대 효과 */
+            transform: scale(1.1); 
+            transition: transform 0.3s ease; 
         }
 
-        ul{
-            display: center;
+        ul {
+            padding: 0;
+            margin: 0;
         }
-        li{            
+        li {            
             display: inline-block;
             margin-right: 10px;
         }
-        li:hover{
+        li:hover {
             color: red;
         }
-        .menu{
+        .menu {
             justify-content: center;
             background-color: #ffab96;
             display: flex;
             text-align: center;
             letter-spacing: 0.3em;
             gap: 15px;
+            padding: 15px;
+            list-style: none;
+        }
+        .menu a {
+            text-decoration: none;
+            color: #29462d;
+            font-weight: bold;
         }
 
-        /* 테두리를 예쁘게 보기 위한 간단한 스타일 CSS */
+        /* 테이블 기본 스타일 */
         table {
             width: 100%;
-            border-collapse: collapse; /* 테두리 겹침 방지 */
+            max-width: 800px; /* 테이블이 너무 넓어지지 않게 고정 */
+            margin: 0 auto;   /* 테이블 중앙 정렬 */
+            border-collapse: collapse; 
             text-align: center;
         }
         th, td {
-            width: 14.28%; /* 7개의 열이므로 100%를 7로 나눈 값 */
+            width: 14.28%; 
             border: 1px solid #ccc;
             padding: 7px;
-            height: 40px; /* 셀 높이 조절 */
+            height: 40px; 
+            background-color: #fff; /* 내용 가독성을 위해 흰색 배경 추가 */
         }
         th {
-            background-color: #aae2d4; /* 제목 행 배경색 */
+            background-color: #aae2d4; 
         }
         
-        p{
+        p {
             text-align: center;
-            
             color: #29462d;
-        }
-        section {
-            display: flex;
-            justify-content: center; /* 가로 방향 중앙 정렬 */
-            align-items: center;     /* 세로 방향 중앙 정렬 (필요할 경우) */
-            width: 100%;             /* 부모 너비를 가득 채우기 */
-            height: auto;          /* 비율 유지 */
-        }
-        section iframe, section video {
-        max-width: 100%; /* 화면이 작아지면 지도/영상도 같이 줄어듦 */
-        height: 400px;    /*  */
-        object-fit: cover; /* ⭐ 중요: 영상이 찌그러지지 않고 비율을 유지하며 채워지도록 함 */
-        }
-       
-        section:hover{
-            opacity: 0.8; /* 마우스 오버 시 투명도 조절 */
+            line-height: 1.8;
         }
 
-        footer{
+        /* 섹션(지도, 영상, 블로그) 스타일 수정 */
+        section {
+            display: flex;
+            justify-content: center; 
+            align-items: center;     
+            width: 100%;             
+            max-width: 800px;        /* PC 최대 너비 제한 */
+            margin: 0 auto;          /* 가운데 정렬 */
+        }
+        section iframe, section video {
+            width: 100%;             /* 가로는 무조건 부모에게 맞춤 */
+            max-width: 100%; 
+            height: 450px;           /* 시원하게 세로 길이 늘림 */
+            border: none;
+        }
+       
+        section:hover {
+            opacity: 0.9; 
+        }
+
+        footer {
             background-color: #fff;
+            margin-top: 50px;
         }
-        .footer dl{
+        .footer dl {
             text-align: center;
-            /*  display: flex;         자식(dl)들을 가로로 나란히 배치 */
-            /* gap: 50px;             /* dl과 dl 사이의 간격 */
-            /* justify-content: center; /* 화면 중앙에 배치 (원치 않으면 삭제 가능) */
-            /* list-style: none;      /* 리스트 앞의 점(•) 제거 */
-           /*  padding: 0; */
-           /* margin: 0; */
-         
-              padding: 30px 0px; /* 위아래 10px, 좌우 0px */;
+            padding: 30px 0px; 
             color: #739e98;
+            margin: 0;
         }
-        .footer dt{
+        .footer dt {
             font-weight: bold;
+            margin-top: 10px;
+        }
+        .footer dd {
+            margin: 0 0 10px 0;
+        }
+
+        /* ─── [2] ⭐ 대망의 모바일 전용 반응형 스타일 (화면 너비 768px 이하) ─── */
+        @media (max-width: 768px) {
+            /* 1. 상단 메뉴 가로폭이 좁아지므로 자연스럽게 줄바꿈 배치 */
+            .menu {
+                flex-wrap: wrap; 
+                gap: 10px;
+                padding: 10px;
+                font-size: 14px;
+            }
+            
+            /* 2. 공지사항 이미지 상자 모바일 대응 */
+            .notice {
+                width: 100%;  /* 화면 가로에 꽉 차게 */
+                height: 300px; /* 높이도 스마트폰 화면 비율에 맞게 줄임 */
+            }
+
+            /* 3. 시간표(Table) 스크롤바 생성 */
+            /* 화면이 아주 작아져도 글자가 깨지지 않고 가로 스크롤로 편하게 보게 만듭니다 */
+            table {
+                display: block;
+                width: 100%;
+                overflow-x: auto; /* 가로 스크롤 활성화 */
+                white-space: nowrap; /* 글자가 밑으로 깨져서 내려가는 것 방지 */
+            }
+
+            /* 4. 블로그 포스팅, 영상, 지도 세로 높이 모바일 맞춤 조정 */
+            section iframe, section video {
+                height: 250px; /* 모바일에서는 세로가 너무 길면 불편하므로 적당히 축소 */
+            }
+
+            /* 5. 제목 텍스트 크기 축소 */
+            h2 {
+                font-size: 20px;
+                letter-spacing: 5px;
+            }
         }
     </style>
 </head>
 <body>
     <header>
-    <h1>YOGA</h1>
-     
-    <nav>
-        <ul class="menu">
-            <li><a href="#home">home</a></li>
-            <li><a href="#notice">notice</a></li>
-            <li><a href="#class">class</a></li>
-            <li><a href="#about">about</a></li>
-            <li><a href="#photo">photo</a></li>
-            <li><a href="#video">video</a></li>
-            <li><a href="#location">location</a></li>
-        </ul>
-    </nav>
-    <br><br><br>
-    
-    <h2>notice</h2><br>
-    <div class="notice" id="notice">
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5ieWJaIsBoymrjKW_m2eQMEasCDSYqWib30T3HCULQw&s=10">        
-    </div>
-<br>
-    <h2>class</h2><br>
-    <table id="class">
-        <thead>
-            <tr>
-                <th>시간</th>
-                <th>월</th>
-                <th>화</th>
-                <th>수</th>
-                <th>목</th>
-                <th>금</th>
-                <th>토</th>
-
-            </tr>
-        </thead>        
-        <tbody>
-            <tr>
-                <td>10:00 - 11:00</td><td>교정하타</td><td>빈야사</td><td>교정하타</td><td>빈야사</td><td>교정하타</td><td rowspan="5">휴일</td>
-            </tr>
-            <tr>
-                <td>11:00 - 12:00</td><td>빈야사</td><td>교정하타</td><td>빈야사</td><td>교정하타</td><td>빈야사</td>
-            <tr>
-                <td>12:00 - 18:00</td><td colspan="5">1:1개인</td>
-            </tr>
-             <tr>
-                <td>18:00 - 19:00</td><td>빈야사</td><td>교정하타</td><td>빈야사</td><td>교정하타</td><td>빈야사</td>
-            </tr>
-            <tr>
-                <td>19:30 - 20:30</td><td>교정하타</td><td>빈야사</td><td>교정하타</td><td>빈야사</td><td>교정하타</td>
-            </tr>
-        </tbody>
-    </table><br>
-    <p>        
-        [price] <br>
-        주2회 &nbsp; <del>정가 000000원</del> -> <ins>할인가 000000원</ins><br>
-        주2회 &nbsp; <del>정가 000000원</del> -> <ins>할인가 000000원</ins><br>
-        주2회 &nbsp; <del>정가 000000원</del> -> <ins>할인가 000000원</ins>
-    </p>
-<br><br><br><br>
-
-    <h2>about</h2><br>
-    <div class="about" id="about">
-        <img src="" alt="로고 이미지">
-    </div>
-<br><br><br><br>
-
-    <h2>photo</h2>
-    <section style="display: flex; justify-content: center; width: 100%;">
-  <!-- 블로그 포스팅 화면을 가져오는 iframe -->
-  <iframe 
-    src="https://example.com/blog-post-url" 
-    width="800px" 
-    height="700px" 
-    style="border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-  </iframe>
-</section>
- <br><br><br><br>
- 
-     <h2>video</h2><br>
-        <section class="video-section" id="video">
-             <iframe src="https://www.youtube.com/embed/kPzgvh0sOSE?si=zhmBnNZGPvfBgPs9" title="YouTube video player"
-             width="600"  frameborder="0" allowfullscreen></iframe>
-          </section>
-<br><br><br><br>
-     <h2>location</h2><br>
-        <section class="map-section" id="location">
-            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3259.7520461624617!2d129.0092626606202!3d35.21264470642503!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3568953982421f41%3A0xaefde9fbc3bc7283!2z7IiZ65Ox!5e0!3m2!1sko!2skr!4v1782349634599!5m2!1sko!2skr" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"
-            width="100%"  style="border:0;" allowfullscreen="" loading="lazy"></iframe>
-        </section>
-<br><br><br><br><br>
+        <h1>YOGA</h1>
+        <nav>
+            <ul class="menu">
+                <li><a href="#home">home</a></li>
+                <li><a href="#notice">notice</a></li>
+                <li><a href="#class">class</a></li>
+                <li><a href="#about">about</a></li>
+                <li><a href="#photo">photo</a></li>
+                <li><a href="#video">video</a></li>
+                <li><a href="#location">location</a></li>
+            </ul>
+        </nav>
     </header>
+
+    <!-- 전체 본문을 감싸서 양옆 여백을 예쁘게 주는 main 태그 배치 -->
+    <main>
+        <br><br>
+        <h2>notice</h2><br>
+        <div class="notice" id="notice">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5ieWJaIsBoymrjKW_m2eQMEasCDSYqWib30T3HCULQw&s=10" alt="공지사항 이미지">        
+        </div>
+        <br>
+
+        <h2>class</h2><br>
+        <table id="class">
+            <thead>
+                <tr>
+                    <th>시간</th>
+                    <th>월</th>
+                    <th>화</th>
+                    <th>수</th>
+                    <th>목</th>
+                    <th>금</th>
+                    <th>토</th>
+                </tr>
+            </thead>        
+            <tbody>
+                <tr>
+                    <td>10:00 - 11:00</td><td>교정하타</td><td>빈야사</td><td>교정하타</td><td>빈야사</td><td>교정하타</td><td rowspan="5">휴일</td>
+                </tr>
+                <tr>
+                    <td>11:00 - 12:00</td><td>빈야사</td><td>교정하타</td><td>빈야사</td><td>교정하타</td><td>빈야사</td>
+                </tr>
+                <tr>
+                    <td>12:00 - 18:00</td><td colspan="5">1:1개인</td>
+                </tr>
+                 <tr>
+                    <td>18:00 - 19:00</td><td>빈야사</td><td>교정하타</td><td>빈야사</td><td>교정하타</td><td>빈야사</td>
+                </tr>
+                <tr>
+                    <td>19:30 - 20:30</td><td>교정하타</td><td>빈야사</td><td>교정하타</td><td>빈야사</td><td>교정하타</td>
+                </tr>
+            </tbody>
+        </table>
+        <br>
+        <p>        
+            [price] <br>
+            주2회 &nbsp; <del>정가 000000원</del> -> <ins>할인가 000000원</ins><br>
+            주3회 &nbsp; <del>정가 000000원</del> -> <ins>할인가 000000원</ins><br>
+            주5회 &nbsp; <del>정가 000000원</del> -> <ins>할인가 000000원</ins>
+        </p>
+        <br><br>
+
+        <h2>about</h2><br>
+        <div class="about" id="about">
+            <img src="" alt="로고 이미지">
+        </div>
+        <br><br>
+
+        <h2>photo</h2><br>
+        <section id="photo">
+            <!-- 블로그 포스팅 화면을 가져오는 iframe -->
+            <iframe src="https://example.com/blog-post-url" style="box-shadow: 0 4px 10px rgba(0,0,0,0.1);"></iframe>
+        </section>
+        <br><br>
+     
+        <h2>video</h2><br>
+        <section class="video-section" id="video">
+            <iframe src="https://www.youtube.com/embed/kPzgvh0sOSE?si=zhmBnNZGPvfBgPs9" title="YouTube video player" allowfullscreen></iframe>
+        </section>
+        <br><br>
+
+        <h2>location</h2><br>
+        <section class="map-section" id="location">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3259.7520461624617!2d129.0092626606202!3d35.21264470642503!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3568953982421f41%3A0xaefde9fbc3bc7283!2z7IiZ65Ox!5e0!3m2!1sko!2skr!4v1782349634599!5m2!1sko!2skr" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        </section>
+        <br><br>
+    </main>
+
     <footer>
-       <span style="font-size: 0.8em;" class="footer">
-        <dl>
-        <dt>Visit</dt>
-        <dd>busan</dd>        
-        <dt>blog</dt>
-        <dd>www.blog.com</dd>
-        <dt>Contact</dt>
-        <dd>010-0000-0000</dd>
-        <dt>instagram</dt>
-        <dd>asdasd</dd>
-        </dl>
-       </span>
+        <div class="footer">
+            <dl>
+                <dt>Visit</dt>
+                <dd>busan</dd>        
+                <dt>blog</dt>
+                <dd>www.blog.com</dd>
+                <dt>Contact</dt>
+                <dd>010-0000-0000</dd>
+                <dt>instagram</dt>
+                <dd>asdasd</dd>
+            </dl>
+        </div>
+    </footer>
 </body>
 </html>
