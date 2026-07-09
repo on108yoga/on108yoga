@@ -115,7 +115,7 @@
 <script type="module" src="js/calendar.js"></script>
 <script type="module" src="js/reservation.js"></script>
     
-    <script>
+<!--    <script>
 document.addEventListener("DOMContentLoaded", function(){
 
     let calendar = new FullCalendar.Calendar(
@@ -128,7 +128,34 @@ document.addEventListener("DOMContentLoaded", function(){
 
     calendar.render();
 
+}); -->
+
+    <script>
+
+document.addEventListener("DOMContentLoaded",function(){
+
+let calendar =
+new FullCalendar.Calendar(
+document.getElementById("calendar"),
+{
+
+initialView:"dayGridMonth",
+
+events:[
+{
+title:"테스트 예약",
+start:new Date()
+}
+]
+
 });
+
+
+calendar.render();
+
+});
+
+</script>
 </script>
 </body>
 </html>
