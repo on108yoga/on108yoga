@@ -1,10 +1,8 @@
-document.addEventListener("DOMContentLoaded", function(){
+document.addEventListener("DOMContentLoaded", function () {
 
-    console.log("calendar.js 실행됨");
-
+    console.log("calendar.js 실행");
 
     const calendarEl = document.getElementById("calendar");
-
 
     console.log(calendarEl);
 
@@ -12,8 +10,8 @@ document.addEventListener("DOMContentLoaded", function(){
     const calendar = new FullCalendar.Calendar(
         calendarEl,
         {
-            initialView:"dayGridMonth",
-            locale:"ko"
+            initialView: "dayGridMonth",
+            locale: "ko"
         }
     );
 
