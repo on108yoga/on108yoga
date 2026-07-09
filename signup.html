@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/signup.css">
+    <style>
+        .navbar{
+            justify-content: center;
+            display: flex;
+            text-align: center;
+            gap: 15px;            
+        }
+        body{
+            text-align: center;
+        }
+        h1 {
+            background-color: rgb(64, 83, 70);
+            text-align: center;
+            letter-spacing: 0.3em;
+            text-shadow: 2px 2px 2px #fff, -2px -2px 2px #fff;
+            color: rgb(64, 83, 70);
+            margin: 0;
+            padding: 20px 0;
+        }
+        main{
+            margin: 0;
+            display: flex;
+            justify-content: center; /* 가로 중앙 */
+            /* align-items: center;     /* 세로 중앙 */
+            height: 100vh;
+            }
+        section{
+            width: 300px;
+            text-align: center;
+        }
+        #signupForm{
+            border: 1px solid red;
+            padding: 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <nav class="navbar">
+
+        <a href="../index.html">home</a>
+        <a href="login.html">login</a>
+
+    </nav>
+</header>
+<h1>YOGA</h1>
+<main>
+
+<section class="signup-container">
+
+    <h2>회원가입</h2>
+
+    <form id="signupForm">
+
+        <div class="form-group">
+            <label for="name">이름</label>
+            <input
+                type="text"
+                id="name"
+                placeholder="이름을 입력하세요"
+                required>
+        </div>
+
+        <div class="form-group">
+            <label for="email">이메일</label>
+            <input
+                type="email"
+                id="email"
+                placeholder="example@email.com"
+                required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">비밀번호</label>
+            <input
+                type="password"
+                id="password"
+                placeholder="비밀번호"
+                required>
+        </div>
+
+        <div class="form-group">
+            <label for="confirmPassword">비밀번호 확인</label>
+            <input
+                type="password"
+                id="confirmPassword"
+                placeholder="비밀번호를 다시 입력하세요"
+                required>
+        </div>
+
+        <div class="form-group">
+            <label>
+                <input
+                    type="checkbox"
+                    id="agree"
+                    required>
+
+                개인정보 처리방침에 동의합니다.
+            </label>
+        </div>
+
+        <button type="submit" id="signupBtn">
+            회원가입
+        </button>
+
+    </form>
+
+    <div class="login-link">
+
+        이미 회원이신가요?
+
+        <a href="login.html">
+            로그인
+        </a>
+
+    </div>
+
+</section>
+
+</main>
+
+<footer>
+
+    <p>© 2026 Reservation System</p>
+
+</footer>
+
+<script type="module" src="js/firebase.js"></script>
+<script type="module" src="js/auth.js"></script>
+
+</body>
+</html>
+</body>
+</html>
