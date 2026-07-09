@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>요가 예약</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/reservation.css">
+
+    <!-- FullCalendar -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+<header>
+
+    <h1>요가 예약</h1>
+
+    <nav>
+
+        <a href="index.html">홈</a>
+
+        <a href="board.html">게시판</a>
+
+        <a href="mypage.html">마이페이지</a>
+
+        <button id="logoutBtn">로그아웃</button>
+
+    </nav>
+
+</header>
+
+<main>
+
+<section class="calendar-container">
+
+    <h2>예약 달력</h2>
+
+    <div id="calendar"></div>
+
+</section>
+
+<section class="reservation-panel">
+
+    <h2>예약 정보</h2>
+
+    <div class="info-box">
+
+        <p>
+            📅 선택 날짜
+            <span id="selectedDate">
+                날짜를 선택하세요.
+            </span>
+        </p>
+
+        <p>
+            🧘 수업시간
+            <strong>19:00 ~ 20:00</strong>
+        </p>
+
+        <p>
+            👥 예약현황
+            <span id="currentCount">0</span> / 10명
+        </p>
+
+        <p>
+            💺 남은자리
+            <span id="remainCount">10</span>명
+        </p>
+
+        <button id="reserveBtn">
+            예약하기
+        </button>
+
+        <p id="message"></p>
+
+    </div>
+
+</section>
+
+<section class="notice">
+
+    <h3>예약 안내</h3>
+
+    <ul>
+
+        <li>월요일 ~ 금요일만 예약 가능합니다.</li>
+
+        <li>토요일 · 일요일은 예약이 불가능합니다.</li>
+
+        <li>공휴일은 예약이 불가능합니다.</li>
+
+        <li>지난 날짜는 예약할 수 없습니다.</li>
+
+        <li>하루 최대 예약 인원은 10명입니다.</li>
+
+        <li>정원이 차면 자동으로 예약이 마감됩니다.</li>
+
+    </ul>
+
+</section>
+
+</main>
+
+<footer>
+
+<p>© 2026 Yoga Reservation</p>
+
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js"></script>
+
+<script type="module" src="js/firebase.js"></script>
+<script type="module" src="js/calendar.js"></script>
+<script type="module" src="js/reservation.js"></script>
+
+</body>
+</html>
