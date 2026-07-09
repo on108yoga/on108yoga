@@ -33,3 +33,11 @@
     width: 100%;
     min-height: 600px;
 }
+
+.fc-event-title {
+    font-size: 14px;
+}
+
+.fc-daygrid-event {
+    white-space: normal;
+}
