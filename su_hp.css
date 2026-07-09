@@ -28,3 +28,8 @@
     background-color: #506e5c; 
     transform: translateY(-3px); 
 }
+
+#calendar {
+    width: 100%;
+    min-height: 600px;
+}
