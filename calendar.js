@@ -7,13 +7,15 @@ document.addEventListener("DOMContentLoaded", function () {
     console.log(calendarEl);
 
 
-    const calendar = new FullCalendar.Calendar(
-        calendarEl,
-        {
-            initialView: "dayGridMonth",
-            locale: "ko"
-        }
-    );
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+
+        initialView: "dayGridMonth",
+
+        locale: "ko",
+
+        height: "auto"
+
+    });
 
 
     calendar.render();
