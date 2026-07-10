@@ -3,8 +3,19 @@ console.log("auth.js 실행");
 import { auth, db } from "./firebase.js";
 
 import {
+createUserWithEmailAndPassword,
+signInWithEmailAndPassword,
+signOut,
+onAuthStateChanged
+}
+from
+"https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+
+
+import {
 doc,
-setDoc
+setDoc,
+getDoc
 }
 from
 "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
@@ -57,7 +68,7 @@ try {
                 email:email
             }
         );
-    );
+
 
 
 alert("🎉 회원가입이 완료되었습니다.");
@@ -195,7 +206,7 @@ location.href =
 // 로그인 상태 확인
 // =================
 
-onAuthStateChanged(auth, (user)=>{
+onAuthStateChanged(auth, async (user)=>{
 
 
 const userInfo =
@@ -247,9 +258,6 @@ userInfo.innerHTML =
 `👋 ${userName}님`;
 
 }
-
-}
-
         
 /* */
 
