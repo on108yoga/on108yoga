@@ -1,6 +1,3 @@
-// calendar.js
-let selectedDayEl = null;
-
 document.addEventListener("DOMContentLoaded", () => {
 
     const holidays = [
@@ -14,81 +11,60 @@ document.addEventListener("DOMContentLoaded", () => {
         "2026-12-25"
     ];
 
-    const calendar = new FullCalendar.Calendar(
-        document.getElementById("calendar"),
-        {
+    const calendarEl = document.getElementById("calendar");
 
-            initialView:"dayGridMonth",
+    const calendar = new FullCalendar.Calendar(calendarEl, {
 
-            locale:"ko",
+        initialView: "dayGridWeek",
 
-            height:"auto",
+        locale: "ko",
 
-            displayEventTime:false,
-            dayCellDidMount:function(info){
-            info.el.style.cursor = "pointer";
-            },
+        firstDay: 1,
 
-            dateClick:function(info){
+        headerToolbar: {
+            left: "prev",
+            center: "title",
+            right: "next"
+        },
 
-                const clickedDate = new Date(info.dateStr);
+        height: "auto",
 
-                const today = new Date();
+        selectable: true,
 
-                today.setHours(0,0,0,0);
+        displayEventTime: false,
 
-                if(clickedDate < today){
+        dateClick(info){
 
-                    alert("지난 날짜는 예약할 수 없습니다.");
+            const clickedDate = new Date(info.dateStr);
 
-                    return;
+            const today = new Date();
 
-                }
+            today.setHours(0,0,0,0);
 
-                if(
-                    clickedDate.getDay()==0 ||
-                    clickedDate.getDay()==6
-                ){
+            if(clickedDate < today){
+                alert("지난 날짜는 예약할 수 없습니다.");
+                return;
+            }
 
-                    alert("주말은 예약이 불가능합니다.");
+            if(clickedDate.getDay()==0 || clickedDate.getDay()==6){
+                alert("주말은 예약이 불가능합니다.");
+                return;
+            }
 
-                    return;
+            if(holidays.includes(info.dateStr)){
+                alert("공휴일은 예약이 불가능합니다.");
+                return;
+            }
 
-                }
+            document.getElementById("selectedDate").innerText = info.dateStr;
 
-                if(
-                    holidays.includes(info.dateStr)
-                ){
-
-                    alert("공휴일은 예약이 불가능합니다.");
-
-                    return;
-
-                }
-
-           // 이전 선택 날짜 색상 제거
-            if(selectedDayEl){            
-                selectedDayEl.classList.remove(
-                    "selected-date"
-                );            
-            }        
-            
-            // 현재 선택 날짜 색상 추가
-            info.dayEl.classList.add(
-                "selected-date"
-            );           
-            
-            selectedDayEl = info.dayEl;          
-                        
-            document.getElementById(
-                "selectedDate"
-            ).innerText = info.dateStr;           
-            
-            window.setSelectedDate(info.dateStr);
+            if(window.setSelectedDate){
+                window.setSelectedDate(info.dateStr);
             }
 
         }
-    );
+
+    });
 
     calendar.render();
 
