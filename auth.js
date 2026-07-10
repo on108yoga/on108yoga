@@ -1,3 +1,5 @@
+console.log("auth.js 실행");
+
 import { auth } from "./firebase.js";
 
 
