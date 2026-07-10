@@ -209,6 +209,26 @@ location.href =
 onAuthStateChanged(auth, async (user)=>{
 
 
+const userInfo =
+document.getElementById("userInfo");
+
+
+const loginLink =
+document.getElementById("loginLink");
+
+
+const signupLink =
+document.getElementById("signupLink");
+
+
+const reservationLink =
+document.getElementById("reservationLink");
+
+
+const logoutBtn =
+document.getElementById("logoutBtn");
+
+
 if(user){
 
 const userDoc =
