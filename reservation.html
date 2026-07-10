@@ -10,6 +10,9 @@
     <!-- FullCalendar -->   
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.css" rel="stylesheet"/>
     <style>
+        main{
+             background-color: #ebebeb;
+        }
         h1 {
             background-color: rgb(64, 83, 70);
             text-align: center;
@@ -35,6 +38,17 @@
         }
         #selectedDate{          
             background-color: rgb(190, 231, 221);
+        }
+        button{
+            background-color: #fff;
+            border: 0 solid red;
+            margin: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 7px rgba(0, 0, 0, 0.2);
+        }
+ 
+        li{
+            font-size: 14px;
         }
     </style>
 </head>
@@ -93,23 +107,23 @@
 
 <div id="timeButtons">
 <button class="time-btn" data-time="09:30">
-09:30
-<span>0 / 10</span>
+09:30 <br>
+<span> 예약 0 / 10 명</span>
 </button>
     
 <button class="time-btn" data-time="11:00">
-11:00
-<span>0 / 10</span>
+11:00 <br>
+<span>예약 0 / 10 명</span>
 </button>
 
 <button class="time-btn" data-time="18:30">
-18:30
-<span>0 / 10</span>
+18:30 <br>
+<span>예약 0 / 10 명</span>
 </button>
     
 <button class="time-btn" data-time="20:00">
-20:00
-<span>0 / 10</span>
+20:00 <br>
+<span>예약 0 / 10 명</span>
 </button>
 
 </div>
