@@ -33,8 +33,7 @@
         .reservation{
             display: flex;
         }
-        #select{
-          
+        #selectedDate{          
             background-color: rgb(190, 231, 221);
         }
     </style>
@@ -58,138 +57,95 @@
 <main>
 <hr>
 <h3>Calendar</h3>
-<section class="calendar-container">
+    
+<!-- 캘린더 -->
+<section class="week-calendar">
 
-        <div id="calendar"></div>
+    <div class="week-header">
+
+        <button id="prevWeek">◀</button>
+
+        <h2 id="weekTitle">
+            이번 주
+        </h2>
+
+        <button id="nextWeek">▶</button>
+
+    </div>
+
+
+    <div id="weekDays" class="week-days">
+
+        <!-- JS가 자동 생성 -->
+
+    </div>
 
 </section>
 
+ <!-- 예약 패널 -->
 <section class="reservation-panel">
 
-<section class="reservation-panel">
-
-<hr>
-    <div class="reservation">
-<h3>Reservation:</h3>&nbsp;
-<p id="select">
-
+<h3>
 <span id="selectedDate">
-날짜를 선택하세요.
+날짜를 선택하세요
 </span>
-</p>
-    </div>
+</h3>
 
-<div id="timeList">
+<div id="timeButtons">
+<button class="time-btn" data-time="09:30">
+09:30
+<span>0 / 10</span>
+</button>
+    
+<button class="time-btn" data-time="11:00">
+11:00
+<span>0 / 10</span>
+</button>
 
-    <div class="time-card">
-        <h3>🧘 09:30</h3>
-
-        <p>
-            예약 :
-            <span id="count0930">0</span>/10
-        </p>
-
-        <button
-            class="reserveBtn"
-            data-time="09:30">
-            예약하기
-        </button>
-    </div>
-
-
-    <div class="time-card">
-        <h3>🧘 11:00</h3>
-
-        <p>
-            예약 :
-            <span id="count1100">0</span>/10
-        </p>
-
-        <button
-            class="reserveBtn"
-            data-time="11:00">
-            예약하기
-        </button>
-    </div>
-
-
-    <div class="time-card">
-        <h3>🧘 18:30</h3>
-
-        <p>
-            예약 :
-            <span id="count1830">0</span>/10
-        </p>
-
-        <button
-            class="reserveBtn"
-            data-time="18:30">
-            예약하기
-        </button>
-    </div>
-
-
-    <div class="time-card">
-        <h3>🧘 20:00</h3>
-
-        <p>
-            예약 :
-            <span id="count2000">0</span>/10
-        </p>
-
-        <button
-            class="reserveBtn"
-            data-time="20:00">
-            예약하기
-        </button>
-    </div>
+<button class="time-btn" data-time="18:30">
+18:30
+<span>0 / 10</span>
+</button>
+    
+<button class="time-btn" data-time="20:00">
+20:00
+<span>0 / 10</span>
+</button>
 
 </div>
 
+<button id="reserveBtn">
+예약하기
+</button>
+
 </section>
+
+ <!-- 예약 안내 -->
 <hr>
 <section class="notice">
-
     <h3>예약 안내</h3>
-
     <ul>
-
         <li>월요일 ~ 금요일만 예약 가능합니다.</li>
-
         <li>토요일 · 일요일은 예약이 불가능합니다.</li>
-
         <li>공휴일은 예약이 불가능합니다.</li>
-
         <li>지난 날짜는 예약할 수 없습니다.</li>
-
         <li>하루 최대 예약 인원은 10명입니다.</li>
-
         <li>정원이 차면 자동으로 예약이 마감됩니다.</li>
-
     </ul>
-
 </section>
-
 </main>
-
+    
 <footer>
-
 <p>© 2026 Yoga Reservation</p>
-
 </footer>
 
-
     <script>
-
 document.addEventListener("DOMContentLoaded",function(){
-
 let calendar =
 new FullCalendar.Calendar(
 document.getElementById("calendar"),
 {
-
 initialView:"dayGridMonth",
-
 events:[
 {
 title:"테스트 예약",
