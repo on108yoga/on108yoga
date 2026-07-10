@@ -217,15 +217,25 @@ document.getElementById("reservationLink");
 const logoutBtn =
 document.getElementById("logoutBtn");
 
-
-
+/* 로그인 시 이름 등장 */
 if(user){
 
-
-console.log(
-"로그인 UID:",
-user.uid
+const userDoc =
+await getDoc(
+doc(db,"users",user.uid)
 );
+
+
+let userName =
+user.email;
+
+
+if(userDoc.exists()){
+
+userName =
+userDoc.data().name;
+
+}
 
 
 
@@ -234,11 +244,14 @@ if(userInfo){
 userInfo.style.display="inline";
 
 userInfo.innerHTML =
-`👋 ${user.email}님`;
+`👋 ${userName}님`;
 
 }
 
+}
 
+        
+/* */
 
 if(loginLink)
 loginLink.style.display="none";
