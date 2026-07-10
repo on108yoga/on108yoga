@@ -1,71 +1,156 @@
-document.addEventListener("DOMContentLoaded", () => {
+let currentDate = new Date();
 
-    const holidays = [
-        "2026-01-01",
-        "2026-03-01",
-        "2026-05-05",
-        "2026-06-06",
-        "2026-08-15",
-        "2026-10-03",
-        "2026-10-09",
-        "2026-12-25"
-    ];
+let selectedDate="";
 
-    const calendarEl = document.getElementById("calendar");
 
-    const calendar = new FullCalendar.Calendar(calendarEl, {
+const weekCalendar =
+document.getElementById("weekCalendar");
 
-        initialView: "dayGridWeek",
 
-        locale: "ko",
+const monthTitle =
+document.getElementById("monthTitle");
 
-        firstDay: 1,
 
-        headerToolbar: {
-            left: "prev",
-            center: "title",
-            right: "next"
-        },
 
-        height: "auto",
+function renderWeek(){
 
-        selectable: true,
 
-        displayEventTime: false,
+weekCalendar.innerHTML="";
 
-        dateClick(info){
 
-            const clickedDate = new Date(info.dateStr);
+let day =
+new Date(currentDate);
 
-            const today = new Date();
 
-            today.setHours(0,0,0,0);
 
-            if(clickedDate < today){
-                alert("지난 날짜는 예약할 수 없습니다.");
-                return;
-            }
+day.setDate(
+currentDate.getDate() -
+currentDate.getDay()
+);
 
-            if(clickedDate.getDay()==0 || clickedDate.getDay()==6){
-                alert("주말은 예약이 불가능합니다.");
-                return;
-            }
 
-            if(holidays.includes(info.dateStr)){
-                alert("공휴일은 예약이 불가능합니다.");
-                return;
-            }
 
-            document.getElementById("selectedDate").innerText = info.dateStr;
+monthTitle.innerText =
+`${day.getFullYear()}년 ${day.getMonth()+1}월`;
 
-            if(window.setSelectedDate){
-                window.setSelectedDate(info.dateStr);
-            }
 
-        }
 
-    });
+for(let i=0;i<7;i++){
 
-    calendar.render();
 
-});
+let date =
+new Date(day);
+
+
+date.setDate(
+day.getDate()+i
+);
+
+
+
+let dateBox =
+document.createElement("div");
+
+
+dateBox.className="day-box";
+
+
+
+dateBox.innerHTML=
+`
+<span>
+${date.getDate()}
+</span>
+`;
+
+
+
+let yyyy =
+date.getFullYear();
+
+let mm =
+String(date.getMonth()+1).padStart(2,"0");
+
+let dd =
+String(date.getDate()).padStart(2,"0");
+
+
+let dateString =
+`${yyyy}-${mm}-${dd}`;
+
+
+
+dateBox.onclick=()=>{
+
+
+document
+.querySelectorAll(".day-box")
+.forEach(el=>
+el.classList.remove("selected")
+);
+
+
+
+dateBox.classList.add("selected");
+
+
+selectedDate=dateString;
+
+
+
+document.getElementById("selectedDate")
+.innerText=dateString;
+
+
+
+if(window.setSelectedDate){
+
+window.setSelectedDate(dateString);
+
+}
+
+
+
+};
+
+
+
+weekCalendar.appendChild(dateBox);
+
+
+}
+
+
+}
+
+
+
+document
+.getElementById("prevWeek")
+.onclick=()=>{
+
+currentDate.setDate(
+currentDate.getDate()-7
+);
+
+renderWeek();
+
+}
+
+
+
+document
+.getElementById("nextWeek")
+.onclick=()=>{
+
+currentDate.setDate(
+currentDate.getDate()+7
+);
+
+renderWeek();
+
+}
+
+
+
+renderWeek();
