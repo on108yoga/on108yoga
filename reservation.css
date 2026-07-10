@@ -58,6 +58,24 @@ cursor: pointer;
 
 }
 
+/* 선택한 예약 날짜 */
+.selected-date {
+
+    background-color:#b8e0d2 !important;
+
+    border-radius:10px;
+
+}
+
+/* 날짜 hover 효과 */
+.fc-daygrid-day:hover {
+
+    background-color:#fff0d5;
+
+    cursor:pointer;
+
+}
+
 .reserveBtn:hover{
     background:#43a047;
 }
