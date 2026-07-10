@@ -125,7 +125,7 @@
             font-weight: bold;           
         }
 
-        .menu2{
+        .navbar{
             justify-content: center;
             background-color: #fff;
             display: flex;
@@ -250,13 +250,13 @@
             </ul>
         </nav>
 
-        <nav class="menu2">
-            <a href="signup.html">회원가입</a>
-            <a href="login.html">로그인</a>
-            <a href="reservation.html">예약</a>
-            <a href="board.html">게시판</a>
-            <a href="mypage.html">마이페이지</a>
-            <span id="loginMenu"></span>
+     <nav class="navbar">
+        <a href="index.html">홈</a>
+        <a href="login.html" id="loginLink">로그인</a>
+        <a href="signup.html" id="signupLink">회원가입</a>
+        <a href="reservation.html" id="reservationLink" style="display:none;">예약</a>
+        <span id="userInfo" style="display:none;"></span>
+        <button id="logoutBtn" style="display:none;">로그아웃</button>
         </nav>
         
     </header>
