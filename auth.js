@@ -193,17 +193,10 @@ location.href =
 
 }
 
-
-
 // =================
 // 로그인 상태 확인
 // =================
 
-// =================
-// 로그인 상태 확인
-// =================
-
-/* 
 onAuthStateChanged(auth, async (user)=>{
 
 
@@ -227,32 +220,59 @@ const logoutBtn =
 document.getElementById("logoutBtn");
 
 
+
 if(user){
 
-const userDoc =
-await getDoc(
-    doc(db,"users",user.uid)
-);
+
+console.log("로그인 UID:", user.uid);
+
 
 
 let userName = user.email;
 
 
+
+try{
+
+
+const userDoc =
+await getDoc(
+doc(db,"users",user.uid)
+);
+
+
+
 if(userDoc.exists()){
 
-    userName = userDoc.data().name;
+userName =
+userDoc.data().name;
 
 }
+
+
+}
+
+catch(error){
+
+console.log(
+"사용자 정보 불러오기 실패",
+error
+);
+
+}
+
+
 
 
 if(userInfo){
 
-    userInfo.style.display="inline";
+userInfo.style.display="inline";
 
-    userInfo.innerHTML =
-    `👋 ${userName}님`;
+userInfo.innerHTML =
+`👋 ${userName}님`;
 
 }
+
 
 
 if(loginLink)
@@ -272,6 +292,7 @@ logoutBtn.style.display="inline";
 
 
 }
+
 
 
 else{
@@ -300,5 +321,4 @@ logoutBtn.style.display="none";
 }
 
 
-}); */
- 
+});
