@@ -1,143 +1,126 @@
-/* =========================
-   FullCalendar 디자인 변경
-========================= */
+.custom-calendar{
 
-.week-calendar{
+background:#fffaf0;
 
-    background:#fffaf0;
-    padding:25px;
-    border-radius:25px;
-    box-shadow:0 8px 25px rgba(0,0,0,0.08);
+padding:25px;
 
-}
+border-radius:25px;
 
-
-/* 캘린더 전체 */
-
-#calendar{
-
-    background:white;
-    border-radius:20px;
-    padding:15px;
+box-shadow:0 5px 20px rgba(0,0,0,.1);
 
 }
 
 
 
-/* 상단 제목 */
+.calendar-header{
 
-.fc-toolbar-title{
+display:flex;
 
-    color:#405346;
-    font-size:24px !important;
-    font-weight:500;
-    letter-spacing:2px;
+justify-content:space-between;
 
-}
-
-
-
-/* 버튼 */
-
-.fc-button{
-
-    background:#405346 !important;
-    border:none !important;
-    border-radius:50px !important;
-    padding:8px 18px !important;
-
-}
-
-
-.fc-button:hover{
-
-    background:#718a78 !important;
+align-items:center;
 
 }
 
 
 
-/* 요일 */
+.calendar-header h2{
 
-.fc-col-header-cell{
+font-size:22px;
 
-    background:#dce9df;
-    padding:12px 0;
-    border:none !important;
-
-}
-
-
-.fc-col-header-cell-cushion{
-
-    color:#405346;
-    text-decoration:none;
-    font-weight:bold;
+color:#405346;
 
 }
 
 
 
-/* 날짜 영역 */
+.calendar-header button{
 
-.fc-daygrid-day{
+border:none;
 
-    height:70px;
-    border:none !important;
-    cursor:pointer;
+background:#405346;
 
-}
+color:white;
 
+width:40px;
 
+height:40px;
 
-.fc-daygrid-day-frame{
+border-radius:50%;
 
-    display:flex;
-    justify-content:center;
-    align-items:center;
+cursor:pointer;
 
 }
 
 
 
-/* 날짜 숫자 */
+.week-name{
 
-.fc-daygrid-day-number{
+display:grid;
 
-    width:38px;
-    height:38px;
+grid-template-columns:repeat(7,1fr);
 
-    display:flex;
-    justify-content:center;
-    align-items:center;
+text-align:center;
 
-    border-radius:50%;
+margin-top:20px;
 
-    color:#405346;
-    text-decoration:none;
+color:#777;
+
+font-weight:bold;
 
 }
 
 
 
-/* 마우스 올림 */
+#weekCalendar{
 
-.fc-daygrid-day:hover 
-.fc-daygrid-day-number{
+display:grid;
 
-    background:#f2dfc6;
+grid-template-columns:repeat(7,1fr);
+
+margin-top:10px;
 
 }
 
 
 
-/* 오늘 날짜 */
+.day-box{
 
-.fc-day-today 
-.fc-daygrid-day-number{
+height:55px;
 
-    background:#dce9df;
-    color:#405346;
+display:flex;
+
+justify-content:center;
+
+align-items:center;
+
+cursor:pointer;
+
+}
+
+
+
+.day-box span{
+
+width:40px;
+
+height:40px;
+
+display:flex;
+
+justify-content:center;
+
+align-items:center;
+
+border-radius:50%;
+
+}
+
+
+
+.day-box:hover span{
+
+background:#f2dfc6;
 
 }
 
@@ -145,29 +128,12 @@
 
 /* 선택 날짜 */
 
-.selected-day
-.fc-daygrid-day-number{
+.day-box.selected span{
 
-    background:#405346;
-    color:white;
+background:#4a90e2;
 
-}
+color:white;
 
-
-
-/* 주말 */
-
-.fc-day-sun 
-.fc-daygrid-day-number{
-
-    color:#d46a6a;
-
-}
-
-
-.fc-day-sat 
-.fc-daygrid-day-number{
-
-    color:#6688bb;
+font-weight:bold;
 
 }
