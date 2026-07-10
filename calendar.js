@@ -2,6 +2,21 @@ let currentDate = new Date();
 
 let selectedDate="";
 
+/* 고정 공휴일 배열 */
+const holidays = [
+    "01-01", // 신정
+    "03-01", // 삼일절
+    "05-05", // 어린이날
+    "06-06", // 현충일
+    "08-15", // 광복절
+    "10-03", // 개천절
+    "10-09", // 한글날
+    "12-25"  // 크리스마스
+];
+
+/* 변동 공휴일
+
+*/
 
 const weekCalendar =
 document.getElementById("weekCalendar");
@@ -51,11 +66,14 @@ day.getDate()+i
 let dateBox =
 document.createElement("div");
 
-
 dateBox.className="day-box";
+// 일요일
+if(date.getDay()===0){    dateBox.classList.add("sunday");}
 
+// 토요일
+if(date.getDay()===6){    dateBox.classList.add("saturday");}
 
-
+  
 dateBox.innerHTML=
 `
 <span>
@@ -78,11 +96,27 @@ String(date.getDate()).padStart(2,"0");
 let dateString =
 `${yyyy}-${mm}-${dd}`;
 
+// 일요일
+if(date.getDay()===0){
+    dateBox.classList.add("sunday");
+}
+
+// 토요일
+if(date.getDay()===6){
+    dateBox.classList.add("saturday");
+}
+
+// 공휴일
+const monthDay =
+`${mm}-${dd}`;
+if(fixedHolidays.includes(monthDay)){
+    dateBox.classList.add("holiday");
+}
 
 
+/* 클릭 이벤트 */
 dateBox.onclick=()=>{
-
-
+  
 document
 .querySelectorAll(".day-box")
 .forEach(el=>
@@ -108,8 +142,6 @@ if(window.setSelectedDate){
 window.setSelectedDate(dateString);
 
 }
-
-
 
 };
 
