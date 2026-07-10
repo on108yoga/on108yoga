@@ -17,7 +17,7 @@ onAuthStateChanged
 
 from
 
-"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+"https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
 
 
@@ -49,37 +49,25 @@ document.getElementById("password").value;
 
 
 
-try{
+try {
 
-
-const userCredential =
-
-await createUserWithEmailAndPassword(
-auth,
-email,
-password
-);
-
+    await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+    );
 
 
 alert("🎉 회원가입이 완료되었습니다.");
 
-location.href = "/index.html";
-  
-
-// 자동 로그인 상태
-
-location.href =
-"index.html";
-
-
+location.href = "index.html";
 
 }
 
 catch(error){
 
 
-alert(error.message);
+  alert(error.message);
 
 
 }
@@ -140,9 +128,7 @@ password
 
 alert("✅ 로그인 되었습니다.");
 
-location.href = "/index.html";
-
-
+location.href = "index.html";
 
 }
 
