@@ -7,13 +7,28 @@
 
     <link rel="stylesheet" href="./reservation.css">
 
-    <!-- FullCalendar -->
-    https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js
+    <!-- FullCalendar -->   
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.css" rel="stylesheet"/>
     <style>
-        h2{
-            background-color: #d1ffe6;
-            border-radius: 10px;
+        h1 {
+            background-color: rgb(64, 83, 70);
+            text-align: center;
+            letter-spacing: 0.3em;
+            text-shadow: 2px 2px 2px #fff, -2px -2px 2px #fff;
+            color: rgb(64, 83, 70);
+            margin: 0;
+            padding: 20px 0;
+        }
+        h3{
+            
+        }
+        .menu{
+             display: flex;
+            justify-content: center; 
+            align-items: center;
+            gap: 15px;
+            padding: 10px;
+            font-size: 14px;
         }
     </style>
 </head>
@@ -22,29 +37,22 @@
 
 <header>
 
-    <h1>예약</h1>
+    <h1>YOGA</h1>
 
-    <nav>
-
-        <a href="index.html">홈</a>
-
-        <a href="board.html">게시판</a>
-
-        <a href="mypage.html">마이페이지</a>
-
-        <button id="logoutBtn">로그아웃</button>
-
+    <nav class="menu">
+        <a href="index.html">home</a>
+        <a href="mypage.html">mypage</a>
+        <button id="logoutBtn">logout</button>
     </nav>
 
 </header>
 
 <main>
-
+<hr>
+<h3>Calendar</h3>
 <section class="calendar-container">
 
-    <h2>예약 달력</h2>
-
-    <div id="calendar"></div>
+        <div id="calendar"></div>
 
 </section>
 
@@ -52,7 +60,8 @@
 
 <section class="reservation-panel">
 
-<h2>예약 정보</h2>
+<hr>
+<h3>Reservation</h3>
 
 <p>
 선택 날짜 :
@@ -130,7 +139,7 @@
 </div>
 
 </section>
-
+<hr>
 <section class="notice">
 
     <h3>예약 안내</h3>
