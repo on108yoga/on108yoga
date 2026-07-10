@@ -1,24 +1,13 @@
 console.log("auth.js 실행");
 
-import { auth } from "./firebase.js";
-
+import { auth, db } from "./firebase.js";
 
 import {
-
-createUserWithEmailAndPassword,
-
-signInWithEmailAndPassword,
-
-signOut,
-
-onAuthStateChanged
-
+doc,
+setDoc
 }
-
 from
-
-"https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
-
+"https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
 
 // =================
@@ -39,6 +28,8 @@ async(e)=>{
 e.preventDefault();
 
 
+const name =
+document.getElementById("name").value;
 
 const email =
 document.getElementById("email").value;
@@ -50,11 +41,22 @@ document.getElementById("password").value;
 
 
 try {
-
-    await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
+        /* 가입 성공 */
+          const userCredential =
+            await createUserWithEmailAndPassword(
+            auth,
+            email,
+            password
+        );
+        
+        
+            await setDoc(
+            doc(db,"users",userCredential.user.uid),
+            {
+                name:name,
+                email:email
+            }
+        );
     );
 
 
