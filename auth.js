@@ -189,13 +189,36 @@ location.href =
 // 로그인 상태 확인
 // =================
 
+// =================
+// 로그인 상태 확인
+// =================
 
-onAuthStateChanged(
-auth,
-(user)=>{
+onAuthStateChanged(auth, (user)=>{
+
+
+const userInfo =
+document.getElementById("userInfo");
+
+
+const loginLink =
+document.getElementById("loginLink");
+
+
+const signupLink =
+document.getElementById("signupLink");
+
+
+const reservationLink =
+document.getElementById("reservationLink");
+
+
+const logoutBtn =
+document.getElementById("logoutBtn");
+
 
 
 if(user){
+
 
 console.log(
 "로그인 UID:",
@@ -203,13 +226,58 @@ user.uid
 );
 
 
+
+if(userInfo){
+
+userInfo.style.display="inline";
+
+userInfo.innerHTML =
+`👋 ${user.email}님`;
+
+}
+
+
+
+if(loginLink)
+loginLink.style.display="none";
+
+
+if(signupLink)
+signupLink.style.display="none";
+
+
+if(reservationLink)
+reservationLink.style.display="inline";
+
+
+if(logoutBtn)
+logoutBtn.style.display="inline";
+
+
+
 }
 
 else{
 
-console.log(
-"로그아웃 상태"
-);
+
+if(userInfo)
+userInfo.style.display="none";
+
+
+if(loginLink)
+loginLink.style.display="inline";
+
+
+if(signupLink)
+signupLink.style.display="inline";
+
+
+if(reservationLink)
+reservationLink.style.display="none";
+
+
+if(logoutBtn)
+logoutBtn.style.display="none";
 
 
 }
