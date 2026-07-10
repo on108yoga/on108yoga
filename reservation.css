@@ -70,7 +70,47 @@ font-weight:bold;
 
 }
 
+/* 요일 색상 */
 
+.week-name div:first-child{
+    color:#d9534f;   /* 일요일 빨강 */
+}
+
+
+.week-name div:last-child{
+    color:#4a90e2;   /* 토요일 파랑 */
+}
+
+
+
+/* 날짜 색상 */
+
+.day-box.sunday span{
+
+    color:#d9534f;
+
+}
+
+
+.day-box.saturday span{
+
+    color:#4a90e2;
+
+}
+
+
+/* 공휴일 */
+
+.day-box.holiday span{
+
+    color:#d9534f;
+
+    font-weight:bold;
+
+}
+
+
+/* week 캘린더*/
 
 #weekCalendar{
 
