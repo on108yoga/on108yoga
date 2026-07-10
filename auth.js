@@ -73,7 +73,7 @@ try {
 
 alert("🎉 회원가입이 완료되었습니다.");
 
-location.href = "index.html";
+window.location.href="index.html";
 
 }
 
