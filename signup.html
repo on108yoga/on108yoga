@@ -152,7 +152,37 @@
 <script type="module" src="firebase.js"></script>
 <script type="module" src="signup.js"></script>
 
-</body>
-</html>
+    <script type="module">
+        try {
+        
+            await createUserWithEmailAndPassword(auth, email, password);
+        
+            alert("🎉 회원가입이 완료되었습니다.");
+        
+            window.location.href = "index.html";
+        
+        } catch (error) {
+        
+            switch (error.code) {
+        
+                case "auth/email-already-in-use":
+                    alert("이미 가입된 이메일입니다.");
+                    break;
+        
+                case "auth/weak-password":
+                    alert("비밀번호는 6자 이상 입력해주세요.");
+                    break;
+        
+                case "auth/invalid-email":
+                    alert("올바른 이메일 형식이 아닙니다.");
+                    break;
+        
+                default:
+                    alert("회원가입에 실패했습니다.");
+            }
+        
+        }
+    </script>
+
 </body>
 </html>
