@@ -209,57 +209,33 @@ location.href =
 onAuthStateChanged(auth, async (user)=>{
 
 
-const userInfo =
-document.getElementById("userInfo");
-
-
-const loginLink =
-document.getElementById("loginLink");
-
-
-const signupLink =
-document.getElementById("signupLink");
-
-
-const reservationLink =
-document.getElementById("reservationLink");
-
-
-const logoutBtn =
-document.getElementById("logoutBtn");
-
-/* 로그인 시 이름 등장 */
 if(user){
 
 const userDoc =
 await getDoc(
-doc(db,"users",user.uid)
+    doc(db,"users",user.uid)
 );
 
 
-let userName =
-user.email;
+let userName = user.email;
 
 
 if(userDoc.exists()){
 
-userName =
-userDoc.data().name;
+    userName = userDoc.data().name;
 
 }
-
 
 
 if(userInfo){
 
-userInfo.style.display="inline";
+    userInfo.style.display="inline";
 
-userInfo.innerHTML =
-`👋 ${userName}님`;
+    userInfo.innerHTML =
+    `👋 ${userName}님`;
 
 }
-        
-/* */
+
 
 if(loginLink)
 loginLink.style.display="none";
@@ -277,8 +253,8 @@ if(logoutBtn)
 logoutBtn.style.display="inline";
 
 
-
 }
+
 
 else{
 
