@@ -126,37 +126,5 @@
 <script type="module" src="/js/firebase.js"></script>
 <script type="module" src="/js/auth.js"></script>
 
-    <script type="module">
-        try {
-    
-        await signInWithEmailAndPassword(auth, email, password);
-    
-        alert("✅ 로그인 되었습니다.");
-    
-        window.location.href = "index.html";
-    
-            } catch (error) {
-        
-                switch (error.code) {
-        
-                case "auth/invalid-credential":
-                    alert("이메일 또는 비밀번호가 올바르지 않습니다.");
-                    break;
-        
-                case "auth/user-disabled":
-                    alert("사용이 중지된 계정입니다.");
-                    break;
-        
-                case "auth/too-many-requests":
-                    alert("로그인 시도가 너무 많습니다. 잠시 후 다시 시도해주세요.");
-                    break;
-        
-                default:
-                    alert("로그인에 실패했습니다.");
-            }
-
-        }
-    </script>   
-
 </body>
 </html>
