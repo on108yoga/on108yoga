@@ -7,8 +7,10 @@
 
     <link rel="stylesheet" href="./reservation.css">
 
-    <!-- FullCalendar -->   
+    <!-- FullCalendar   
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.css" rel="stylesheet"/>
+    --> 
+    
     <style>
         main{
              background-color: #ebebeb;
@@ -153,31 +155,7 @@
 <p>© 2026 Yoga Reservation</p>
 </footer>
 
-    <script>
-document.addEventListener("DOMContentLoaded",function(){
-let calendar =
-new FullCalendar.Calendar(
-document.getElementById("calendar"),
-{
-initialView:"dayGridMonth",
-events:[
-{
-title:"테스트 예약",
-start:new Date()
-}
-]
 
-});
-
-
-calendar.render();
-
-});
-
-</script>
-    
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js"></script>
-<script type="module" src="calendar.js"></script>
 <script type="module" src="reservation.js"></script>
 <script type="module" src="firebase.js"></script>
 <script type="module" src="auth.js"></script>   
