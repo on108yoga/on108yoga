@@ -1,4 +1,6 @@
 // reservation.js
+let selectedDate = "";
+let selectedTime = "";
 
 import { auth, db } from "./firebase.js";
 
@@ -19,10 +21,6 @@ addDoc
 from
 
 "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-
-
-let selectedDate="";
 
 
 
@@ -87,48 +85,55 @@ async function loadReservation(){
 }
 
 
-
+/* 시간 버튼 */
 document
-.querySelectorAll(".reserveBtn")
+.querySelectorAll(".time-btn")
 .forEach(btn=>{
 
+btn.addEventListener("click",()=>{
 
-btn.addEventListener(
-"click",
+        // 이전 선택 제거
+        document
+        .querySelectorAll(".time-btn")
+        .forEach(b=>b.classList.remove("selected"));
 
-async()=>{
+        // 현재 버튼 선택
+        btn.classList.add("selected");
 
+        // 선택한 시간 저장
+        selectedTime = btn.dataset.time;
 
-const time = btn.dataset.time;
-
-
-
-await addDoc(
-
-collection(db,"reservations"),
-
-{
-
-uid:auth.currentUser.uid,
-
-date:selectedDate,
-
-time:time,
-
-createdAt:new Date()
-
-}
-
-
-);
-
-
-
-loadReservation();
-
+});
 
 
 });
 
+/* 예약하기 버튼 */ 
+document.getElementById("reserveBtn")
+.addEventListener("click", async()=>{
+
+    if(!selectedDate){
+        alert("날짜를 선택해주세요.");
+        return;
+    }
+
+    if(!selectedTime){
+        alert("시간을 선택해주세요.");
+        return;
+    }
+
+    await addDoc(
+        collection(db,"reservations"),
+        {
+            uid: auth.currentUser.uid,
+            date: selectedDate,
+            time: selectedTime,
+            createdAt: new Date()
+        }
+    );
+
+    alert("예약이 완료되었습니다.");
+
+    loadReservation();
 
 });
