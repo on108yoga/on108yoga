@@ -1,0 +1,44 @@
+.reservation-panel{
+    margin-top:30px;
+}
+
+#timeList{
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+}
+
+.time-card{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:15px 20px;
+    border:1px solid #ddd;
+    border-radius:10px;
+    background:#fff;
+}
+
+.time-card h3{
+    margin:0;
+    width:90px;
+}
+
+.time-card p{
+    margin:0;
+    flex:1;
+    text-align:center;
+}
+
+.reserveBtn{
+    width:100px;
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    background:#4CAF50;
+    color:#fff;
+    cursor:pointer;
+}
+
+.reserveBtn:hover{
+    background:#43a047;
+}
