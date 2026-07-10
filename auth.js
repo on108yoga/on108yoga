@@ -60,9 +60,10 @@ password
 
 
 
-alert("회원가입 완료");
+alert("🎉 회원가입이 완료되었습니다.");
 
-
+location.href = "/index.html";
+  
 
 // 자동 로그인 상태
 
@@ -135,12 +136,9 @@ password
 
 
 
-alert("로그인 성공");
+alert("✅ 로그인 되었습니다.");
 
-
-
-location.href =
-"reservation.html";
+location.href = "/index.html";
 
 
 
