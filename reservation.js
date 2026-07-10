@@ -77,8 +77,10 @@ async function loadReservation(){
 
 
 
-        document.getElementById(id)
-        .innerText=count;
+        const element = document.getElementById(id);
+        if (element) {
+            element.innerText = count;
+        }
 
     }
 
@@ -112,6 +114,12 @@ btn.addEventListener("click",()=>{
 document.getElementById("reserveBtn")
 .addEventListener("click", async()=>{
 
+    if (!auth.currentUser) {
+    alert("로그인 후 예약해주세요.");
+    location.href = "login.html";
+    return;
+    }
+
     if(!selectedDate){
         alert("날짜를 선택해주세요.");
         return;
@@ -122,6 +130,36 @@ document.getElementById("reserveBtn")
         return;
     }
 
+    /* 중복 예약 방지 */
+    const q = query(
+    collection(db, "reservations"),
+    where("uid", "==", auth.currentUser.uid),
+    where("date", "==", selectedDate),
+    where("time", "==", selectedTime)
+    );
+    
+    const snapshot = await getDocs(q);
+    
+    if(!snapshot.empty){
+        alert("이미 예약한 시간입니다.");
+        return;
+    }
+
+    /* 정원 체크 */
+    const countQuery = query(
+    collection(db, "reservations"),
+    where("date", "==", selectedDate),
+    where("time", "==", selectedTime)
+    );
+    
+    const countSnapshot = await getDocs(countQuery);
+    
+    if(countSnapshot.size >= 10){
+        alert("예약이 마감되었습니다.");
+        return;
+    }
+    
+    /* addDoc */
     await addDoc(
         collection(db,"reservations"),
         {
