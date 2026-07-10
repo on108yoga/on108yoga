@@ -39,11 +39,12 @@
 
     <h1>YOGA</h1>
 
-    <nav class="menu">
-        <a href="index.html">home</a>
-        <a href="mypage.html">mypage</a>
-        <button id="logoutBtn">logout</button>
-    </nav>
+<nav class="menu">
+<a href="index.html">홈</a>
+<a href="reservation.html">예약</a>
+<span id="userInfo"></span>
+<button id="logoutBtn">로그아웃</button>
+</nav>
 
 </header>
 
@@ -170,25 +171,6 @@
 
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js"></script>
-<script type="module" src="js/firebase.js"></script>
-<script type="module" src="js/calendar.js"></script>
-<script type="module" src="js/reservation.js"></script>
-    
-<!--    <script>
-document.addEventListener("DOMContentLoaded", function(){
-
-    let calendar = new FullCalendar.Calendar(
-        document.getElementById("calendar"),
-        {
-            initialView:"dayGridMonth",
-            locale:"ko"
-        }
-    );
-
-    calendar.render();
-
-}); -->
 
     <script>
 
@@ -216,6 +198,11 @@ calendar.render();
 });
 
 </script>
-</script>
+
+<script type="module" src="calendar.js"></script>
+<script type="module" src="reservation.js"></script>
+<script type="module" src="firebase.js"></script>
+<script type="module" src="auth.js"></script>   
+    
 </body>
 </html>
