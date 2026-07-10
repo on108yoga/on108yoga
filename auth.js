@@ -112,6 +112,7 @@ async(e)=>{
 
 
 e.preventDefault();
+        console.log("로그인 버튼 이벤트 실행");
 
 
 
@@ -152,11 +153,7 @@ alert(
 "로그인 정보를 확인해주세요."
 );
 
-
-
 }
-
-
 
 });
 
@@ -206,6 +203,7 @@ location.href =
 // 로그인 상태 확인
 // =================
 
+/* 
 onAuthStateChanged(auth, async (user)=>{
 
 
@@ -302,4 +300,5 @@ logoutBtn.style.display="none";
 }
 
 
-});
+}); */
+ 
