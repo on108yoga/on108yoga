@@ -3,162 +3,132 @@
 import { auth, db } from "./firebase.js";
 
 import {
-    collection,
-    addDoc,
-    query,
-    where,
-    getDocs,
-    deleteDoc,
-    doc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-import {
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+collection,
+
+query,
+
+where,
+
+getDocs,
+
+addDoc
+
+}
+
+from
+
+"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
-// =========================
-// 설정
-// =========================
 
-const MAX_COUNT = 10;
+let selectedDate="";
 
-const CLASS_TIMES = [
-    "09:30",
-    "11:00",
-    "18:30",
-    "20:00"
+
+
+const classTimes=[
+
+"09:30",
+
+"11:00",
+
+"18:30",
+
+"20:00"
+
 ];
 
-let currentUser = null;
-let selectedDate = "";
 
-
-// =========================
-// 로그인 확인
-// =========================
-
-onAuthStateChanged(auth, (user) => {
-
-    currentUser = user;
-
-});
-
-
-// =========================
-// 날짜 선택
-// calendar.js에서 호출
-// =========================
 
 window.setSelectedDate = function(date){
 
     selectedDate = date;
 
-    loadReservationCount();
+    loadReservation();
 
 };
 
 
-// =========================
-// 시간별 예약 인원 조회
-// =========================
 
-async function loadReservationCount(){
+async function loadReservation(){
 
-    if(selectedDate === "") return;
-
-    for(const time of CLASS_TIMES){
+    for(const time of classTimes){
 
         const q = query(
+
             collection(db,"reservations"),
+
             where("date","==",selectedDate),
+
             where("time","==",time)
+
         );
+
+
 
         const snapshot = await getDocs(q);
 
+
+
         const count = snapshot.size;
 
-        const spanId = "count" + time.replace(":","");
 
-        const span = document.getElementById(spanId);
 
-        if(span){
+        const id =
+        "count"+time.replace(":","");
 
-            span.innerText = count;
 
-        }
+
+        document.getElementById(id)
+        .innerText=count;
 
     }
 
 }
 
 
-// =========================
-// 예약하기 버튼
-// =========================
 
-document.querySelectorAll(".reserveBtn").forEach(btn=>{
+document
+.querySelectorAll(".reserveBtn")
+.forEach(btn=>{
 
-    btn.addEventListener("click", async ()=>{
 
-        if(!currentUser){
+btn.addEventListener(
+"click",
 
-            alert("로그인 후 예약 가능합니다.");
+async()=>{
 
-            location.href="login.html";
 
-            return;
+const time = btn.dataset.time;
 
-        }
 
-        if(selectedDate===""){
 
-            alert("날짜를 선택하세요.");
+await addDoc(
 
-            return;
+collection(db,"reservations"),
 
-        }
+{
 
-        const time = btn.dataset.time;
+uid:auth.currentUser.uid,
 
-        const q = query(
-            collection(db,"reservations"),
-            where("date","==",selectedDate),
-            where("time","==",time)
-        );
+date:selectedDate,
 
-        const snapshot = await getDocs(q);
+time:time,
 
-        if(snapshot.size>=MAX_COUNT){
+createdAt:new Date()
 
-            alert("예약이 마감되었습니다.");
+}
 
-            return;
 
-        }
+);
 
-        await addDoc(
-            collection(db,"reservations"),
-            {
 
-                uid:currentUser.uid,
 
-                email:currentUser.email,
+loadReservation();
 
-                date:selectedDate,
 
-                time:time,
 
-                createdAt:new Date()
+});
 
-            }
-        );
-
-        alert("예약 완료");
-
-        loadReservationCount();
-
-    });
 
 });
