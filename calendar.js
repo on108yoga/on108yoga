@@ -1,4 +1,5 @@
 // calendar.js
+let selectedDayEl = null;
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -24,6 +25,9 @@ document.addEventListener("DOMContentLoaded", () => {
             height:"auto",
 
             displayEventTime:false,
+            dayCellDidMount:function(info){
+            info.el.style.cursor = "pointer";
+            },
 
             dateClick:function(info){
 
@@ -62,12 +66,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 }
 
-                document.getElementById(
-                    "selectedDate"
-                ).innerText = info.dateStr;
-
-                window.setSelectedDate(info.dateStr);
-
+           // 이전 선택 날짜 색상 제거
+            if(selectedDayEl){            
+                selectedDayEl.classList.remove(
+                    "selected-date"
+                );            
+            }        
+            
+            // 현재 선택 날짜 색상 추가
+            info.dayEl.classList.add(
+                "selected-date"
+            );           
+            
+            selectedDayEl = info.dayEl;          
+                        
+            document.getElementById(
+                "selectedDate"
+            ).innerText = info.dateStr;           
+            
+            window.setSelectedDate(info.dateStr);
             }
 
         }
