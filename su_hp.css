@@ -33,3 +33,27 @@
     width: 100%;
     min-height: 600px;
 }
+
+.time-card{
+
+border:1px solid #ddd;
+
+padding:15px;
+
+margin-bottom:15px;
+
+border-radius:10px;
+
+display:flex;
+
+justify-content:space-between;
+
+align-items:center;
+
+}
+
+.reserveBtn{
+
+padding:10px 20px;
+
+}
