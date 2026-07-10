@@ -39,6 +39,25 @@
     cursor:pointer;
 }
 
+/* 선택한 날짜 */
+.selected-date {
+
+background-color: #a8d8c8 !important;
+
+border-radius: 10px;
+
+}
+
+
+/* 마우스 올렸을 때 */
+.fc-daygrid-day:hover {
+
+background-color: #f5e6c8;
+
+cursor: pointer;
+
+}
+
 .reserveBtn:hover{
     background:#43a047;
 }
