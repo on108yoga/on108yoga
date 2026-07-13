@@ -1,4 +1,6 @@
 // reservation.js
+console.log("reservation.js 실행");
+
 let selectedDate = "";
 let selectedTime = "";
 
