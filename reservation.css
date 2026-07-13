@@ -167,13 +167,16 @@ background:#f2dfc6;
 
 
 /* 선택 날짜 */
-
 .day-box.selected span{
-
 background:#4a90e2;
-
 color:white;
-
 font-weight:bold;
+}
 
+/* 선택 시간 */
+.time-btn.selected{
+    background:#4a90e2;
+    color:#fff;
+    border-color:#4a90e2;
+    cursor:pointer;
 }
