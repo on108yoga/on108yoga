@@ -1,4 +1,5 @@
 // reservation.js
+console.log("db =", db);
 console.log("reservation.js 실행");
 console.log("시간 버튼:", document.querySelectorAll(".time-btn").length);
 console.log("예약 버튼:", document.getElementById("reserveBtn"));
@@ -23,8 +24,8 @@ addDoc
 }
 
 from
-
-"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    
+"https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
 
 
