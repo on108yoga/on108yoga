@@ -456,9 +456,8 @@ window.cancelReservation = async function(id){
         "예약이 취소되었습니다."
     );
 
-
     loadReservation();
-
+    loadMyReservation();
 
 };
 
