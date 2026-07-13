@@ -90,10 +90,8 @@ async function loadReservation(){
 
 
 /* 시간 버튼 */
-document
-.querySelectorAll(".time-btn")
-.forEach(btn=>{
-
+console.log("시간 버튼 개수:", document.querySelectorAll(".time-btn").length);
+document.querySelectorAll(".time-btn").forEach(btn=>{
 btn.addEventListener("click",()=>{
 
         // 이전 선택 제거
@@ -113,9 +111,7 @@ btn.addEventListener("click",()=>{
 });
 
 /* 예약하기 버튼 */ 
-document.getElementById("reserveBtn")
-.addEventListener("click", async()=>{
-
+document.getElementById("reserveBtn").addEventListener("click", async()=>{
     if (!auth.currentUser) {
     alert("로그인 후 예약해주세요.");
     location.href = "login.html";
