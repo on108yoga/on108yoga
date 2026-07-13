@@ -1,5 +1,6 @@
 // reservation.js
 console.log("db =", db);
+console.log("constructor =", db?.constructor?.name);
 console.log("auth =", auth);
 console.log("reservation.js 실행");
 console.log("시간 버튼:", document.querySelectorAll(".time-btn").length);
