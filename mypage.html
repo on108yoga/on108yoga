@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>마이페이지</title>
+<style>
+          *{
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+        .wrap{
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+        header{
+            width: 100%;
+            height: 100px;
+            background-color: rgb(203, 214, 214);
+        }
+        main{
+            width: 100%;
+            height: calc(100vh - 200px);
+            display: flex;
+        }
+        .aside01{flex:1; background-color: darkgoldenrod;}
+        section{flex:4; background-color: darkkhaki;}
+        .aside02{flex: 1;}
+        footer{
+              width: 100%;
+            height: 100px;
+            background-color: rgb(80, 87, 87);
+        }
+
+        @media all and (max-width:768px){
+            main{
+                flex-direction: column;
+            }
+            section{
+                order:0;
+            }
+            .aside01{
+                order:1;                
+            }
+            .aside02{
+                order:2;                
+            }
+        }
+</style>
+<link rel="stylesheet" href="mypage.css">
+
+</head>
+
+
+<body>
+<div class="wrap">
+<header>
+
+<h1>
+YOGA
+</h1>
+  <nav>
+    <ul>
+      <li>홈</li>
+      <li>예약</li>
+    </ul>
+  </nav>
+
+</header>
+
+<main>
+
+<div class="aside01"></div>
+<section class="mypage">
+
+<h2>
+마이페이지
+</h2>
+
+
+<div class="user-box">
+
+<h3>
+회원정보
+</h3>
+
+
+<p>
+이름 :
+<span id="userName"></span>
+</p>
+
+
+<p>
+이메일 :
+<span id="userEmail"></span>
+</p>
+
+
+</div>
+
+
+
+
+<div class="reservation-box">
+
+
+<h3>
+내 예약
+</h3>
+
+
+<div id="myReservations">
+
+예약 불러오는 중...
+
+</div>
+
+
+</div>
+
+
+
+<button id="logoutBtn">
+
+로그아웃
+
+</button>
+
+
+</section>
+
+<div class="aside02"></div>
+</main>
+
+<footer></footer>
+</div>
+  
+<script type="module" src="firebase.js"></script>
+
+<script type="module" src="mypage.js"></script>
+
+
+</body>
+
+</html>
