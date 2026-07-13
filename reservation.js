@@ -453,3 +453,87 @@ window.cancelReservation = async function(id){
 
 
 };
+
+
+// ================================
+// 내 예약 불러오기
+// ================================
+async function loadMyReservation(){
+
+
+if(!auth.currentUser){
+    return;
+}
+
+
+const q =
+query(
+
+collection(
+db,
+"reservations"
+),
+
+where(
+"uid",
+"==",
+auth.currentUser.uid
+)
+
+);
+
+
+
+const snapshot =
+await getDocs(q);
+
+
+
+const box =
+document.getElementById(
+"myReservations"
+);
+
+
+
+if(!box){
+    return;
+}
+
+
+
+box.innerHTML =
+"<h3>내 예약</h3>";
+
+
+
+snapshot.forEach(item=>{
+
+
+const data =
+item.data();
+
+
+box.innerHTML +=
+`
+
+<div class="my-reservation">
+
+${data.date}
+${data.time}
+
+<button onclick="cancelReservation('${item.id}')">
+
+취소
+
+</button>
+
+</div>
+
+`;
+
+
+});
+
+
+}
