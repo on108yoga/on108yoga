@@ -174,16 +174,27 @@ font-weight:bold;
 }
 
 /* 선택 시간 */
+.time-btn{    
+    transition:0.2s;
+    cursor:pointer;
+}
 .time-btn.selected{
     background:#4a90e2;
     color:white;
-    font-weight:bold;
+    font-weight:bold;    
 }
-.time-btn{
-    cursor:pointer;
-    transition:0.2s;
-}
+
 .time-btn:hover{
     transform:scale(1.05);
 }
 
+/* 예약하기 버튼 */
+.reserveBtn{
+    cursor:pointer;
+}
+.reserveBtn.selected{
+    background:#4a90e2;
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+}
