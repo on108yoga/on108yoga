@@ -414,10 +414,11 @@ async()=>{
     alert(
         "예약이 완료되었습니다."
     );
-
-
-
+    
+    
     loadReservation();
+    
+    loadMyReservation();
 
 
 
@@ -545,6 +546,12 @@ ${data.time}
 // 로그인 후 자동으로 불러오기
 // ================================
 onAuthStateChanged(auth,(user)=>{
+
+    console.log(
+        "현재 로그인:",
+        user
+    );
+
 
     if(user){
 
