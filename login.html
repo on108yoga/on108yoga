@@ -7,6 +7,32 @@
 
 
     <style>
+     h1{
+            width: 200px;
+            height: 50px;
+            text-align: center;
+            line-height: 50px;
+            background-color: aqua;
+        }
+        nav ul{
+            list-style: none;
+            display: flex;
+            gap: 10px;
+        }
+        nav li {
+            width: 80px;
+            display: block;
+            background-color: burlywood;
+        }
+        header div{
+            background-color: aliceblue;
+        }
+        
+        header{display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background-color: cadetblue;
+        }
         .navbar{
             justify-content: center;
             display: flex;
@@ -16,15 +42,7 @@
         body{
             text-align: center;
         }
-        h1 {
-            background-color: rgb(64, 83, 70);
-            text-align: center;
-            letter-spacing: 0.3em;
-            text-shadow: 2px 2px 2px #fff, -2px -2px 2px #fff;
-            color: rgb(64, 83, 70);
-            margin: 0;
-            padding: 20px 0;
-        }
+      
         main{
             margin: 0;
             display: flex;
@@ -42,29 +60,41 @@
             width: 100%;
             box-sizing: border-box;
         }
+
+        @media all and (max-width:768px){
+            main{
+                flex-direction: column;
+            }
+            section{
+                order:0;
+            }
+            .aside01{
+                order:1;                
+            }
+            .aside02{
+                order:2;                
+            }
+        }
     </style>
 </head>
 
 <body>
 
 <header>
+    <h1>YOGA</h1>
     <nav class="navbar">
         <a href="index.html">home</a>
         <a href="signup.html">join</a>
     </nav>
 </header>
-<h1>YOGA</h1>
+
 <main>
-
+<div class="aside01"></div>
 <section class="login-container">
-
     <h2>로그인</h2>
-
     <form id="loginForm">
-
         <div class="form-group">
             <label for="email">이메일</label>
-
             <input
                 type="email"
                 id="email"
@@ -74,7 +104,6 @@
 
         <div class="form-group">
             <label for="password">비밀번호</label>
-
             <input
                 type="password"
                 id="password"
@@ -83,12 +112,10 @@
         </div>
 
         <div class="remember-box">
-
             <label>
                 <input type="checkbox" id="remember">
                 로그인 상태 유지
             </label>
-
         </div>
 
         <button type="submit" id="loginBtn">
@@ -112,7 +139,7 @@
     </div>
 
 </section>
-
+<div class="aside02"></div>
 </main>
 
 <footer>
