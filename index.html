@@ -31,6 +31,7 @@
         }
         
         header {
+            display: flex;
             width: 100%;
             height: 100px;
             background-color: #fff5de;
@@ -279,16 +280,16 @@
                 <li><a href="#video">video</a></li>
                 <li><a href="#location">location</a></li>
             </ul>
-        </nav>
-
-     <nav class="navbar">
+        </nav>       
+    </header>
+    
+    <nav class="navbar">
         <p><a href="signup.html" id="signupLink">회원가입</a>/ <a href="login.html" id="loginLink">로그인</a> 후 예약 가능합니다.</p>
         <a href="reservation.html" id="reservationLink" style="display:none;">예약</a>
         <span id="userInfo" style="display:none;"></span>
         <a href="mypage.html" id="mypageLink">마이페이지</a>
         <button id="logoutBtn" style="display:none;">로그아웃</button>
-        </nav>        
-    </header>
+        </nav>      
     
     <br><br>
     <!-- 전체 본문을 감싸서 양옆 여백을 예쁘게 주는 main 태그 배치 -->
