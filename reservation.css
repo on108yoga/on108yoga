@@ -176,7 +176,14 @@ font-weight:bold;
 /* 선택 시간 */
 .time-btn.selected{
     background:#4a90e2;
-    color:#fff;
-    border-color:#4a90e2;
-    cursor:pointer;
+    color:white;
+    font-weight:bold;
 }
+.time-btn{
+    cursor:pointer;
+    transition:0.2s;
+}
+.time-btn:hover{
+    transform:scale(1.05);
+}
+
