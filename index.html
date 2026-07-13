@@ -160,7 +160,7 @@
         }
 
         /* 섹션(지도, 영상, 블로그) 스타일 수정 */
-        section {
+        ifram {
             display: flex;
             justify-content: center; 
             align-items: center;     
@@ -168,14 +168,14 @@
             max-width: 800px;        /* PC 최대 너비 제한 */
             margin: 0 auto;          /* 가운데 정렬 */
         }
-        section iframe, section video {
+        div iframe, div video {
             width: 100%;             /* 가로는 무조건 부모에게 맞춤 */
             max-width: 100%; 
             height: 450px;           /* 시원하게 세로 길이 늘림 */
             border: none;
         }
        
-        section:hover {
+        ifram:hover {
             opacity: 0.9; 
         }
 
