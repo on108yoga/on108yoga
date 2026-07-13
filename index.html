@@ -14,6 +14,16 @@
     <title>Yoga Document</title>
     <link rel="stylesheet" href="./su_hp.css">
     <style>
+                *{
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+        .wrap{
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
         /* ─── [1] 공통 기본 스타일 ─── */
         body {
             margin: 0;
@@ -261,6 +271,7 @@
         }
     </style>
 </head>
+<div class="wrap">
 <body>
     <header>
         <h1>YOGA</h1>
@@ -277,6 +288,7 @@
         </nav>
 
      <nav class="navbar">
+        <p><a href="signup.html" id="signupLink">회원가입</a>/ <a href="login.html" id="loginLink">로그인</a> 후 예약 가능합니다.</p>
         <a href="reservation.html" id="reservationLink" style="display:none;">예약</a>
         <span id="userInfo" style="display:none;"></span>
         <a href="mypage.html" id="mypageLink">마이페이지</a>
@@ -290,13 +302,8 @@
         <div class="aside01"></div>
         <section>
         <span id="banner">
-        <h2>Booking system</h2>
-        <p><a href="signup.html" id="signupLink">회원가입</a>/ <a href="login.html" id="loginLink">로그인</a> 후 예약 가능합니다.</p>
-        <a href="reservation.html" id="reservationLink" style="display:none;">예약</a>
-        <span id="userInfo" style="display:none;"></span>
-        <button id="logoutBtn" style="display:none;">로그아웃</button>
-        </span>
-        <br><br>
+        <h2>system</h2>
+        <p></p>
 
         <h2 id="notice">notice</h2><br>
         <div class="notice">
@@ -394,7 +401,7 @@
             </dl>
         </div>
     </footer>
-
+    </div>    
            <script>
           // 사용자가 스크롤을 할 때마다 브라우저가 이 함수를 실행합니다
           window.onscroll = function() { scrollFunction() };
