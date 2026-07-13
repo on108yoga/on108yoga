@@ -21,8 +21,6 @@
         }
         .wrap{
             width: 100%;
-            height: 100vh;
-            overflow: hidden;
         }
         /* ─── [1] 공통 기본 스타일 ─── */
         body {
@@ -33,22 +31,17 @@
         }
         
         header {
+             width: 100%;
+            height: 100px;
             background-color: #fff5de;
             display: flex;
             justify-content: space-between;
             padding: 10px;
-            background-color: green;
-        }        
-         section{
-                order:0;
-            }
-            .aside01{
-                order:1;                
-            }
-            .aside02{
-                order:2;                
-            }
+             background-color: rgb(203, 214, 214);
         }
+        .aside01{flex:1; background-color: darkgoldenrod;}
+        section{flex:4; background-color: darkkhaki;}
+        .aside02{flex: 1;}
         
         h1 {
             background-color: rgb(64, 83, 70);
