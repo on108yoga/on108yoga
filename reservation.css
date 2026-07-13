@@ -185,16 +185,36 @@ font-weight:bold;
 }
 
 .time-btn:hover{
-    transform:scale(1.05);
+    background-color: #e8f0ea;
 }
 
 /* 예약하기 버튼 */
-.reserveBtn{
-    cursor:pointer;
+#reserveBtn:hover {
+    background-color: #405346;
+    color: white;
+    transform: translateY(-2px);
 }
-.reserveBtn.selected{
-    background:#4a90e2;
-    color:white;
-    font-weight:bold;
-    cursor:pointer;
+
+/* 취소 버튼 */
+.my-reservation button:hover {
+
+    background-color: #c94c4c;
+    color: white;
+    transform: scale(1.05);
+
+}
+
+/* 내 예약 카드 */
+.my-reservation {
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 12px;
+    margin: 8px 0;
+
+    border: 1px solid #ddd;
+    border-radius: 8px;
+
 }
