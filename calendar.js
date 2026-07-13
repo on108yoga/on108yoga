@@ -2,8 +2,8 @@ let currentDate = new Date();
 
 let selectedDate="";
 
-/* 고정 공휴일 배열 */
-const holidays = [
+/* 매년 반복되는 공휴일 */
+const fixedHolidays = [
     "01-01", // 신정
     "03-01", // 삼일절
     "05-05", // 어린이날
