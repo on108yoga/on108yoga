@@ -15,6 +15,10 @@ import {
     deleteDoc,
     doc
 }
+import {
+    onAuthStateChanged
+}
+    
 from
 "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
@@ -459,7 +463,10 @@ window.cancelReservation = async function(id){
 // 내 예약 불러오기
 // ================================
 async function loadMyReservation(){
-
+console.log(
+"내 예약 조회 실행",
+auth.currentUser
+);
 
 if(!auth.currentUser){
     return;
@@ -523,17 +530,23 @@ ${data.date}
 ${data.time}
 
 <button onclick="cancelReservation('${item.id}')">
-
 취소
-
 </button>
-
 </div>
-
 `;
-
-
 });
 
-
 }
+
+// ================================
+// 로그인 후 자동으로 불러오기
+// ================================
+onAuthStateChanged(auth,(user)=>{
+
+    if(user){
+
+        loadMyReservation();
+
+    }
+
+});
