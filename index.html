@@ -46,7 +46,7 @@
             letter-spacing: 0.3em;
             text-shadow: 2px 2px 2px #fff, -2px -2px 2px #fff;
             color: rgb(64, 83, 70);
-            margin: 0;
+            margin: 10px;
             padding: 20px 0;
         }
 
@@ -122,7 +122,6 @@
         
         .menu {
             justify-content: center;
-            background-color: #ffab96;
             display: flex;
             text-align: center;
             letter-spacing: 0.3em;
@@ -136,7 +135,6 @@
         }
         .menu a {
             text-decoration: none;
-            color: #29462d;
             font-weight: bold;           
         }
 
@@ -248,6 +246,20 @@
                 letter-spacing: 5px;
             }
         }
+        @media all and (max-width:768px){
+            main{
+                flex-direction: column;
+            }
+            section{
+                order:0;
+            }
+            .aside01{
+                order:1;                
+            }
+            .aside02{
+                order:2;                
+            }
+        }
     </style>
 </head>
 <body>
@@ -266,14 +278,10 @@
         </nav>
 
      <nav class="navbar">
-        <a href="index.html">홈</a>
-        <a href="login.html" id="loginLink">로그인</a>
-        <a href="signup.html" id="signupLink">회원가입</a>
         <a href="reservation.html" id="reservationLink" style="display:none;">예약</a>
         <span id="userInfo" style="display:none;"></span>
         <button id="logoutBtn" style="display:none;">로그아웃</button>
-        </nav>
-        
+        </nav>        
     </header>
 
     <!-- 전체 본문을 감싸서 양옆 여백을 예쁘게 주는 main 태그 배치 -->
