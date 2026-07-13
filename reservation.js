@@ -1,5 +1,7 @@
 // reservation.js
 console.log("reservation.js 실행");
+console.log("시간 버튼:", document.querySelectorAll(".time-btn").length);
+console.log("예약 버튼:", document.getElementById("reserveBtn"));
 
 let selectedDate = "";
 let selectedTime = "";
