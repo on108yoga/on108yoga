@@ -11,7 +11,9 @@ import {
     query,
     where,
     getDocs,
-    addDoc
+    addDoc,
+    deleteDoc,
+    doc
 }
 from
 "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
@@ -416,3 +418,38 @@ async()=>{
 
 
 }
+
+// ================================
+// 예약 취소
+// ================================
+
+window.cancelReservation = async function(id){
+
+
+    const ok =
+    confirm("예약을 취소하시겠습니까?");
+
+
+    if(!ok){
+        return;
+    }
+
+
+    await deleteDoc(
+        doc(
+            db,
+            "reservations",
+            id
+        )
+    );
+
+
+    alert(
+        "예약이 취소되었습니다."
+    );
+
+
+    loadReservation();
+
+
+};
