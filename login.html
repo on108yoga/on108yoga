@@ -7,49 +7,35 @@
 
 
     <style>
-     h1{
-            width: 200px;
-            height: 50px;
-            text-align: center;
-            line-height: 50px;
-            background-color: aqua;
-        }
-        nav ul{
-            list-style: none;
-            display: flex;
-            gap: 10px;
-        }
-        nav li {
-            width: 80px;
-            display: block;
-            background-color: burlywood;
-        }
-        header div{
-            background-color: aliceblue;
-        }
-        
-        header{display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            background-color: cadetblue;
-        }
         .navbar{
             justify-content: center;
             display: flex;
             text-align: center;
-            gap: 15px;            
+            gap: 15px;
+            background-color: #517e73;       
+        }
+        .navbar a{
+            color: white;
+            text-decoration: none;
         }
         body{
             text-align: center;
         }
-      
+        h1 {
+            background-color: #fff5de;
+            text-align: center;
+            letter-spacing: 0.3em;
+            margin: 0;
+            padding: 20px 0;
+        }
         main{
             margin: 0;
             display: flex;
             justify-content: center; /* 가로 중앙 */
             /* align-items: center;     /* 세로 중앙 */
             height: 100vh;
-            }
+            }       
+    
         section{
             width: 300px;
             text-align: center;
@@ -59,6 +45,16 @@
             padding: 20px;
             width: 100%;
             box-sizing: border-box;
+        }
+        form {
+            max-width: 420px;
+            margin: 40px auto;
+            padding: 30px;
+
+            background: #fff;
+            border-radius: 16px;
+
+            box-shadow: 0 10px 25px rgba(0,0,0,.08);
         }
 
         @media all and (max-width:768px){
@@ -80,12 +76,12 @@
 
 <body>
 
-<header>
-    <h1>YOGA</h1>
+<header>    
     <nav class="navbar">
         <a href="index.html">home</a>
         <a href="signup.html">join</a>
     </nav>
+    <h1>LOGO</h1>
 </header>
 
 <main>
@@ -94,11 +90,11 @@
     <h2>로그인</h2>
     <form id="loginForm">
         <div class="form-group">
-            <label for="email">이메일</label>
+            <label for="email">전화번호</label>
             <input
                 type="email"
                 id="email"
-                placeholder="example@email.com"
+                placeholder="01012345678"
                 required>
         </div>
 
