@@ -266,30 +266,48 @@ padding:15px;
 
 <main>
 
-<h2>회원 목록</h2>
+<h2>회원관리</h2>
 
-<div class="search">
+<div class="toolbar">
 
 <input
 type="text"
-id="searchKeyword"
-placeholder="이름 또는 전화번호">
+id="searchInput"
+placeholder="이름 또는 전화번호 검색">
 
 <button id="searchBtn">
-
 검색
-
 </button>
 
 </div>
 
-<div
-class="member-list"
-id="memberList">
+<table class="member-table">
 
-<!-- JS에서 출력 -->
+<thead>
 
-</div>
+<tr>
+
+<th>번호</th>
+
+<th>이름</th>
+
+<th>전화번호</th>
+
+<th>남은횟수</th>
+
+<th>권한</th>
+
+<th>관리</th>
+
+</tr>
+
+</thead>
+
+<tbody id="memberTableBody">
+
+</tbody>
+
+</table>
 
 </main>
 
