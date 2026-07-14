@@ -231,6 +231,8 @@ document.getElementById("signupLink");
 const reservationLink =
 document.getElementById("reservationLink");
 
+const memberManageLink =
+document.getElementById("memberManageLink");      
 
 const logoutBtn =
 document.getElementById("logoutBtn");
