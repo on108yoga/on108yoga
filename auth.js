@@ -80,8 +80,10 @@ try {
                name:name,
 
                 phone:phone,
-                
-                email:email
+        
+                email:email,
+        
+                role:"member" /* 회원관리 */
             }
         );
 
