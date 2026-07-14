@@ -7,28 +7,28 @@
 
 <title>마이페이지</title>
 <style>
-          *{
-            padding: 0;
+         body {
             margin: 0;
-            box-sizing: border-box;
+            padding: 0;
+            font-family: 'Noto Sans KR', sans-serif;
         }
-        .wrap{
-             width:100%;
-             min-height:100vh;
-         }
         header{
-            width: 100%;
-            height: 100px;
-            background-color: rgb(203, 214, 214);
+            width: 100%;   
+            align-items: flex-start;
+            background-color: #fff5de;
+            padding-bottom: 20px;     
+            position: fixed;
+        }
+         #h1{
+            padding-top: 10px;
+            display: flex;
+            justify-content: center;
         }
         main{
              width:100%;
              min-height:calc(100vh - 200px);
              display:flex;
          }
-        .aside01{flex:1; background-color: darkgoldenrod;}
-        section{flex:4; background-color: darkkhaki;}
-        .aside02{flex: 1;}
         footer{
               width: 100%;
             height: 100px;
@@ -36,84 +36,47 @@
         }
 
          .mypage{
+                  width:350px;         
+                  margin:50px auto;         
+                  }
 
-width:350px;
-
-margin:50px auto;
-
-}
-
-
-.user-box,
-.reservation-box{
-
-border:1px solid #ddd;
-
-padding:20px;
-
-margin-bottom:20px;
-
-border-radius:12px;
-
-}
+         
+         .user-box, .reservation-box{         
+         border:1px solid #ddd;         
+         padding:20px;         
+         margin-bottom:20px;         
+         border-radius:12px;         
+         }
 
 
 
-.reservation-card{
-
-display:flex;
-
-justify-content:space-between;
-
-align-items:center;
-
-padding:10px;
-
-margin:10px 0;
-
-background:#f5f5f5;
-
-border-radius:8px;
-
-}
-
-
-
-button{
-
-cursor:pointer;
-
-}
-
-
-button:hover{
-
-background:#405346;
-
-color:white;
-
-}
+         .reservation-card{         
+         display:flex;         
+         justify-content:space-between;         
+         align-items:center;         
+         padding:10px;         
+         margin:10px 0;         
+         background:#f5f5f5;         
+         border-radius:8px;         
+         }
          
 
-       @media(max-width:768px){                  
-                  main{                  
-                      flex-direction:column;                  
-                  }                  
-                  .aside01,
-                  .aside02{                  
-                      display:none;                  
-                  }                  
-                  .mypage{                  
-                      width:95%;                  
-                      margin:20px auto;                  
-                  }
+
+         button{
+         cursor:pointer;
          }
+         
+         button:hover{
+         background:#405346;
+         color:white;
+         }
+
 </style>
 </head>
 
 
 <body>
-<div class="wrap">
+
 <header>
   <nav>
     <ul>
@@ -190,7 +153,7 @@ color:white;
 </main>
 
 <footer></footer>
-</div>
+
   
 <script type="module" src="firebase.js"></script>
 
