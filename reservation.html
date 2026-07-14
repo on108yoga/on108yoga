@@ -11,18 +11,40 @@
      <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js"></script>
     
     <style>
-        main{
-             background-color: #ebebeb;
+        .navbar{
+            justify-content: center;
+            display: flex;
+            text-align: center;
+            gap: 15px;
+            background-color: #517e73;       
+        }
+        .navbar a{
+            color: white;
+            text-decoration: none;
+        }
+        body{
+            text-align: center;
         }
         h1 {
-            background-color: rgb(64, 83, 70);
+            background-color: #fff5de;
             text-align: center;
             letter-spacing: 0.3em;
-            text-shadow: 2px 2px 2px #fff, -2px -2px 2px #fff;
-            color: rgb(64, 83, 70);
             margin: 0;
             padding: 20px 0;
         }
+        main{
+            margin: 0;
+            display: flex;
+            justify-content: center; /* 가로 중앙 */
+            /* align-items: center;     /* 세로 중앙 */
+            height: 100vh;
+            }       
+    
+        section{
+            width: 300px;
+            text-align: center;
+        }
+        
         h3{
             
         }
@@ -56,9 +78,7 @@
 
 <body>
 
-<header>
-
-    <h1>YOGA</h1>
+<header>   
 
 <nav class="menu">
 <a href="index.html">홈</a>
@@ -66,6 +86,7 @@
 <span id="userInfo"></span>
 <button id="logoutBtn">로그아웃</button>
 </nav>
+<h1>LOGO</h1>
 
 </header>
 
