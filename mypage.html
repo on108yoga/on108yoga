@@ -7,33 +7,41 @@
 
 <title>마이페이지</title>
 <style>
-         body {
+        body {
             margin: 0;
             padding: 0;
             font-family: 'Noto Sans KR', sans-serif;
         }
         header{
-            width: 100%;   
-            align-items: flex-start;
             background-color: #fff5de;
-            padding-bottom: 20px;     
-            position: fixed;
         }
-         #h1{
+         h1{
             padding-top: 10px;
             display: flex;
             justify-content: center;
+            text-align: center;
+            letter-spacing: 0.3em;
+            margin: 0;
+            padding: 20px 0;
+        }
+        .menu{
+            display: flex;
+            justify-content: center; 
+            align-items: center;
+            gap: 15px;
+            padding: 10px;
+            font-size: 14px;
+            background-color: #517e73;            
+        }
+        .menu a{
+            color: white;
+            text-decoration: none;
         }
         main{
              width:100%;
              min-height:calc(100vh - 200px);
              display:flex;
          }
-        footer{
-              width: 100%;
-            height: 100px;
-            background-color: rgb(80, 87, 87);
-        }
 
          .mypage{
                   width:350px;         
@@ -78,12 +86,10 @@
 <body>
 
 <header>
-  <nav>
-    <ul>
-      <li>홈</li>
-      <li>예약</li>
-    </ul>
-  </nav>
+    <nav class="menu">
+        <a href="index.html">홈</a>
+        <a href="reservation.html">예약</a>
+     </nav>
   <h1>LOGO</h1>       
 </header>
 
@@ -151,7 +157,7 @@
 
 <div class="aside02"></div>
 </main>
-
+<hr>
 <footer></footer>
 
   
