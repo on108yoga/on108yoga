@@ -36,7 +36,7 @@
             margin: 0;
             display: flex;
             justify-content: center; /* 가로 중앙 */
-            align-items: center;     /* 세로 중앙 */
+          /*  align-items: center;     /* 세로 중앙 */
             height: 100vh;
             }       
     
@@ -73,6 +73,34 @@
             margin: 10px;
             border-radius: 10px;
             box-shadow: 0 2px 7px rgba(0, 0, 0, 0.2);
+        }
+        .time-btn{
+            position: absolute;
+          content: "";
+          top: 5px;
+          left: 6px;
+          width: 90%;
+          height: 70%;
+          border: 1px solid #000;
+          opacity: 0;
+          transition: all 0.3s ease;
+        }
+        .time-btn:hover:after {
+          opacity: 1;
+        }
+        #reserveBtn{
+            position: absolute;
+          content: "";
+          top: 5px;
+          left: 6px;
+          width: 90%;
+          height: 70%;
+          border: 1px solid #000;
+          opacity: 0;
+          transition: all 0.3s ease;
+        }
+         #reserveBtn:hover:after {
+          opacity: 1;
         }
          
         li{
