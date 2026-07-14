@@ -46,7 +46,7 @@
         }
 
         .custom-calendar{
-             height: 200px;
+             height: 180px;
         }
         
         h3{
@@ -81,12 +81,13 @@
 
          /* 768px 모바일&타블렛 */
         @media all and (max-width: 768px){
-            main{display: flex;
+            body{display: flex;
                 flex-direction: column;
                 }
-            .custom-calendar{order: 0;}
-            .reservation-panel{order: 1;}
-            .notice{order: 2;}
+            header{order: 0;}
+            .custom-calendar{order: 1;}
+            .reservation-panel{order: 2;}
+            .notice{order: 3;}
             footer{display: none;}
         }
     </style>
@@ -95,20 +96,18 @@
 <body>
 
 <header>   
-
-<nav class="menu">
-<a href="index.html">홈</a>
-<a href="reservation.html">예약</a>
-<span id="userInfo"></span>
-<button id="logoutBtn">로그아웃</button>
-</nav>
-<h1>LOGO</h1>
-
+    <nav class="menu">
+    <a href="index.html">홈</a>
+    <a href="reservation.html">예약</a>
+    <a href="mypage.html">마이페이지</a>
+    <span id="userInfo"></span>
+    <button id="logoutBtn">로그아웃</button>
+    </nav>
+    <h1>LOGO</h1>
 </header>
 
 <main>
-<hr>
-    
+<hr>    
 <!-- 캘린더 -->
   <div>
     <h3>Calendar</h3> <br>
