@@ -42,8 +42,11 @@ e.preventDefault();
 const name =
 document.getElementById("name").value;
 
+const phone =
+document.getElementById("phone").value;
+
 const email =
-document.getElementById("email").value;
+`${phone}@yoga.local`;
 
 
 const password =
@@ -116,8 +119,11 @@ e.preventDefault();
 
 
 
+const phone =
+document.getElementById("phone").value;
+
 const email =
-document.getElementById("email").value;
+`${phone}@yoga.local`;
 
 
 const password =
