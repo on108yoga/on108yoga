@@ -219,20 +219,17 @@ onAuthStateChanged(auth, async (user)=>{
 const userInfo =
 document.getElementById("userInfo");
 
-
 const loginLink =
 document.getElementById("loginLink");
 
-
 const signupLink =
 document.getElementById("signupLink");
-
 
 const reservationLink =
 document.getElementById("reservationLink");
 
 const memberManageLink =
-document.getElementById("memberManageLink");      
+document.getElementById("memberManageLink");
 
 const logoutBtn =
 document.getElementById("logoutBtn");
@@ -241,36 +238,65 @@ document.getElementById("logoutBtn");
 
 if(user){
 
+
 console.log("로그인 UID:", user.uid);
 
 
+
 let userName = user.email;
+
 let role = "member";
 
-try{        
-        const userDoc = await getDoc(
-            doc(db, "users", user.uid)
-        );
 
 
-/* 유저 네임 */
-   if(userDoc.exists()){
+try{
 
-        userName = userDoc.data().name;
 
-        role = userDoc.data().role || "member";
+const userDoc =
+await getDoc(
+    doc(db,"users",user.uid)
+);
 
-        console.log("Firestore 이름:", userDoc.data().name);
-        console.log("권한:", role);
 
-    }
+
+if(userDoc.exists()){
+
+
+    userName =
+    userDoc.data().name;
+
+
+    role =
+    userDoc.data().role || "member";
+
+
+    console.log(
+    "Firestore 이름:",
+    userName
+    );
+
+
+    console.log(
+    "권한:",
+    role
+    );
+
+
+}
+
 
 }
 catch(error){
 
-    console.log("사용자 정보 불러오기 실패", error);
+console.log(
+"사용자 정보 불러오기 실패",
+error
+);
 
 }
+
+
+
 
 if(userInfo){
 
@@ -280,51 +306,69 @@ userInfo.innerHTML =
 `👋 ${userName}님`;
 
 }
-        
-        const guestMenu =
-        document.getElementById("guestMenu");
-        
-        const memberMenu =
-        document.getElementById("memberMenu");
-        
-        
-        if(guestMenu)
-        guestMenu.style.display="none";
-        
-        if(memberMenu)
-        memberMenu.style.display="flex";
 
-        
-if (user) {
 
-    guestMenu.style.display = "none";
-    memberMenu.style.display = "flex";
 
-} else {
+if(loginLink)
+loginLink.style.display="none";
 
-    guestMenu.style.display = "flex";
-    memberMenu.style.display = "none";
 
-}
+if(signupLink)
+signupLink.style.display="none";
+
+
+if(reservationLink)
+reservationLink.style.display="inline";
 
 
 if(logoutBtn)
 logoutBtn.style.display="inline";
 
 
-}// 관리자 메뉴 표시
 
-if(role === "admin"){
 
-    if(memberManageLink)
-        memberManageLink.style.display="inline";
+// 관리자 메뉴
 
-}else{
+if(role==="admin"){
+
 
     if(memberManageLink)
-        memberManageLink.style.display="none";
+    memberManageLink.style.display="inline";
+
 
 }
+else{
+
+
+    if(memberManageLink)
+    memberManageLink.style.display="none";
+
+
+}
+
+
+
+const guestMenu =
+document.getElementById("guestMenu");
+
+
+const memberMenu =
+document.getElementById("memberMenu");
+
+
+
+if(guestMenu)
+guestMenu.style.display="none";
+
+
+if(memberMenu)
+memberMenu.style.display="flex";
+
+
+
+}
+
+
 
 else{
 
@@ -341,8 +385,19 @@ if(signupLink)
 signupLink.style.display="inline";
 
 
+if(reservationLink)
+reservationLink.style.display="none";
+
+
+if(memberManageLink)
+memberManageLink.style.display="none";
+
+
+if(logoutBtn)
+logoutBtn.style.display="none";
+
+
 
 }
-
 
 });
