@@ -13,20 +13,19 @@
             box-sizing: border-box;
         }
         .wrap{
-            width: 100%;
-            height: 100vh;
-            overflow: hidden;
-        }
+             width:100%;
+             min-height:100vh;
+         }
         header{
             width: 100%;
             height: 100px;
             background-color: rgb(203, 214, 214);
         }
         main{
-            width: 100%;
-            height: calc(100vh - 200px);
-            display: flex;
-        }
+             width:100%;
+             min-height:calc(100vh - 200px);
+             display:flex;
+         }
         .aside01{flex:1; background-color: darkgoldenrod;}
         section{flex:4; background-color: darkkhaki;}
         .aside02{flex: 1;}
@@ -96,40 +95,33 @@ color:white;
 }
          
 
-        @media all and (max-width:768px){
-            main{
-                flex-direction: column;
-            }
-            section{
-                order:0;
-            }
-            .aside01{
-                order:1;                
-            }
-            .aside02{
-                order:2;                
-            }
-        }
+       @media(max-width:768px){                  
+                  main{                  
+                      flex-direction:column;                  
+                  }                  
+                  .aside01,
+                  .aside02{                  
+                      display:none;                  
+                  }                  
+                  .mypage{                  
+                      width:95%;                  
+                      margin:20px auto;                  
+                  }
+         }
 </style>
-
-
 </head>
 
 
 <body>
 <div class="wrap">
 <header>
-
-<h1>
-YOGA
-</h1>
   <nav>
     <ul>
       <li>홈</li>
       <li>예약</li>
     </ul>
   </nav>
-
+  <h1>LOGO</h1>       
 </header>
 
 <main>
@@ -156,8 +148,8 @@ YOGA
 
 
 <p>
-이메일 :
-<span id="userEmail"></span>
+전화번호 :
+<span id="userPhone"></span>
 </p>
 
 
