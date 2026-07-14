@@ -241,9 +241,7 @@ document.getElementById("logoutBtn");
 
 if(user){
 
-
 console.log("로그인 UID:", user.uid);
-
 
 
 let userName = user.email;
@@ -274,9 +272,6 @@ catch(error){
 
 }
 
-
-
-
 if(userInfo){
 
 userInfo.style.display="inline";
@@ -285,12 +280,21 @@ userInfo.innerHTML =
 `👋 ${userName}님`;
 
 }
+        
+        const guestMenu =
+        document.getElementById("guestMenu");
+        
+        const memberMenu =
+        document.getElementById("memberMenu");
+        
+        
+        if(guestMenu)
+        guestMenu.style.display="none";
+        
+        if(memberMenu)
+        memberMenu.style.display="flex";
 
-
-
-const guestMenu = document.getElementById("guestMenu");
-const memberMenu = document.getElementById("memberMenu");
-
+        
 if (user) {
 
     guestMenu.style.display = "none";
@@ -308,9 +312,19 @@ if(logoutBtn)
 logoutBtn.style.display="inline";
 
 
+}// 관리자 메뉴 표시
+
+if(role === "admin"){
+
+    if(memberManageLink)
+        memberManageLink.style.display="inline";
+
+}else{
+
+    if(memberManageLink)
+        memberManageLink.style.display="none";
+
 }
-
-
 
 else{
 
@@ -326,18 +340,6 @@ loginLink.style.display="inline";
 if(signupLink)
 signupLink.style.display="inline";
 
-
-if(role === "admin"){
-
-            if(memberManageLink)
-                memberManageLink.style.display = "inline";
-        
-        }else{
-        
-            if(memberManageLink)
-                memberManageLink.style.display = "none";
-        
-        }
 
 
 }
