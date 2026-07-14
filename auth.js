@@ -43,7 +43,17 @@ const name =
 document.getElementById("name").value;
 
 const phone =
-document.getElementById("phone").value;
+document.getElementById("phone")
+.value
+.replace(/-/g,"")
+.trim();
+        if(!/^010\d{8}$/.test(phone)){
+
+    alert("전화번호를 정확히 입력해주세요. (예: 01012345678)");
+    return;
+
+        }
+        
 
 const email =
 `${phone}@yoga.local`;
@@ -67,7 +77,10 @@ try {
             await setDoc(
             doc(db,"users",userCredential.user.uid),
             {
-                name:name,
+               name:name,
+
+                phone:phone,
+                
                 email:email
             }
         );
@@ -82,9 +95,24 @@ window.location.href="index.html";
 
 catch(error){
 
+    switch(error.code){
 
-  alert(error.message);
+        case "auth/email-already-in-use":
+            alert("이미 가입된 전화번호입니다.");
+            break;
 
+        case "auth/weak-password":
+            alert("비밀번호는 6자 이상이어야 합니다.");
+            break;
+
+        case "auth/invalid-email":
+            alert("전화번호 형식이 올바르지 않습니다.");
+            break;
+
+        default:
+            console.log(error);
+            alert("회원가입에 실패했습니다.");
+    }
 
 }
 
@@ -152,12 +180,20 @@ location.href = "index.html";
 
 }
 
-catch(error){
-
-
-alert(
-"로그인 정보를 확인해주세요."
-);
+        catch(error){
+        
+            if(error.code==="auth/invalid-credential"){
+        
+                alert("전화번호 또는 비밀번호가 올바르지 않습니다.");
+        
+            }else{
+        
+                console.log(error);
+                alert("로그인에 실패했습니다.");
+        
+            }
+        
+        }
 
 }
 
