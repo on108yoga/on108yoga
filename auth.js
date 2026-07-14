@@ -132,54 +132,11 @@ catch(error){
 const loginForm =
 document.getElementById("loginForm");
 
-
-
-if(loginForm){
-
-
-loginForm.addEventListener(
-"submit",
-async(e)=>{
-
-
-e.preventDefault();
-        console.log("로그인 버튼 이벤트 실행");
-
-
-
-const phone =
-document.getElementById("phone").value;
-
-const email =
-`${phone}@yoga.local`;
-
-
-const password =
-document.getElementById("password").value;
-
-
-
-try{
-
-
-await signInWithEmailAndPassword(
-
-auth,
-
-email,
-
-password
-
-);
-
-
-
 if (loginForm) {
 
     loginForm.addEventListener("submit", async (e) => {
 
         e.preventDefault();
-        console.log("로그인 버튼 이벤트 실행");
 
         const phone = document
             .getElementById("phone")
@@ -201,20 +158,15 @@ if (loginForm) {
             );
 
             alert("✅ 로그인 되었습니다.");
-
             location.href = "index.html";
 
         } catch (error) {
 
             if (error.code === "auth/invalid-credential") {
-
                 alert("전화번호 또는 비밀번호가 올바르지 않습니다.");
-
             } else {
-
                 console.log(error);
                 alert("로그인에 실패했습니다.");
-
             }
 
         }
@@ -222,8 +174,6 @@ if (loginForm) {
     });
 
 }
-
-
 
 // =================
 // 로그아웃
