@@ -247,11 +247,13 @@ console.log("로그인 UID:", user.uid);
 
 
 let userName = user.email;
-
-
+let role = "member";
 
 try{
 
+    const userDoc = await getDoc(
+        doc(db,"users",user.uid)
+    );
 
 const userDoc = await getDoc(
     doc(db, "users", user.uid)
@@ -259,25 +261,21 @@ const userDoc = await getDoc(
 
 
 /* 유저 네임 */
-if(userDoc.exists()){
+   if(userDoc.exists()){
 
-         userName = userDoc.data().name;
-        
-        console.log(
-        "Firestore 이름:",
-        userDoc.data().name
-        );
+        userName = userDoc.data().name;
+
+        role = userDoc.data().role || "member";
+
+        console.log("Firestore 이름:", userDoc.data().name);
+        console.log("권한:", role);
+
+    }
+
 }
-
-
-}
-
 catch(error){
 
-console.log(
-"사용자 정보 불러오기 실패",
-error
-);
+    console.log("사용자 정보 불러오기 실패", error);
 
 }
 
@@ -334,12 +332,17 @@ if(signupLink)
 signupLink.style.display="inline";
 
 
-if(reservationLink)
-reservationLink.style.display="none";
+if(role === "admin"){
 
-
-if(logoutBtn)
-logoutBtn.style.display="none";
+            if(memberManageLink)
+                memberManageLink.style.display = "inline";
+        
+        }else{
+        
+            if(memberManageLink)
+                memberManageLink.style.display = "none";
+        
+        }
 
 
 }
