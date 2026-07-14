@@ -291,16 +291,20 @@ userInfo.innerHTML =
 
 
 
-if(loginLink)
-loginLink.style.display="none";
+const guestMenu = document.getElementById("guestMenu");
+const memberMenu = document.getElementById("memberMenu");
 
+if (user) {
 
-if(signupLink)
-signupLink.style.display="none";
+    guestMenu.style.display = "none";
+    memberMenu.style.display = "flex";
 
+} else {
 
-if(reservationLink)
-reservationLink.style.display="inline";
+    guestMenu.style.display = "flex";
+    memberMenu.style.display = "none";
+
+}
 
 
 if(logoutBtn)
