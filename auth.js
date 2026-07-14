@@ -249,17 +249,15 @@ let userName = user.email;
 try{
 
 
-const userDoc =
-await getDoc(
-doc(db,"users",user.uid)
+const userDoc = await getDoc(
+    doc(db, "users", user.uid)
 );
 
 
 /* 유저 네임 */
 if(userDoc.exists()){
 
-        userName =
-        userDoc.data().name;
+         userName = userDoc.data().name;
         
         console.log(
         "Firestore 이름:",
