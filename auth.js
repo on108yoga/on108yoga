@@ -249,15 +249,10 @@ console.log("로그인 UID:", user.uid);
 let userName = user.email;
 let role = "member";
 
-try{
-
-    const userDoc = await getDoc(
-        doc(db,"users",user.uid)
-    );
-
-const userDoc = await getDoc(
-    doc(db, "users", user.uid)
-);
+try{        
+        const userDoc = await getDoc(
+            doc(db, "users", user.uid)
+        );
 
 
 /* 유저 네임 */
