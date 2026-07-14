@@ -66,14 +66,37 @@
         #selectedDate{          
             background-color: rgb(190, 231, 221);
         }
+        /* 버튼 */
         button{
-            background-color: #fff;
-            border: 0 solid red;
-            margin: 10px;
-            border-radius: 10px;
-            box-shadow: 0 2px 7px rgba(0, 0, 0, 0.2);
+            padding: 14px 28px;    
+            border: none;    
+            border-radius: 12px;    
+            background: #6b5e5e;    
+            color: white;    
+            font-size: 16px;    
+            font-weight: 600;    
+            cursor: pointer;    
+            transition: all .25s ease;    
+            box-shadow: 0 4px 10px rgba(0,0,0,.15);    
+            }
+        button:hover{
+            background: #8a7777;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(0,0,0,.2);
         }
- 
+        button:active{
+            transform: scale(.97);
+        }
+
+        #reserveBtn{
+            width: 100%;
+            margin-top: 20px;
+            padding: 18px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 14px;
+        }
+         
         li{
             font-size: 14px;
         }
