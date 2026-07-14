@@ -14,42 +14,56 @@
     <title>Yoga Document</title>
     <link rel="stylesheet" href="./su_hp.css">
     <style>
-         *{
-            padding: 0;
-            margin: 0;
-            box-sizing: border-box;
-        }
-        .wrap{
-            width: 100%;
-        }
+       *{padding: 0; margin: 0; box-sizing: border-box;}   
         /* ─── [1] 공통 기본 스타일 ─── */
         body {
             margin: 0;
             padding: 0;
-           /* font-family: 'Noto Sans KR', sans-serif;*/
+            font-family: 'Noto Sans KR', sans-serif;
             background-color: #fff5de; /* 기존 header 배경색을 전체 배경으로 지정 */
         }
-        
-        header {
-            display: flex;
-            width: 100%;
-            height: 100px;
+         header {
+            width: 100%;   
+            align-items: flex-start;
             background-color: #fff5de;
-            justify-content: space-between;
-            padding: 10px;
-            background-color: rgb(203, 214, 214);
+            padding-bottom: 20px;     
+            position: fixed;
         }
-        .aside01{flex:1;}
-        section{flex:4; }
-        .aside02{flex: 1;}
-        
-        h1{
-            width: 200px;
-            height: 50px;
-            text-align: center;
-            line-height: 50px;
+        #h1{
+            padding-top: 10px;
+            display: flex;
+            justify-content: center;
+        }
+        .menu {
+            display: flex;
+            flex-grow: 2;
+            margin: auto;
+            justify-content: center;
             letter-spacing: 0.3em;
-            padding: 20px;
+            gap: 15px;
+            padding: 15px;
+            list-style: none;
+        }
+        .menu a {
+            color: #29462d;            
+        }      
+         .menu2 {
+            height: 40px;
+            display: flex;
+            background-color: #517e73;
+            gap: 15px;
+            justify-content: center;
+            padding-top: 5px;
+         }
+        a{
+            color:#fff;
+            text-decoration: none;
+        }
+        a:hover {
+            color: red;
+            background-color: #fff;
+            border-radius: 20px;
+            opacity: 80%;
         }
 
         h2 {
@@ -69,7 +83,7 @@
             border-radius: 20px 0px; 
             border-shadow: 2px 2px 2px #fff, -2px -2px 2px #fff;
 
-            font-family: 'Noto Sans KR', sans-serif; 
+            font-family: 'Noto Sans KR', sans-serif;
             font-weight: 100; 
         }
 
@@ -77,20 +91,22 @@
             color: #caaa95;
         }
 
-        /* 메인 콘텐츠 감싸는 상자 생성 (좌우 여백 확보) */
+        main{
+            padding-top: 50px;
+        }
+        /* 메인 콘텐츠 감싸는 상자 생성 (좌우 여백 확보) 
         main {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px;
-        }
-
+        }*/
+        
+        /*
         div {
             max-width: 100%;
             display: flex;
             justify-content: center;
-        }
-
-
+        }*/
         .notice {
             width: 800px;
             height: 500px;
@@ -269,30 +285,32 @@
 
 <body>
     <header>
-        <h1>YOGA</h1>
-        <nav>
-            <ul class="menu" id="menu">
-                <li><a href="#home">home</a></li>
-                <li><a href="#notice">notice</a></li>
-                <li><a href="#class">class</a></li>
-                <li><a href="#about">about</a></li>
-                <li><a href="#photo">photo</a></li>
-                <li><a href="#video">video</a></li>
-                <li><a href="#location">location</a></li>
-            </ul>
+        <div><h1 id="h1">LOGO</h1></div>
+        <div>
+            <nav>                
+                <ul class="menu" id="menu">
+                    <li><a href="#home">home</a></li>
+                    <li><a href="#notice">notice</a></li>
+                    <li><a href="#class">class</a></li>
+                    <li><a href="#about">about</a></li>
+                    <li><a href="#photo">photo</a></li>
+                    <li><a href="#video">video</a></li>
+                    <li><a href="#location">location</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div>
+        <nav class="menu2">
+            <a href="signup.html">회원가입</a>
+            <a href="login.html">로그인</a>
+            <a href="calendar.html">예약</a>
+            <a href="mypage.html">마이페이지</a>
+            <span id="loginMenu"></span>
         </nav>
-        <div></div>
-    </header>
-    
-    <nav class="navbar">
-        <p><a href="signup.html" id="signupLink">회원가입</a>/ <a href="login.html" id="loginLink">로그인</a> 후 예약 가능합니다.</p>
-        <a href="reservation.html" id="reservationLink" style="display:none;">예약</a>
-        <span id="userInfo" style="display:none;"></span>
-        <a href="mypage.html" id="mypageLink">마이페이지</a>
-        <button id="logoutBtn" style="display:none;">로그아웃</button>
-        </nav>      
-    
-    <br><br>
+        </div>
+        </header>
+    <hr><br>    
+
     <!-- 전체 본문을 감싸서 양옆 여백을 예쁘게 주는 main 태그 배치 -->
     <div class="wrap">
     <main>
