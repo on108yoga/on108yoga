@@ -81,11 +81,10 @@
 
          /* 768px 모바일&타블렛 */
         @media all and (max-width: 768px){
-            body{display: flex;
+            main{display: flex;
                 flex-direction: column;
                 }
-            header{order: 0;}
-            .custom-calendar{order: 1;}
+             .calendar-area{order:1;}
             .reservation-panel{order: 2;}
             .notice{order: 3;}
             footer{display: none;}
@@ -109,8 +108,8 @@
 <main>
 <hr>    
 <!-- 캘린더 -->
-  <div>
-    <h3>Calendar</h3> <br>
+  <section class="calendar-area">
+    <h3>Calendar</h3>
     <section class="custom-calendar">    
     <div class="calendar-header">
         <button id="prevWeek">◀</button>
@@ -130,8 +129,8 @@
     </div>
     <div id="weekCalendar">
     </div>
-</section>
-     </div>
+    </section>
+  </section>
 
 <hr>
     
