@@ -20,7 +20,8 @@ query,
 where,
 getDocs,
 deleteDoc,
-doc
+doc,
+getDoc
 
 }
 from
@@ -51,13 +52,19 @@ return;
 }
 
 
+const userDoc = await getDoc(
+        doc(db,"users",user.uid)
+    );
 
-document.getElementById(
-"userEmail"
-)
-.innerText =
-user.email;
+    if(userDoc.exists()){
 
+        document.getElementById("userName").innerText =
+        userDoc.data().name;
+
+        document.getElementById("userPhone").innerText =
+        userDoc.data().phone;
+
+    }
 
 
 loadReservations(
