@@ -58,13 +58,12 @@ async function loadMembers(){
 
 async function showMember(uid){
 
-const snap =
-await getDoc(
-doc(db,"users",uid)
-);
+    const snap =
+    await getDoc(
+    doc(db,"users",uid)
+    );
 
-const data =
-snap.data();
+const data = snap.data();
 
 document.getElementById("memberName").innerText =
 data.name;
@@ -87,15 +86,12 @@ data.cancelRemain || 0;
 document.getElementById("sameDayCancelRemain").value =
 data.sameDayCancelRemain || 0;
 
-  document
-.getElementById("plus10")
-.onclick=()=>{
+}
 
-document.getElementById("remainTicket").innerText=
-Number(
-document.getElementById("remainTicket").innerText
-)+10;
+/* puls 버튼 */
+document.getElementById("plus10").onclick = () => {
+
+    document.getElementById("remainTicket").innerText =
+        Number(document.getElementById("remainTicket").innerText) + 10;
 
 };
-
-}
