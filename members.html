@@ -134,12 +134,13 @@ cursor:pointer;
 
 .member-list{
 display: flex;   
-display:grid;
 background-color: white;
 grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
 cursor: pointer;
 gap:20px;
-
+}
+.member-list usuer:hover{
+ color: red;
 }
 
 .card{
@@ -317,7 +318,7 @@ placeholder="이름 또는 전화번호 검색">
 <button id="searchBtn">
 검색
 </button>
-
+<br>
 </div>
 
   <div class="admin-wrap">
@@ -330,9 +331,9 @@ placeholder="이름 또는 전화번호 검색">
 <hr>
   <div class="member-detail">
   
-  <h2 id="memberName">
+  <h3 id="memberName">
   회원을 선택하세요
-  </h2>
+  </h3>
   
   <p>
   전화번호 :
