@@ -281,33 +281,75 @@ placeholder="이름 또는 전화번호 검색">
 
 </div>
 
-<table class="member-table">
+  <div class="admin-wrap">
 
-<thead>
+    <div class="member-list">
 
-<tr>
+        <div id="memberList"></div>
 
-<th>번호</th>
+    </div>
 
-<th>이름</th>
-
-<th>전화번호</th>
-
-<th>남은횟수</th>
-
-<th>권한</th>
-
-<th>관리</th>
-
-</tr>
-
-</thead>
-
-<tbody id="memberTableBody">
-
-</tbody>
-
-</table>
+  <div class="member-detail">
+  
+  <h2 id="memberName">
+  회원을 선택하세요
+  </h2>
+  
+  <p>
+  전화번호 :
+  <span id="memberPhone"></span>
+  </p>
+  
+  <hr>
+  
+  <p>
+  남은 이용권 :
+  <span id="remainTicket"></span>회
+  </p>
+  
+  <p>
+  총 구매 :
+  <span id="totalTicket"></span>회
+  </p>
+  
+  <p>
+  사용 :
+  <span id="usedTicket"></span>회
+  </p>
+  
+  <hr>
+  
+  <p>
+  일반취소 가능 :
+  <span id="cancelRemain"></span>회
+  </p>
+  
+  <p>
+  당일취소 가능 :
+  <span id="sameDayCancelRemain"></span>회
+  </p>
+  
+  <hr>
+   <div class="ticket-buttons">
+  
+    <button id="plus1">+1회</button>
+    
+    <button id="plus5">+5회</button>
+    
+    <button id="plus10">+10회</button>
+    
+    <button id="plus20">+20회</button>
+    
+    <button id="plus50">+50회</button>
+  
+  </div>
+  <br><br>
+  
+  <button id="saveBtn">
+  저장
+  </button>
+  
+  </div>
 
 </main>
 
