@@ -101,57 +101,62 @@
 <h2>
 마이페이지
 </h2>
-
-
 <div class="user-box">
 
 <h3>
 회원정보
 </h3>
-
-
 <p>
 이름 :
 <span id="userName"></span>
 </p>
-
-
 <p>
 전화번호 :
 <span id="userPhone"></span>
 </p>
-
-
 </div>
-
-
 
 
 <div class="reservation-box">
-
-
 <h3>
 내 예약
 </h3>
-
-
-<div id="myReservations">
-
-예약 불러오는 중...
-
+        <div id="myReservations">        
+        예약 불러오는 중...        
+        </div>
 </div>
 
-
+<div class="ticket-box">
+        <h3>🎫 이용권</h3>
+        <p>
+        남은 이용권
+        <span id="remainTicket">0</span>회
+        </p>
+        <p>
+        총 구매
+        <span id="totalTicket">0</span>회
+        </p>
+        <p>
+        사용
+        <span id="usedTicket">0</span>회
+        </p>
 </div>
 
-
-
+<div class="policy-box">
+        <h3>📅 예약 정책</h3>        
+        <p>
+        일반 취소 가능
+        <span id="cancelRemain">0</span>회
+        </p>        
+        <p>
+        당일 취소 가능
+        <span id="sameDayCancelRemain">0</span>회
+        </p>
+</div>
+        
 <button id="logoutBtn">
-
 로그아웃
-
 </button>
-
 
 </section>
 
