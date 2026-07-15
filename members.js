@@ -40,17 +40,27 @@ async function loadMembers(){
     });
 
     // 회원을 모두 만든 후 클릭 이벤트 등록
-    document
-    .querySelectorAll(".member-item")
-    .forEach(item=>{
-
-        item.onclick = ()=>{
-
-            showMember(item.dataset.id);
-
+      document
+        .querySelectorAll(".member-item")
+        .forEach(item=>{
+        
+        item.onclick=()=>{
+        
+        
+        document
+        .querySelectorAll(".member-item")
+        .forEach(i=>i.classList.remove("active"));
+        
+        
+        item.classList.add("active");
+        
+        
+        showMember(item.dataset.id);
+        
+        
         };
-
-    });
+        
+        });
 
 }
 
@@ -91,39 +101,39 @@ data.sameDayCancelRemain || 0;
 }
 
 /* puls 버튼 */
-document.getElementById("plus1").onclick=()=>{
+function addTicket(count){
 
-document.getElementById("remainTicket").innerText=
-Number(document.getElementById("remainTicket").innerText)+1;
+    const remain =
+    document.getElementById("remainTicket");
 
-};
+    const total =
+    document.getElementById("totalTicket");
 
-document.getElementById("plus5").onclick=()=>{
 
-document.getElementById("remainTicket").innerText=
-Number(document.getElementById("remainTicket").innerText)+5;
+    remain.innerText =
+    Number(remain.innerText) + count;
 
-};
-document.getElementById("plus10").onclick=()=>{
 
-document.getElementById("remainTicket").innerText=
-Number(document.getElementById("remainTicket").innerText)+10;
+    total.innerText =
+    Number(total.innerText) + count;
 
-};
+}
 
-document.getElementById("plus20").onclick=()=>{
+document.getElementById("plus1")
+.onclick=()=>addTicket(1);
 
-document.getElementById("remainTicket").innerText=
-Number(document.getElementById("remainTicket").innerText)+20;
+document.getElementById("plus5")
+.onclick=()=>addTicket(5);
 
-};
+document.getElementById("plus10")
+.onclick=()=>addTicket(10);
 
-document.getElementById("plus50").onclick=()=>{
+document.getElementById("plus20")
+.onclick=()=>addTicket(20);
 
-document.getElementById("remainTicket").innerText=
-Number(document.getElementById("remainTicket").innerText)+50;
+document.getElementById("plus50")
+.onclick=()=>addTicket(50);
 
-};
 
 /* 숫자변경, firestore에 저장 */
 document.getElementById("saveBtn").onclick =
@@ -149,6 +159,9 @@ remainTicket:Number(
 document.getElementById("remainTicket").innerText
 ),
 
+totalTicket:Number(
+document.getElementById("totalTicket").innerText
+),
 
 cancelRemain:Number(
 document.getElementById("cancelRemain").value
