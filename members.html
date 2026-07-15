@@ -133,16 +133,23 @@ cursor:pointer;
 /* =========멤버=========== */
 
 .member-list{
-background-color: white;
-grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
-cursor: pointer;
-gap:20px;
-}
+  border: 2 solid gray;
+  background-color: white;
+  grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  cursor: pointer;
+  gap:20px;
+  border-radius: 20px;  
+  margin: auto;
+  }
 .member-item{display: flex;}
 .member-item.active{
 background:#6b5e5e;
 color:white;
 }
+#memberName{
+ background-color: yellow;
+}
+ 
  
 
 .card{
@@ -170,7 +177,19 @@ margin:8px 0;
 }
 
 /* 버튼 */
-button{width:10px;}
+button{
+    width: 100%;
+    padding: 15px;
+    background-color: #6b5e5e;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.3s;
+    }
+ 
 .saveBtn{width:10px;}
 .buttons{
 
@@ -331,7 +350,7 @@ placeholder="이름 또는 전화번호 검색">
         <div id="memberList"></div>
 
     </div>
-<hr>
+<hr><br>
   <div class="member-detail">
   
   <h3 id="memberName">
