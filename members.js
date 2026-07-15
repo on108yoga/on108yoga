@@ -1,62 +1,58 @@
 import { db } from "./firebase.js";
 
 import {
-
 collection,
-getDocs
-
+getDocs,
+getDoc,
+doc
 }
 from
 "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
-const tbody =
-document.getElementById("memberTableBody");
 
+const memberList =
+document.getElementById("memberList");
+
+let selectedUid = ""; /* 선택한 회원 기억 */
+
+/* loadMembers */
 async function loadMembers(){
 
-tbody.innerHTML="";
+    memberList.innerHTML = "";
 
-const snapshot =
-await getDocs(collection(db,"users"));
+    const snapshot =
+    await getDocs(collection(db,"users"));
 
-let no = 1;
+    snapshot.forEach(docSnap=>{
 
-snapshot.forEach(doc=>{
+        const user = docSnap.data();
 
-const user = doc.data();
+        memberList.innerHTML += `
+        <div class="member-item"
+             data-id="${docSnap.id}">
 
-  /* 1 */
-  memberList.innerHTML += `
+            <b>${user.name}</b><br>
+            ${user.phone}
 
-<div class="member-item"
-data-id="${doc.id}">
+        </div>
+        `;
 
-<b>${user.name}</b><br>
+    });
 
-${user.phone}
+    // 회원을 모두 만든 후 클릭 이벤트 등록
+    document
+    .querySelectorAll(".member-item")
+    .forEach(item=>{
 
-</div>
+        item.onclick = ()=>{
 
-`;
-/* */
-});
+            showMember(item.dataset.id);
+
+        };
+
+    });
 
 }
-
-loadMembers();
-
-
-/* 2 */
-document.querySelectorAll(".member-item")
-.forEach(item=>{
-
-item.onclick=()=>{
-
-showMember(item.dataset.id);
-
-};
-
-});
 
 /* 3 */
 
