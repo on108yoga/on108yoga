@@ -358,15 +358,20 @@ placeholder="이름 또는 전화번호 검색">
   
   <hr>
   
-  <p>
-  일반취소 가능 :
-  <span id="cancelRemain"></span>회
-  </p>
-  
-  <p>
-  당일취소 가능 :
-  <span id="sameDayCancelRemain"></span>회
-  </p>
+    <p>    
+    일반취소 가능    
+    <input
+    type="number"
+    id="cancelRemain"
+    min="0">    
+    </p>    
+    <p>    
+    당일취소 가능    
+    <input
+    type="number"
+    id="sameDayCancelRemain"
+    min="0">    
+    </p>
   
   <hr>
    <div class="ticket-buttons">
