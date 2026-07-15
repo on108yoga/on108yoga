@@ -12,7 +12,6 @@ from
 "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
 
-
 import {
 
 collection,
@@ -51,7 +50,7 @@ return;
 
 }
 
-
+/* 회원정보를 불러올 때 */
 const userDoc = await getDoc(
         doc(db,"users",user.uid)
     );
@@ -63,6 +62,21 @@ const userDoc = await getDoc(
 
         document.getElementById("userPhone").innerText =
         userDoc.data().phone;
+
+        document.getElementById("totalTicket").innerText =
+        data.totalTicket || 0;
+        
+        document.getElementById("remainTicket").innerText =
+        data.remainTicket || 0;
+        
+        document.getElementById("usedTicket").innerText =
+        data.usedTicket || 0;
+        
+        document.getElementById("cancelRemain").innerText =
+        data.cancelRemain || 0;
+        
+        document.getElementById("sameDayCancelRemain").innerText =
+        data.sameDayCancelRemain || 0;
 
     }
 
