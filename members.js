@@ -4,11 +4,11 @@ import {
 collection,
 getDocs,
 getDoc,
-doc
+doc,
+updateDoc
 }
 from
 "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
-
 
 const memberList =
 document.getElementById("memberList");
@@ -58,6 +58,8 @@ async function loadMembers(){
 
 async function showMember(uid){
 
+    selectedUid = uid;
+
     const snap =
     await getDoc(
     doc(db,"users",uid)
@@ -89,9 +91,81 @@ data.sameDayCancelRemain || 0;
 }
 
 /* puls 버튼 */
-document.getElementById("plus10").onclick = () => {
+document.getElementById("plus1").onclick=()=>{
 
-    document.getElementById("remainTicket").innerText =
-        Number(document.getElementById("remainTicket").innerText) + 10;
+document.getElementById("remainTicket").innerText=
+Number(document.getElementById("remainTicket").innerText)+1;
 
 };
+
+document.getElementById("plus5").onclick=()=>{
+
+document.getElementById("remainTicket").innerText=
+Number(document.getElementById("remainTicket").innerText)+5;
+
+};
+document.getElementById("plus10").onclick=()=>{
+
+document.getElementById("remainTicket").innerText=
+Number(document.getElementById("remainTicket").innerText)+10;
+
+};
+
+document.getElementById("plus20").onclick=()=>{
+
+document.getElementById("remainTicket").innerText=
+Number(document.getElementById("remainTicket").innerText)+20;
+
+};
+
+document.getElementById("plus50").onclick=()=>{
+
+document.getElementById("remainTicket").innerText=
+Number(document.getElementById("remainTicket").innerText)+50;
+
+};
+
+/* 숫자변경, firestore에 저장 */
+document.getElementById("saveBtn").onclick =
+async()=>{
+
+
+if(!selectedUid){
+
+alert("회원을 선택해주세요.");
+
+return;
+
+}
+
+
+await updateDoc(
+
+doc(db,"users",selectedUid),
+
+{
+
+remainTicket:Number(
+document.getElementById("remainTicket").innerText
+),
+
+
+cancelRemain:Number(
+document.getElementById("cancelRemain").value
+),
+
+
+sameDayCancelRemain:Number(
+document.getElementById("sameDayCancelRemain").value
+)
+
+}
+
+);
+
+alert("회원정보가 저장되었습니다.");
+
+};
+
+/* 회원목록을 화면으로 호출 */
+loadMembers();
