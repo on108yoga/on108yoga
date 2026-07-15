@@ -25,52 +25,81 @@ snapshot.forEach(doc=>{
 
 const user = doc.data();
 
-tbody.innerHTML += `
+  /* 1 */
+  memberList.innerHTML += `
 
-<tr>
+<div class="member-item"
+data-id="${doc.id}">
 
-<td>${no++}</td>
+<b>${user.name}</b><br>
 
-<td>${user.name ?? ""}</td>
+${user.phone}
 
-<td>${user.phone ?? ""}</td>
-
-<td>${user.remainCount ?? 0} 회</td>
-
-<td>${user.role ?? "member"}</td>
-
-<td>
-
-<button
-class="action-btn ticket"
-onclick="location.href='tickets.html?uid=${doc.id}'">
-
-이용권
-
-</button>
-
-<button
-class="action-btn edit">
-
-수정
-
-</button>
-
-<button
-class="action-btn delete">
-
-삭제
-
-</button>
-
-</td>
-
-</tr>
+</div>
 
 `;
-
+/* */
 });
 
 }
 
 loadMembers();
+
+
+/* 2 */
+document.querySelectorAll(".member-item")
+.forEach(item=>{
+
+item.onclick=()=>{
+
+showMember(item.dataset.id);
+
+};
+
+});
+
+/* 3 */
+
+async function showMember(uid){
+
+const snap =
+await getDoc(
+doc(db,"users",uid)
+);
+
+const data =
+snap.data();
+
+document.getElementById("memberName").innerText =
+data.name;
+
+document.getElementById("memberPhone").innerText =
+data.phone;
+
+document.getElementById("remainTicket").innerText =
+data.remainTicket || 0;
+
+document.getElementById("totalTicket").innerText =
+data.totalTicket || 0;
+
+document.getElementById("usedTicket").innerText =
+data.usedTicket || 0;
+
+document.getElementById("cancelRemain").value =
+data.cancelRemain || 0;
+
+document.getElementById("sameDayCancelRemain").value =
+data.sameDayCancelRemain || 0;
+
+  document
+.getElementById("plus10")
+.onclick=()=>{
+
+document.getElementById("remainTicket").innerText=
+Number(
+document.getElementById("remainTicket").innerText
+)+10;
+
+};
+
+}
