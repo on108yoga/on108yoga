@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>이용권 관리</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+
+body{
+
+    text-align:center;
+    background:#fafafa;
+
+}
+
+
+header{
+
+    background:#517e73;
+    padding:20px;
+
+}
+
+
+header a{
+
+    color:white;
+    text-decoration:none;
+    margin:0 10px;
+
+}
+
+
+
+.ticket-container{
+
+    width:350px;
+    margin:50px auto;
+
+}
+
+
+
+.ticket-box{
+
+    background:white;
+
+    border:1px solid #ddd;
+
+    border-radius:15px;
+
+    padding:25px;
+
+    box-shadow:0 5px 15px rgba(0,0,0,.1);
+
+}
+
+
+
+.ticket-box p{
+
+    font-size:20px;
+
+    margin:15px;
+
+}
+
+
+
+button{
+
+    padding:12px 25px;
+
+    border:none;
+
+    border-radius:10px;
+
+    cursor:pointer;
+
+}
+
+
+button:hover{
+
+    background:#517e73;
+
+    color:white;
+
+}
+
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+<nav>
+
+<a href="index.html">
+홈
+</a>
+
+
+<a href="reservation.html">
+예약
+</a>
+
+
+<a href="mypage.html">
+마이페이지
+</a>
+
+
+</nav>
+
+
+<h1>
+이용권 관리
+</h1>
+
+
+</header>
+
+
+
+<main>
+
+
+<section class="ticket-container">
+
+
+<div class="ticket-box">
+
+
+<h2>
+내 이용권
+</h2>
+
+
+<hr>
+
+
+<p>
+총 이용권 :
+<span id="totalTicket">
+0
+</span>
+회
+</p>
+
+
+<p>
+사용 횟수 :
+<span id="usedTicket">
+0
+</span>
+회
+</p>
+
+
+<p>
+환불 횟수 :
+<span id="refundTicket">
+0
+</span>
+회
+</p>
+
+
+<p>
+남은 횟수 :
+<span id="remainTicket">
+0
+</span>
+회
+</p>
+
+
+
+</div>
+
+
+</section>
+
+
+</main>
+
+
+
+<script type="module" src="firebase.js"></script>
+
+<script type="module" src="tickets.js"></script>
+
+
+</body>
+
+</html>
