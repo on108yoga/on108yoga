@@ -75,7 +75,14 @@ async function showMember(uid){
     doc(db,"users",uid)
     );
 
-const data = snap.data();
+    const data = snap.data(); /* 삭제된 회원 에러 방지 */
+    
+    if(!data){
+    
+    alert("회원 정보를 찾을 수 없습니다.");
+    
+    return;
+    }
 
 document.getElementById("memberName").innerText =
 data.name;
@@ -103,19 +110,23 @@ data.sameDayCancelRemain || 0;
 /* puls 버튼 */
 function addTicket(count){
 
-    const remain =
-    document.getElementById("remainTicket");
+const remain =
+document.getElementById("remainTicket");
 
-    const total =
-    document.getElementById("totalTicket");
-
-
-    remain.innerText =
-    Number(remain.innerText) + count;
+const total =
+document.getElementById("totalTicket");
 
 
-    total.innerText =
-    Number(total.innerText) + count;
+remain.innerText =
+Number(remain.innerText)+count;
+
+
+total.innerText =
+Number(total.innerText)+count;
+
+
+document.getElementById("saveStatus").innerText =
+"저장 필요";
 
 }
 
@@ -136,8 +147,13 @@ document.getElementById("plus50")
 
 
 /* 숫자변경, firestore에 저장 */
-document.getElementById("saveBtn").onclick =
-async()=>{
+const saveBtn =
+document.getElementById("saveBtn");
+
+
+if(saveBtn){
+
+saveBtn.onclick = async()=>{
 
 
 if(!selectedUid){
@@ -167,7 +183,6 @@ cancelRemain:Number(
 document.getElementById("cancelRemain").value
 ),
 
-
 sameDayCancelRemain:Number(
 document.getElementById("sameDayCancelRemain").value
 )
@@ -176,9 +191,12 @@ document.getElementById("sameDayCancelRemain").value
 
 );
 
+
 alert("회원정보가 저장되었습니다.");
 
 };
+
+}
 
 /* 회원목록을 화면으로 호출 */
 loadMembers();
