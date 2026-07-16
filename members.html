@@ -350,32 +350,87 @@ padding:15px;
             <label>이용권</label>
             <input id="ticketType" type="text">
     
-            <label>남은횟수</label>
-            <input id="remainTicketInput" type="number">
+            <label>남은 횟수</label>
+              <div class="numberBox">              
+                  <button id="minusRemain">－</button>              
+                  <input
+                  type="number"
+                  id="remainTicketInput">              
+                  <button id="plusRemain">＋</button>              
+              </div>
     
-            <label>총횟수</label>
-            <input id="totalTicketInput" type="number">
+           <label>총 횟수</label>
+              <div class="numberBox">              
+                  <button id="minusTotal">－</button>              
+                  <input
+                  type="number"
+                  id="totalTicketInput">              
+                  <button id="plusTotal">＋</button>              
+              </div>
     
-            <label>사용횟수</label>
-            <input id="usedTicketInput" type="number">
-    
+         <label>사용 횟수</label>            
+            <div class="numberBox">            
+                <button id="minusUsed">－</button>            
+                <input
+                type="number"
+                id="usedTicketInput">            
+                <button id="plusUsed">＋</button>            
+            </div>
+                
             <label>시작일</label>
             <input id="startDateInput" type="date">
     
-            <label>만료일</label>
-            <input id="expireDateInput" type="date">
+            <label>만료일</label>              
+              <div class="dateBox">              
+                  <button id="minus30Day">-30일</button>              
+                  <button id="minus7Day">-7일</button>              
+                  <button id="minusDay">-1일</button>              
+                  <input
+                  type="date"
+                  id="expireDateInput">              
+                  <button id="plusDay">+1일</button>              
+                  <button id="plus7Day">+7일</button>              
+                  <button id="plus30Day">+30일</button>              
+              </div>
     
-            <label>당일취소</label>
-            <input id="sameDayCancelRemain" type="number">
-    
-            <label>일반취소</label>
-            <input id="cancelRemain" type="number">
+         <label>일반 취소</label>
+          <input
+          type="number"
+          id="cancelRemain">          
+          <label>당일 취소</label>          
+          <input
+          type="number"
+          id="sameDayCancelRemain">
     
             <br><br>
     
             <button id="saveBtn">저장</button>
     
         </div>
+          
+                  <div class="ticketButtons">
+              <label>빠른 등록</label>
+              <button id="ticket5">
+              5회권
+              </button>
+          
+              <button id="ticket10">
+              10회권
+              </button>
+          
+              <button id="ticket20">
+              20회권
+              </button>
+          
+              <button id="ticket30">
+              30회권
+              </button>
+          
+              <button id="ticket50">
+              50회권
+              </button>
+          
+          </div>
     
     </div>
 
