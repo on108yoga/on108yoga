@@ -1,4 +1,3 @@
-// 1. firebase.js 및 Firestore 모듈들 불러오기
 import { db } from "./firebase.js";
 import {
     collection,
@@ -11,16 +10,15 @@ import {
     onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
-let activeUserPhone = null; // 현재 선택된 회원
+// 이제 전화번호가 아닌 Firestore의 문서 ID(UID 또는 미가입자용 전화번호)를 기준으로 회원을 추적합니다.
+let activeUserId = null; 
 
-// DOM 캐싱
 const memberListContainer = document.getElementById('member-list-container');
 const detailPlaceholder = document.getElementById('detail-placeholder');
 const detailContent = document.getElementById('detail-content');
 const searchInput = document.getElementById('search-input');
 const modal = document.getElementById('register-modal');
 
-// 모달 핸들러 (전역 window 객체에 바인딩하여 HTML inline onclick 동작 가능하도록 구성)
 window.openModal = () => {
     modal.style.display = 'flex';
     document.getElementById('reg-start').value = new Date().toISOString().split('T')[0];
@@ -30,24 +28,23 @@ window.closeModal = () => {
     document.getElementById('register-form').reset();
 };
 
-// 2. 실시간 리스트 갱신 구동 (onSnapshot 모듈러 방식)
+// 1. 실시간 리스트 갱신 구동
 const usersCol = collection(db, 'users');
 onSnapshot(usersCol, (snapshot) => {
     const docsList = snapshot.docs;
     renderMemberList(docsList);
     
-    // 현재 열려 있는 유저가 있다면 상세뷰 자동 동기화
-    if (activeUserPhone) {
-        const activeDoc = docsList.find(doc => doc.id === activeUserPhone);
+    if (activeUserId) {
+        const activeDoc = docsList.find(doc => doc.id === activeUserId);
         if (activeDoc) {
-            showMemberDetail(activeDoc.data());
+            showMemberDetail(activeUserId, activeDoc.data());
         } else {
             closeDetailView();
         }
     }
 });
 
-// 3. 회원이 보이는 리스트 출력
+// 2. 회원이 보이는 리스트 출력
 function renderMemberList(docs) {
     memberListContainer.innerHTML = '';
     if(docs.length === 0) {
@@ -57,31 +54,34 @@ function renderMemberList(docs) {
 
     docs.forEach((doc) => {
         const user = doc.data();
+        const id = doc.id; // UID 혹은 전화번호
         const div = document.createElement('div');
-        div.className = `member-item ${activeUserPhone === user.phone ? 'active' : ''}`;
+        div.className = `member-item ${activeUserId === id ? 'active' : ''}`;
         
-        // 클릭 시 해당 회원 상세 조회
-        div.onclick = () => selectMember(user.phone, user);
+        div.onclick = () => selectMember(id, user);
+
+        // 아직 가입 안 한 회원은 별도 표시를 해주면 관리자가 구별하기 좋습니다.
+        const isJoined = id.length !== 11; // 11자리 연락처가 아니면 가입된 유저(UID)로 판단
+        const joinedBadge = isJoined ? '' : ' <span style="font-size:10px; color:#ef4444;">(미가입)</span>';
 
         div.innerHTML = `
             <div>
-                <span class="member-name">${user.name}</span><br>
+                <span class="member-name">${user.name}${joinedBadge}</span><br>
                 <span class="member-phone">${formatPhone(user.phone)}</span>
             </div>
-            <span style="font-size:13px; color: #4f46e5; font-weight:bold;">${user.remainingCount}회 남음</span>
+            <span style="font-size:13px; color: #4f46e5; font-weight:bold;">${user.remainingCount || 0}회 남음</span>
         `;
         memberListContainer.appendChild(div);
     });
 }
 
-// 4. 회원 선택하여 정보 우측 화면에 송출
-function selectMember(phone, userData) {
-    activeUserPhone = phone;
+function selectMember(id, userData) {
+    activeUserId = id;
     document.querySelectorAll('.member-item').forEach(item => item.classList.remove('active'));
-    showMemberDetail(userData);
+    showMemberDetail(id, userData);
 }
 
-function showMemberDetail(user) {
+function showMemberDetail(id, user) {
     detailPlaceholder.style.display = 'none';
     detailContent.style.display = 'block';
 
@@ -101,12 +101,11 @@ function showMemberDetail(user) {
 }
 
 function closeDetailView() {
-    activeUserPhone = null;
+    activeUserId = null;
     detailPlaceholder.style.display = 'flex';
     detailContent.style.display = 'none';
 }
 
-// 날짜 더하기 헬퍼 함수
 function addDays(dateStr, days) {
     if (!dateStr) return '';
     const date = new Date(dateStr);
@@ -161,9 +160,9 @@ window.calculateRegEndDate = () => {
     }
 };
 
-// 5. 이용권 변경 및 업데이트 (updateDoc 모듈러 방식)
+// 3. 이용권 수정 저장
 window.updateUserTicket = async () => {
-    if(!activeUserPhone) return;
+    if(!activeUserId) return;
 
     const ticketType = document.getElementById('edit-ticket-type').value.trim();
     const totalCount = parseInt(document.getElementById('edit-total-count').value) || 0;
@@ -172,7 +171,7 @@ window.updateUserTicket = async () => {
     const endDate = document.getElementById('edit-end-date').value;
 
     try {
-        const userDocRef = doc(db, 'users', activeUserPhone);
+        const userDocRef = doc(db, 'users', activeUserId);
         await updateDoc(userDocRef, {
             ticketType,
             totalCount,
@@ -188,10 +187,10 @@ window.updateUserTicket = async () => {
 
 // 이용권 제거(초기화)
 window.resetUserTicket = async () => {
-    if(!activeUserPhone || !confirm("이 회원의 이용권을 만료/제거 상태로 리셋하시겠습니까?")) return;
+    if(!activeUserId || !confirm("이 회원의 이용권을 만료/제거 상태로 리셋하시겠습니까?")) return;
 
     try {
-        const userDocRef = doc(db, 'users', activeUserPhone);
+        const userDocRef = doc(db, 'users', activeUserId);
         await updateDoc(userDocRef, {
             ticketType: "",
             totalCount: 0,
@@ -205,15 +204,15 @@ window.resetUserTicket = async () => {
     }
 };
 
-// 회원 영구 삭제 (deleteDoc 모듈러 방식)
+// 회원 영구 삭제
 window.deleteCurrentMember = async () => {
-    if(!activeUserPhone || !confirm("정말로 이 회원을 데이터베이스에서 삭제하시겠습니까?")) return;
+    if(!activeUserId || !confirm("정말로 이 회원을 데이터베이스에서 삭제하시겠습니까?")) return;
     
-    const phoneToDelete = activeUserPhone;
+    const idToDelete = activeUserId;
     closeDetailView();
     
     try {
-        const userDocRef = doc(db, 'users', phoneToDelete);
+        const userDocRef = doc(db, 'users', idToDelete);
         await deleteDoc(userDocRef);
         alert("회원이 완전히 삭제되었습니다.");
     } catch (err) {
@@ -221,7 +220,7 @@ window.deleteCurrentMember = async () => {
     }
 };
 
-// 신규 회원 등록 저장 프로세스 (setDoc 모듈러 방식)
+// 신규 회원 등록 저장 프로세스 (관리자 임시 등록 - 문서는 전화번호를 ID로 저장)
 document.getElementById('register-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const phone = document.getElementById('reg-phone').value.replace(/[^0-9]/g, '');
@@ -232,18 +231,31 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
     const endDate = document.getElementById('reg-end').value;
 
     try {
-        const userDocRef = doc(db, 'users', phone);
-        await setDoc(userDocRef, {
-            name, phone, ticketType, totalCount, remainingCount: totalCount, startDate, endDate
-        });
-        alert("회원이 추가되었습니다.");
+        // 이미 해당 번호로 가입된 정식 회원이 있는지 먼저 검사합니다.
+        const querySnapshot = await getDocs(usersCol);
+        const registeredUser = querySnapshot.docs.find(doc => doc.data().phone === phone && doc.id !== phone);
+
+        if (registeredUser) {
+            // 이미 가입된 회원이 있다면 그 회원의 실제 UID 문서에 이용권을 바로 저장합니다.
+            const userDocRef = doc(db, 'users', registeredUser.id);
+            await updateDoc(userDocRef, {
+                ticketType, totalCount, remainingCount: totalCount, startDate, endDate
+            });
+            alert(`이미 가입된 ${name} 회원님의 계정에 이용권을 즉시 부여했습니다.`);
+        } else {
+            // 가입 전이라면 이전 방식대로 전화번호를 ID로 삼는 임시 문서를 생성합니다. (가입 시 병합됨)
+            const userDocRef = doc(db, 'users', phone);
+            await setDoc(userDocRef, {
+                name, phone, ticketType, totalCount, remainingCount: totalCount, startDate, endDate, role: "member"
+            });
+            alert("미가입 회원의 임시 정보가 추가되었습니다. 추후 가입 시 자동 매칭됩니다.");
+        }
         closeModal();
     } catch (err) {
         alert("등록 실패: " + err);
     }
 });
 
-// 전화번호 가독성 변환 포맷터
 function formatPhone(phone) {
     if(phone.length === 11) {
         return phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
@@ -251,7 +263,7 @@ function formatPhone(phone) {
     return phone;
 }
 
-// 실시간 클라이언트 검색 기능 (getDocs 모듈러 방식)
+// 실시간 클라이언트 검색
 searchInput.addEventListener('input', async (e) => {
     const keyword = e.target.value.toLowerCase();
     try {
