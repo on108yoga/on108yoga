@@ -1,4 +1,4 @@
-/* 1. import 문구, 2. 변수 선언 */
+/* 1. import 문구 */ 
 import { db } from "./firebase.js";
 
 import {
@@ -11,14 +11,13 @@ import {
 from
 "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
+/* 2. 변수 선언 */
 const memberList =
 document.getElementById("memberList");
 
-console.log(memberList);
-
 let selectedUid = ""; /* 선택한 회원 기억 */
 
-/* 3. loadMembers 함수 */
+/* 3. loadMembers 함수 : 회원 목록 */
 async function loadMembers() {
 
     memberList.innerHTML = "";
@@ -60,47 +59,51 @@ async function loadMembers() {
 
 }
 
-/* 4. showMember 함수 */
+/* 4. showMember 함수 : 회원정보 표시 */
 async function showMember(uid){
 
     selectedUid = uid;
 
-    const snap = await getDoc(
-        doc(db,"users",uid)
-    );
+    const snap =
+    await getDoc(doc(db,"users",uid));
 
     const data = snap.data();
 
     if(!data){
-        alert("회원 정보를 찾을 수 없습니다.");
+        alert("회원정보가 없습니다.");
         return;
     }
 
-    document.getElementById("memberName").innerText = data.name || "";
-    document.getElementById("memberPhone").innerText = data.phone || "";
+    document.getElementById("memberName").innerText =
+    data.name || "";
 
-    document.getElementById("remainTicket").innerText = data.remainTicket || 0;
-    document.getElementById("totalTicket").innerText = data.totalTicket || 0;
-    document.getElementById("usedTicket").innerText = data.usedTicket || 0;
+    document.getElementById("memberPhone").innerText =
+    data.phone || "";
 
-    document.getElementById("cancelRemain").value = data.cancelRemain || 0;
-    document.getElementById("sameDayCancelRemain").value = data.sameDayCancelRemain || 0;
+    document.getElementById("ticketType").value =
+    data.ticketType || "";
 
-    document.getElementById("startDate").innerText = data.startDate || "-";
-    document.getElementById("expireDate").innerText = data.expireDate || "-";
+    document.getElementById("remainTicketInput").value =
+    data.remainTicket || 0;
 
-    // 수정용 input
-    document.getElementById("ticketType").value = data.ticketType || "";
+    document.getElementById("totalTicketInput").value =
+    data.totalTicket || 0;
 
-    document.getElementById("remainTicketInput").value = data.remainTicket || 0;
+    document.getElementById("usedTicketInput").value =
+    data.usedTicket || 0;
 
-    document.getElementById("totalTicketInput").value = data.totalTicket || 0;
+    document.getElementById("startDateInput").value =
+    data.startDate || "";
 
-    document.getElementById("usedTicketInput").value = data.usedTicket || 0;
+    document.getElementById("expireDateInput").value =
+    data.expireDate || "";
 
-    document.getElementById("startDateInput").value = data.startDate || "";
+    document.getElementById("cancelRemain").value =
+    data.cancelRemain || 0;
 
-    document.getElementById("expireDateInput").value = data.expireDate || "";
+    document.getElementById("sameDayCancelRemain").value =
+    data.sameDayCancelRemain || 0;
+
 }
 
 /* 5. puls 버튼 */
