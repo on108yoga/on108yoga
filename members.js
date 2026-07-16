@@ -87,18 +87,24 @@ function showMemberDetail(id, user) {
 
     document.getElementById('det-name').innerText = `${user.name} 회원님`;
     document.getElementById('det-phone').innerText = formatPhone(user.phone);
-    
+
     document.getElementById('cur-ticket').innerText = user.ticketType || "없음(이용권 미등록)";
     document.getElementById('cur-count').innerText = user.ticketType ? `${user.remainingCount}회 / ${user.totalCount}회` : "-";
     document.getElementById('cur-period').innerText = user.startDate ? `${user.startDate} ~ ${user.endDate}` : "이용 기간 정보 없음";
-    // renderMyPage 함수 내에 추가
-    document.getElementById("cancel-count").innerText = `${user.remainingCancelCount || 0}회`;
     
+    // [추가] 남은 취소 횟수 화면 표시
+    document.getElementById('cur-cancel-count').innerText = user.ticketType ? `${user.remainingCancelCount || 0}회 / ${user.totalCancelLimit || 0}회` : "-";
+
     document.getElementById('edit-ticket-type').value = user.ticketType || '';
     document.getElementById('edit-total-count').value = user.totalCount || 0;
     document.getElementById('edit-remaining-count').value = user.remainingCount || 0;
     document.getElementById('edit-start-date').value = user.startDate || '';
     document.getElementById('edit-end-date').value = user.endDate || '';
+    
+    // [추가] 수정 input 값 바인딩
+    document.getElementById('edit-total-cancel').value = user.totalCancelLimit || 0;
+    document.getElementById('edit-remaining-cancel').value = user.remainingCancelCount || 0;
+    
     document.getElementById('edit-template-select').value = '';
 }
 
@@ -171,6 +177,10 @@ window.updateUserTicket = async () => {
     const remainingCount = parseInt(document.getElementById('edit-remaining-count').value) || 0;
     const startDate = document.getElementById('edit-start-date').value;
     const endDate = document.getElementById('edit-end-date').value;
+    
+    // [추가] 취소 가능 횟수 필드값 읽기
+    const totalCancelLimit = parseInt(document.getElementById('edit-total-cancel').value) || 0;
+    const remainingCancelCount = parseInt(document.getElementById('edit-remaining-cancel').value) || 0;
 
     try {
         const userDocRef = doc(db, 'users', activeUserId);
@@ -179,9 +189,12 @@ window.updateUserTicket = async () => {
             totalCount,
             remainingCount,
             startDate,
-            endDate
+            endDate,
+            // [추가] Firestore 업데이트 항목
+            totalCancelLimit,
+            remainingCancelCount
         });
-        alert("이용권 정보가 성공적으로 변경되었습니다.");
+        alert("이용권 및 취소 제한 정보가 성공적으로 변경되었습니다.");
     } catch (err) {
         alert("수정 실패: " + err);
     }
@@ -198,7 +211,10 @@ window.resetUserTicket = async () => {
             totalCount: 0,
             remainingCount: 0,
             startDate: "",
-            endDate: ""
+            endDate: "",
+            // [추가] 취소 정보 초기화
+            totalCancelLimit: 0,
+            remainingCancelCount: 0
         });
         alert("이용권이 제거되었습니다.");
     } catch (err) {
@@ -231,26 +247,41 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
     const totalCount = parseInt(document.getElementById('reg-count').value);
     const startDate = document.getElementById('reg-start').value;
     const endDate = document.getElementById('reg-end').value;
+    
+    // [추가] 등록할 때 입력한 취소 횟수
+    const cancelCount = parseInt(document.getElementById('reg-cancel-count').value) || 0;
 
     try {
-        // 이미 해당 번호로 가입(auth.js 완료)된 회원이 테이블에 있는지 검사합니다.
         const querySnapshot = await getDocs(usersCol);
-        
-        // 데이터 내 phone이 일치하면서, 문서ID가 phone이 아닌 것(즉, UID 문서인 것)을 검색합니다.
         const registeredUser = querySnapshot.docs.find(doc => doc.data().phone === phone && doc.id !== phone);
 
         if (registeredUser) {
-            // 가입된 회원이 있는 경우: 실제 회원 계정(UID 문서)에 이용권을 다이렉트로 업데이트합니다.
             const userDocRef = doc(db, 'users', registeredUser.id);
             await updateDoc(userDocRef, {
-                ticketType, totalCount, remainingCount: totalCount, startDate, endDate
+                ticketType, 
+                totalCount, 
+                remainingCount: totalCount, 
+                startDate, 
+                endDate,
+                // [추가]
+                totalCancelLimit: cancelCount,
+                remainingCancelCount: cancelCount
             });
-            alert(`이미 가입된 ${name} 회원님의 계정에 이용권을 즉시 부여했습니다.`);
+            alert(`이미 가입된 ${name} 회원님의 계정에 이용권 및 취소 정책을 즉시 부여했습니다.`);
         } else {
-            // 아직 가입하지 않은 회원인 경우: 연락처를 문서 ID로 삼아 임시 문서를 생성합니다.
             const userDocRef = doc(db, 'users', phone);
             await setDoc(userDocRef, {
-                name, phone, ticketType, totalCount, remainingCount: totalCount, startDate, endDate, role: "member"
+                name, 
+                phone, 
+                ticketType, 
+                totalCount, 
+                remainingCount: totalCount, 
+                startDate, 
+                endDate, 
+                role: "member",
+                // [추가]
+                totalCancelLimit: cancelCount,
+                remainingCancelCount: cancelCount
             });
             alert("미가입 회원의 임시 정보가 추가되었습니다. 추후 이 번호로 가입하면 즉시 연동됩니다.");
         }
