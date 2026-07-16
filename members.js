@@ -105,7 +105,17 @@ data.cancelRemain || 0;
 document.getElementById("sameDayCancelRemain").value =
 data.sameDayCancelRemain || 0;
 
+document.getElementById("ticketType").innerText =
+data.ticketType || "-";
+
+document.getElementById("startDate").innerText =
+data.startDate || "-";
+
+document.getElementById("expireDate").innerText =
+data.expireDate || "-";
+
 }
+
 
 /* puls 버튼 */
 function addTicket(count){
@@ -197,6 +207,97 @@ alert("회원정보가 저장되었습니다.");
 };
 
 }
+
+/* 4. ticketCount */
+async function registerTicket(ticketCount, days){
+
+    // 회원 선택 안하면
+    if(!selectedUid){
+
+    alert("회원을 먼저 선택해주세요.");
+
+    return;
+
+    }
+
+    const snap =
+    await getDoc(doc(db,"users",selectedUid));
+
+    const user = snap.data();
+
+    const today = new Date();
+
+    const todayString =
+    today.toISOString().slice(0,10);
+
+    let expireDate;
+
+    // 기존 이용권이 살아있으면 이어붙이기
+    if(
+        user.expireDate &&
+        new Date(user.expireDate) > today
+    ){
+
+        expireDate =
+        new Date(user.expireDate);
+
+    }else{
+
+        // 만료됐으면 오늘부터 시작
+        expireDate = today;
+
+    }
+
+    expireDate.setDate(
+        expireDate.getDate()+days
+    );
+
+    await updateDoc(
+    
+    doc(db,"users",selectedUid),
+    
+    {
+    
+    ticketType:`${ticketCount}회권`,
+    
+    startDate:
+    user.startDate || todayString,
+    
+    expireDate:
+    expireDate.toISOString().slice(0,10),
+    
+    totalTicket:
+    (user.totalTicket||0)+ticketCount,
+    
+    remainTicket:
+    (user.remainTicket||0)+ticketCount
+    
+    }
+    
+    );
+
+    alert("이용권이 등록되었습니다.");
+
+    showMember(selectedUid);
+
+}
+
+/* 4. 버튼연결 */
+const ticket5 = document.getElementById("ticket5");
+const ticket10 = document.getElementById("ticket10");
+const ticket20 = document.getElementById("ticket20");
+const ticket30 = document.getElementById("ticket30");
+const ticket50 = document.getElementById("ticket50");
+
+ticket5.onclick  = ()=>registerTicket(5,20);
+
+ticket10.onclick = ()=>registerTicket(10,40);
+
+ticket20.onclick = ()=>registerTicket(20,80);
+
+ticket30.onclick = ()=>registerTicket(30,120);
+
+ticket50.onclick = ()=>registerTicket(50,200);
 
 /* 회원목록을 화면으로 호출 */
 loadMembers();
