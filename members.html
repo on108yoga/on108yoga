@@ -1,446 +1,195 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
-
-<title>회원관리</title>
-
-<style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:"맑은 고딕";
-}
-
-body{
-
-background:#f5f5f5;
-
-}
-
-/* ====================== */
-
-header{
-
-background:#6b5e5e;
-
-color:white;
-
-padding:20px;
-
-}
-
-header h1{
-
-text-align:center;
-
-margin-bottom:15px;
-
-}
-
-nav{
-
-display:flex;
-
-justify-content:center;
-
-gap:20px;
-
-}
-
-nav a{
-
-color:white;
-
-text-decoration:none;
-
-font-weight:bold;
-
-}
-
-nav a:hover{
-
-color:#ffd56a;
-
-}
-
-/* ====================== */
-
-main{
-
-max-width:1200px;
-
-margin:auto;
-
-padding:30px;
-
-}
-
-h2{
-
-margin-bottom:20px;
-
-}
-
-/* 검색 */
-.toolbar{display:flex;}
-
-.search{
-
-display:flex;
-
-gap:10px;
-
-margin-bottom:25px;
-
-}
-
-.search input{
-
-flex:1;
-
-padding:12px;
-
-border:1px solid #ccc;
-
-border-radius:8px;
-
-font-size:16px;
-
-}
-
-.search button{
-
-padding:12px 25px;
-
-border:none;
-
-background:#6b5e5e;
-
-color:white;
-
-border-radius:8px;
-
-cursor:pointer;
-
-}
-
-/* =========멤버=========== */
-
-.member-list{
-  border: 2 solid gray;
-  background-color: white;
-  grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
-  cursor: pointer;
-  gap:20px;
-  border-radius: 20px;  
-  margin: auto;
-  }
-.member-item{display: flex;}
-.member-item:hover{
-    background-color: gray;
-  }
-.member-item.active{
-background:#6b5e5e;
-color:white;
-}
-#memberName{
- width: 200px;
- background-color: yellow;
-}
- 
- 
-
-.card{
-
-background:white;
-
-padding:20px;
-
-border-radius:12px;
-
-box-shadow:0 4px 12px rgba(0,0,0,.1);
-
-}
-
-.card h3{
-
-margin-bottom:15px;
-
-}
-
-.card p{
-
-margin:8px 0;
-
-}
-
-/* 버튼 */
-button{
-    width: 80px;
-    padding: 15px;
-    background-color: tomato;
-    color: white;
-    font-size: 12px;
-    font-weight: bold;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: 0.3s;
-    }
-  button:hover{
-    color: black;
-  }
-  
-.saveBtn{width:10px;}
-.buttons{
-display:flex;
-gap:10px;
-margin-top:15px;
-}
-
-.buttons button{
-flex:1;
-padding:12px;
-border:none;
-border-radius:8px;
-cursor:pointer;
-font-weight:bold;
-transition:.2s;
-}
-
-.ticket{
-
-background:#5c7cfa;
-
-color:white;
-
-}
-.ticket-buttons{
-
-display:flex;
-
-gap:10px;
-
-margin:20px 0;
-
-flex-wrap:wrap;
-
-}
-
-.ticket-buttons button{
-
-flex:1;
-
-width:20px;
-
-padding:12px;
-
-cursor:pointer;
-
-border:none;
-
-border-radius:8px;
-
-background:#5c7cfa;
-
-color:white;
-
-font-weight:bold;
-
-}
-
-.ticket-buttons button:hover{
-
-background:#3b5bdb;
-
-}
-  
-.edit{
-
-background:#20c997;
-
-color:white;
-
-}
-
-.delete{
-
-background:#fa5252;
-
-color:white;
-
-}
-
-.buttons button:hover{
-
-transform:translateY(-2px);
-
-opacity:.9;
-
-}
-
-/* ====================== */
-
-@media(max-width:768px){
-
-main{
-
-padding:15px;
-
-}
-
-}
-
-</style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스튜디오 회원 및 이용권 관리</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --border: #e5e7eb;
+            --text: #1f2937;
+        }
+        body { font-family: 'Pretendard', sans-serif; margin: 0; padding: 20px; background-color: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .search-box { padding: 10px; width: 260px; border: 1px solid var(--border); border-radius: 6px; }
+        
+        /* 메인 레이아웃 (좌우 분할) */
+        .main-container { display: flex; gap: 20px; flex: 1; min-height: 0; }
+        
+        /* 1. 회원 리스트 영역 (왼쪽) */
+        .member-list-section { flex: 1; background: var(--card); border-radius: 8px; border: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+        .list-header { padding: 15px 20px; background: #f9fafb; border-bottom: 1px solid var(--border); font-weight: bold; }
+        .member-list { overflow-y: auto; flex: 1; }
+        .member-item { padding: 15px 20px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.2s; display: flex; justify-content: space-between; align-items: center; }
+        .member-item:hover { background: #f9fafb; }
+        .member-item.active { background: #e0e7ff; border-left: 4px solid var(--primary); }
+        .member-name { font-weight: bold; }
+        .member-phone { color: #6b7280; font-size: 13px; }
+
+        /* 2, 3, 4. 회원 상세 및 이용권 설정 영역 (오른쪽) */
+        .member-detail-section { flex: 1.2; background: var(--card); border-radius: 8px; border: 1px solid var(--border); padding: 25px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
+        .placeholder-text { margin: auto; color: #9ca3af; text-align: center; }
+        
+        .detail-header { border-bottom: 2px solid var(--border); padding-bottom: 15px; }
+        .detail-title { font-size: 20px; font-weight: bold; margin: 0 0 5px 0; }
+        
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #f9fafb; padding: 15px; border-radius: 6px; }
+        .info-label { font-size: 13px; color: #6b7280; margin-bottom: 3px; }
+        .info-value { font-weight: 600; font-size: 15px; }
+
+        /* 이용권 변경/수정 폼 */
+        .ticket-management { border: 1px solid var(--border); padding: 20px; border-radius: 8px; background: #fcfcfd; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        select, input { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; }
+        
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        .btn { padding: 10px 15px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; flex: 1; text-align: center; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-secondary { background: #9ca3af; color: white; }
+
+        /* 등록 팝업 모달 */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 100; }
+        .modal-content { background: white; padding: 25px; border-radius: 8px; width: 380px; }
+    </style>
 </head>
-
 <body>
 
 <header>
-
-<h1>회원관리</h1>
-
-<nav>
-
-<a href="admin.html">관리자 홈</a>
-
-<a href="reservations.html">예약관리</a>
-
-<a href="tickets.html">이용권관리</a>
-
-<a href="attendance.html">출석관리</a>
-
-</nav>
-
+    <h2>스튜디오 회원 관리 대시보드</h2>
+    <div>
+        <input type="text" id="search-input" class="search-box" placeholder="이름 또는 연락처 검색...">
+        <button class="btn btn-primary" onclick="openModal()" style="display:inline-block; width:auto; padding: 8px 15px;">+ 신규 회원 추가</button>
+    </div>
 </header>
 
-<main>
-    
-    <div class="member-wrap">
-    
-        <!-- 회원목록 -->
-        <div class="member-list">
-    
-            <h2>회원목록</h2>
-    
-            <div id="memberList"></div>
-    
-        </div>
-    
-    
-        <!-- 회원정보 -->
-        <div class="member-info">
-    
-            <h2>회원정보</h2>
-    
-            <p>이름 : <span id="memberName"></span></p>
-    
-            <p>전화번호 : <span id="memberPhone"></span></p>
-    
-            <hr>
-    
-           <label>이용권</label>
-            <input
-            type="text"
-            id="ticketType">
-          <br>
-            <label>남은 횟수</label>
-              <div class="numberBox">              
-                  <button id="minusRemain">－</button>              
-                  <input
-                  type="number"
-                  id="remainTicketInput">              
-                  <button id="plusRemain">＋</button>              
-              </div>
-          <br>
-           <label>총 횟수</label>
-              <div class="numberBox">              
-                  <button id="minusTotal">－</button>              
-                  <input
-                  type="number"
-                  id="totalTicketInput">              
-                  <button id="plusTotal">＋</button>              
-              </div>
-          <br>
-         <label>사용 횟수</label>            
-            <div class="numberBox">            
-                <button id="minusUsed">－</button>            
-                <input
-                type="number"
-                id="usedTicketInput">            
-                <button id="plusUsed">＋</button>            
+<div class="main-container">
+    <div class="member-list-section">
+        <div class="list-header">전체 회원 목록</div>
+        <div class="member-list" id="member-list-container">
             </div>
-           <br>      
-            <label>시작일</label>
-            <input id="startDateInput" type="date">
-     <br>
-            <label>만료일</label>              
-              <div class="dateBox">              
-                  <button id="minus30Day">-30일</button>              
-                  <button id="minus7Day">-7일</button>              
-                  <button id="minusDay">-1일</button>              
-                  <input
-                  type="date"
-                  id="expireDateInput">              
-                  <button id="plusDay">+1일</button>              
-                  <button id="plus7Day">+7일</button>              
-                  <button id="plus30Day">+30일</button>              
-              </div>
-     <br>
-         <label>일반 취소</label>
-          <input
-          type="number"
-          id="cancelRemain">          
-          <label>당일 취소</label>          
-          <input
-          type="number"
-          id="sameDayCancelRemain">
-    
-            <br><br>
-    
-            <button id="saveBtn">저장</button>
-    
-        </div>
-          
-                  <div class="ticketButtons">
-              <label>빠른 등록</label>
-              <button id="ticket5">
-              5회권+20일
-              </button>
-          
-              <button id="ticket10">
-              10회권+40일
-              </button>
-          
-              <button id="ticket20">
-              20회권+80일
-              </button>
-          
-              <button id="ticket30">
-              30회권+120일
-              </button>
-          
-              <button id="ticket50">
-              50회권+200일
-              </button>
-          
-          </div>
-    
     </div>
 
-</main>
+    <div class="member-detail-section" id="detail-section">
+        <div class="placeholder-text" id="detail-placeholder">
+            <h3>회원을 선택해 주세요</h3>
+            <p>목록에서 회원을 클릭하면 상세 정보 조회 및 이용권 수정이 가능합니다.</p>
+        </div>
+        
+        <div id="detail-content" style="display: none;">
+            <div class="detail-header">
+                <p class="detail-title" id="det-name">홍길동 회원님</p>
+                <span id="det-phone" style="color:#6b7280;">010-1234-5678</span>
+            </div>
 
-<script type="module" src="firebase.js"></script>
-<script type="module" src="members.js"></script>
+            <h3>현재 사용 중인 이용권</h3>
+            <div class="info-grid">
+                <div>
+                    <div class="info-label">이용권 구분</div>
+                    <div class="info-value" id="cur-ticket">10회권 (40일)</div>
+                </div>
+                <div>
+                    <div class="info-label">잔여 횟수</div>
+                    <div class="info-value" id="cur-count" style="color: var(--primary);">8회 / 10회</div>
+                </div>
+                <div style="grid-column: span 2;">
+                    <div class="info-label">이용 기간 (시작일 ~ 만료일)</div>
+                    <div class="info-value" id="cur-period">2026-07-01 ~ 2026-08-10</div>
+                </div>
+            </div>
 
+            <h3>이용권 설정 및 변경</h3>
+            <div class="ticket-management">
+                <div class="form-group">
+                    <label>이용권 템플릿 선택</label>
+                    <select id="edit-template-select" onchange="applyTemplateToEdit()">
+                        <option value="">-- 직접 입력 또는 요금제 선택 --</option>
+                        <option value="5,20">5회 / 20일</option>
+                        <option value="10,40">10회 / 40일</option>
+                        <option value="20,80">20회 / 80일</option>
+                        <option value="30,120">30회 / 120일</option>
+                        <option value="50,200">50회 / 200일</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>이용권 명칭</label>
+                    <input type="text" id="edit-ticket-type">
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <div class="form-group" style="flex:1;">
+                        <label>총 횟수</label>
+                        <input type="number" id="edit-total-count">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>남은 횟수 (수정 가능)</label>
+                        <input type="number" id="edit-remaining-count">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <div class="form-group" style="flex:1;">
+                        <label>시작일</label>
+                        <input type="date" id="edit-start-date" onchange="calculateEditEndDate()">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>만료일</label>
+                        <input type="date" id="edit-end-date">
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="updateUserTicket()">이용권 저장/수정</button>
+                    <button class="btn btn-secondary" onclick="resetUserTicket()">이용권 초기화(제거)</button>
+                    <button class="btn btn-danger" onclick="deleteCurrentMember()">회원 삭제</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="register-modal" class="modal">
+    <div class="modal-content">
+        <h3>신규 회원 등록</h3>
+        <form id="register-form">
+            <div class="form-group"><label>이름</label><input type="text" id="reg-name" required></div>
+            <div class="form-group"><label>연락처</label><input type="tel" id="reg-phone" placeholder="01012345678" required></div>
+            
+            <div class="form-group">
+                <label>이용권 프리셋</label>
+                <select id="reg-template" onchange="applyTemplateToReg()">
+                    <option value="">직접 설정</option>
+                    <option value="5,20">5회 / 20일</option>
+                    <option value="10,40">10회 / 40일</option>
+                    <option value="20,80">20회 / 80일</option>
+                    <option value="30,120">30회 / 120일</option>
+                    <option value="50,200">50회 / 200일</option>
+                </select>
+            </div>
+            <div class="form-group"><label>이용권 이름</label><input type="text" id="reg-ticket" required></div>
+            <div class="form-group"><label>횟수</label><input type="number" id="reg-count" required></div>
+            <div class="form-group"><label>시작일</label><input type="date" id="reg-start" onchange="calculateRegEndDate()" required></div>
+            <div class="form-group"><label>만료일</label><input type="date" id="reg-end" required></div>
+            
+            <div class="btn-group">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">취소</button>
+                <button type="submit" class="btn btn-primary">등록</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+<script src="members.js"></script>
 </body>
-
 </html>
