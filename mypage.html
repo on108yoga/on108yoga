@@ -1,176 +1,98 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
-
-<meta charset="UTF-8">
-
-<title>마이페이지</title>
-<style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Noto Sans KR', sans-serif;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마이페이지 - 내 수강권 현황</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #e0e7ff;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --text-dark: #1f2937;
+            --text-gray: #4b5563;
+            --border: #e5e7eb;
         }
-        header{
-            background-color: #fff5de;
-        }
-         h1{
-            padding-top: 10px;
-            display: flex;
-            justify-content: center;
-            text-align: center;
-            letter-spacing: 0.3em;
-            margin: 0;
-            padding: 20px 0;
-        }
-        .menu{
-            display: flex;
-            justify-content: center; 
-            align-items: center;
-            gap: 15px;
-            padding: 10px;
-            font-size: 14px;
-            background-color: #517e73;            
-        }
-        .menu a{
-            color: white;
-            text-decoration: none;
-        }
-        main{
-             width:100%;
-             min-height:calc(100vh - 200px);
-             display:flex;
-         }
+        body { font-family: 'Pretendard', sans-serif; margin: 0; padding: 20px; background-color: var(--bg); color: var(--text-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; box-sizing: border-box; }
+        .mypage-container { width: 100%; max-width: 480px; background: var(--card); padding: 30px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+        
+        .header { text-align: center; margin-bottom: 25px; }
+        .welcome-msg { font-size: 20px; font-weight: bold; margin: 0; }
+        .welcome-sub { font-size: 14px; color: var(--text-gray); margin-top: 5px; }
 
-         .mypage{
-                  width:350px;         
-                  margin:50px auto;         
-                  }
+        /* 수강권 카드 디자인 */
+        .ticket-card { background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3); }
+        .ticket-name { font-size: 14px; opacity: 0.9; margin-bottom: 8px; font-weight: 500; }
+        .ticket-title { font-size: 22px; font-weight: bold; margin: 0 0 20px 0; }
+        
+        .count-info { display: flex; justify-content: space-between; align-items: baseline; }
+        .count-label { font-size: 13px; opacity: 0.8; }
+        .count-value { font-size: 36px; font-weight: 800; }
+        .count-total { font-size: 16px; opacity: 0.8; font-weight: normal; }
 
-         
-         .user-box, .reservation-box, .ticket-box, .policy-box{         
-         border:1px solid #ddd;         
-         padding:20px;         
-         margin-bottom:20px;         
-         border-radius:12px;         
-         }
+        /* 상세 내역 리스트 */
+        .detail-list { border-top: 1px solid var(--border); padding-top: 20px; }
+        .detail-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed var(--border); font-size: 15px; }
+        .detail-item:last-child { border-bottom: none; }
+        .detail-label { color: var(--text-gray); }
+        .detail-val { font-weight: 600; }
+        
+        /* 버튼 및 링크 */
+        .btn-home { display: block; text-align: center; background-color: var(--primary-light); color: var(--primary); text-decoration: none; padding: 12px; border-radius: 8px; font-weight: bold; margin-top: 25px; transition: background 0.2s; }
+        .btn-home:hover { background-color: #c7d2fe; }
 
-
-
-         .reservation-card{         
-         display:flex;         
-         justify-content:space-between;         
-         align-items:center;         
-         padding:10px;         
-         margin:10px 0;         
-         background:#f5f5f5;         
-         border-radius:8px;         
-         }
-         
-
-
-         button{
-         cursor:pointer;
-         }
-         
-         button:hover{
-         background:#405346;
-         color:white;
-         }
-
-</style>
+        /* 수강권이 없는 경우 */
+        .no-ticket { text-align: center; padding: 40px 0; color: var(--text-gray); }
+        .no-ticket-icon { font-size: 48px; margin-bottom: 10px; }
+    </style>
 </head>
-
-
 <body>
 
-<header>
-    <nav class="menu">
-        <a href="index.html">홈</a>
-        <a href="reservation.html">예약</a>
-     </nav>
-  <h1>LOGO</h1>       
-</header>
+<div class="mypage-container">
+    <div class="header">
+        <p class="welcome-msg" id="user-name">불러오는 중...</p>
+        <p class="welcome-sub" id="user-phone">010-0000-0000</p>
+    </div>
 
-<main>
-
-<div class="aside01"></div>
-<section class="mypage">
-
-<h2>
-마이페이지
-</h2>
-<div class="user-box">
-
-<h3>
-회원정보
-</h3>
-<p>
-이름 :
-<span id="userName"></span>
-</p>
-<p>
-전화번호 :
-<span id="userPhone"></span>
-</p>
-</div>
-
-
-<div class="reservation-box">
-<h3>
-내 예약
-</h3>
-        <div id="myReservations">        
-        예약 불러오는 중...        
+    <div id="ticket-section" style="display: none;">
+        <div class="ticket-card">
+            <div class="ticket-name">보유 수강권</div>
+            <p class="ticket-title" id="ticket-title">개인레슨 10회권</p>
+            <div class="count-info">
+                <span class="count-label">남은 횟수</span>
+                <div>
+                    <span class="count-value" id="remaining-count">0</span>
+                    <span class="count-total" id="total-count">/ 0회</span>
+                </div>
+            </div>
         </div>
+
+        <div class="detail-list">
+            <div class="detail-item">
+                <span class="detail-label">시작일</span>
+                <span class="detail-val" id="start-date">-</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">만료 기한</span>
+                <span class="detail-val" id="end-date">-</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">상태</span>
+                <span class="detail-val" id="ticket-status">-</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="no-ticket-section" class="no-ticket" style="display: none;">
+        <div class="no-ticket-icon">🎫</div>
+        <h3>등록된 수강권이 없습니다.</h3>
+        <p>스튜디오에 문의하여 이용권을 등록해 주세요.</p>
+    </div>
+
+    <a href="index.html" class="btn-home">메인 화면으로 이동</a>
 </div>
-
-<div class="ticket-box">
-        <h3>🎫 이용권</h3>
-        <p>
-        남은 이용권
-        <span id="remainTicket">0</span>회
-        </p>
-        <p>
-        총 구매
-        <span id="totalTicket">0</span>회
-        </p>
-        <p>
-        사용
-        <span id="usedTicket">0</span>회
-        </p>
-</div>
-
-<div class="policy-box">
-        <h3>📅 예약 정책</h3>        
-        <p>
-        일반 취소 가능
-        <span id="cancelRemain">0</span>회
-        </p>        
-        <p>
-        당일 취소 가능
-        <span id="sameDayCancelRemain">0</span>회
-        </p>
-</div>
-        
-<button id="logoutBtn">
-로그아웃
-</button>
-
-</section>
-
-<div class="aside02"></div>
-</main>
-<hr>
-<footer></footer>
-
-  
-<script type="module" src="firebase.js"></script>
 
 <script type="module" src="mypage.js"></script>
-
-
 </body>
-
 </html>
