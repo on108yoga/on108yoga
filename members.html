@@ -323,151 +323,61 @@ padding:15px;
 </header>
 
 <main>
-
-<h2>회원관리</h2>
-
-<div class="toolbar">
-
-<input
-type="text"
-id="searchInput"
-placeholder="이름 또는 전화번호 검색">
-
-<button id="searchBtn">
-검색
-</button>
-<br>
-</div>
-
-  <div class="admin-wrap">
-
-    <div class="member-list">
-
-        <div id="memberList"></div>
-
+    
+    <div class="member-wrap">
+    
+        <!-- 회원목록 -->
+        <div class="member-list">
+    
+            <h2>회원목록</h2>
+    
+            <div id="memberList"></div>
+    
+        </div>
+    
+    
+        <!-- 회원정보 -->
+        <div class="member-info">
+    
+            <h2>회원정보</h2>
+    
+            <p>이름 : <span id="memberName"></span></p>
+    
+            <p>전화번호 : <span id="memberPhone"></span></p>
+    
+            <hr>
+    
+            <label>이용권</label>
+            <input id="ticketType" type="text">
+    
+            <label>남은횟수</label>
+            <input id="remainTicketInput" type="number">
+    
+            <label>총횟수</label>
+            <input id="totalTicketInput" type="number">
+    
+            <label>사용횟수</label>
+            <input id="usedTicketInput" type="number">
+    
+            <label>시작일</label>
+            <input id="startDateInput" type="date">
+    
+            <label>만료일</label>
+            <input id="expireDateInput" type="date">
+    
+            <label>당일취소</label>
+            <input id="sameDayCancelRemain" type="number">
+    
+            <label>일반취소</label>
+            <input id="cancelRemain" type="number">
+    
+            <br><br>
+    
+            <button id="saveBtn">저장</button>
+    
+        </div>
+    
     </div>
-<hr><br>
-  <div class="member-detail">
-  
-  <h3 id="memberName">
-  회원을 선택하세요
-  </h3>
-  
-  <p>
-  전화번호 :
-  <span id="memberPhone"></span>
-  </p>
-  
-  <hr>
-
-    <p>
-<hr>
-
-<h3>이용권</h3>
-
-<p>
-이용권 :
-<input type="text" id="ticketType" style="width:120px;">
-</p>
-
-<p>
-남은 횟수 :
-<input type="number" id="remainTicketInput">
-</p>
-
-<p>
-총 구매횟수 :
-<input type="number" id="totalTicketInput">
-</p>
-
-<p>
-사용횟수 :
-<input type="number" id="usedTicketInput">
-</p>
-
-<p>
-시작일 :
-<input type="date" id="startDateInput">
-</p>
-
-<p>
-만료일 :
-<input type="date" id="expireDateInput">
-</p>
-
-<hr>
-  
-  <hr>
-  
-<h3>취소권</h3>
-
-<p>
-일반취소 :
-<input type="number" id="cancelRemain">
-</p>
-
-<p>
-당일취소 :
-<input type="number" id="sameDayCancelRemain">
-</p>
-
-<hr>
-    <h3>횟수 등록</h3>
-
-    <div>
-      const plus1 = document.getElementById("plus1");
-      if (plus1) plus1.onclick = () => addTicket(1);
-      
-      const plus5 = document.getElementById("plus5");
-      if (plus5) plus5.onclick = () => addTicket(5);
-      
-      const plus10 = document.getElementById("plus10");
-      if (plus10) plus10.onclick = () => addTicket(10);
-      
-      const plus20 = document.getElementById("plus20");
-      if (plus20) plus20.onclick = () => addTicket(20);
-      
-      const plus50 = document.getElementById("plus50");
-      if (plus50) plus50.onclick = () => addTicket(50);
-    </div>
-    <div>
-    ticketType: <input id="ticketType">  
-    remainTicketInput: <input id="remainTicketInput">    
-    totalTicketInput:<input id="totalTicketInput">
-    
-    usedTicketInput:<input id="usedTicketInput">
-    
-    startDateInput:<input type="date" id="startDateInput">
-    
-    expireDateInput:<input type="date" id="expireDateInput">
-    
-    cancelRemain:<input type="number" id="cancelRemain">
-    
-    sameDayCancelRemain:<input type="number" id="sameDayCancelRemain">
-    
-    <button id="saveBtn">저장</button>
-    </div>
-
-    <h3>기간 등록</h3>
-    <div>
-    <button id="minus30Day">-30일</button>
-    <button id="minus7Day">-7일</button>
-    <button id="minusDay">-1일</button>
-    
-    <input type="date" id="expireDateInput">
-    
-    <button id="plusDay">+1일</button>
-    <button id="plus7Day">+7일</button>
-    <button id="plus30Day">+30일</button>
-    </div>
-    
- <div> <span id="saveStatus"></span> &nbsp;
-    
-  <button id="saveBtn">
-  저장
-  </button> <div></div>
-  
-  </div>
 
 </main>
 
