@@ -258,23 +258,39 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
     }
 });
 
-// members.js 파일 맨 아래의 formatPhone 함수를 이 코드로 덮어씌우세요.
+// ==========================================
+// members.js 최하단부 대체 코드 (250라인 이하)
+// ==========================================
+
+// 전화번호 가독성 변환 포맷터
 function formatPhone(phone) {
     if (!phone) return '';
-    // 숫자만 남기기
     const cleaned = ('' + phone).replace(/\D/g, '');
     
-    // 11자리 휴대폰 번호 포맷팅 (010-XXXX-XXXX)
     if (cleaned.length === 11) {
         return cleaned.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
-    }
-    // 10자리 번호 대응 (02-XXX-XXXX 또는 010-XXX-XXXX)
-    else if (cleaned.length === 10) {
+    } else if (cleaned.length === 10) {
         return cleaned.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
     }
-    
     return phone;
 }
 
-// 실시간 클라이언트 검색
-searchInput.addEventListener('input', async (e)
+// 실시간 클라이언트 검색 기능
+searchInput.addEventListener('input', async (e) => {
+    const keyword = e.target.value.toLowerCase();
+    try {
+        const querySnapshot = await getDocs(usersCol);
+        
+        // 안전하게 각 필드의 존재 여부를 확인하며 필터링 진행
+        const filteredDocs = querySnapshot.docs.filter((doc) => {
+            const data = doc.data();
+            const name = data.name ? data.name.toLowerCase() : '';
+            const phone = data.phone ? data.phone.toLowerCase() : '';
+            return name.includes(keyword) || phone.includes(keyword);
+        });
+        
+        renderMemberList(filteredDocs);
+    } catch (err) {
+        console.error("검색 오류: ", err);
+    }
+});
