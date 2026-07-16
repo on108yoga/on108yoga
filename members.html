@@ -413,38 +413,44 @@ placeholder="이름 또는 전화번호 검색">
 
 <hr>
     <h3>횟수 등록</h3>
-   <div class="ticket-buttons">
+    <div>
+    <input id="ticketType">
   
-    <button id="plus1">+1회</button>
+    <input id="remainTicketInput">
     
-    <button id="plus5">+5회</button>
+    <input id="totalTicketInput">
     
-    <button id="plus10">+10회</button>
+    <input id="usedTicketInput">
     
-    <button id="plus20">+20회</button>
+    <input type="date" id="startDateInput">
     
-    <button id="plus50">+50회</button>
-  
-  </div>
+    <input type="date" id="expireDateInput">
+    
+    <input type="number" id="cancelRemain">
+    
+    <input type="number" id="sameDayCancelRemain">
+    
+    <button id="saveBtn">저장</button>
+    </div>
 
     <h3>기간 등록</h3>
-
-<button id="ticket5">5회권 등록<br><small>(20일)</small></button>
-
-<button id="ticket10">10회권 등록<br><small>(40일)</small></button>
-
-<button id="ticket20">20회권 등록<br><small>(80일)</small></button>
-
-<button id="ticket30">30회권 등록<br><small>(120일)</small></button>
-
-<button id="ticket50">50회권 등록<br><small>(200일)</small></button>
-  <br><br>
+    <div>
+    <button id="minus30Day">-30일</button>
+    <button id="minus7Day">-7일</button>
+    <button id="minusDay">-1일</button>
     
-  <span id="saveStatus"></span> <br>
+    <input type="date" id="expireDateInput">
+    
+    <button id="plusDay">+1일</button>
+    <button id="plus7Day">+7일</button>
+    <button id="plus30Day">+30일</button>
+    </div>
+    
+ <div> <span id="saveStatus"></span> &nbsp;
     
   <button id="saveBtn">
   저장
-  </button>
+  </button> <div></div>
   
   </div>
 
