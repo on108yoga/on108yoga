@@ -87,11 +87,13 @@ function showMemberDetail(id, user) {
 
     document.getElementById('det-name').innerText = `${user.name} 회원님`;
     document.getElementById('det-phone').innerText = formatPhone(user.phone);
-
+    
     document.getElementById('cur-ticket').innerText = user.ticketType || "없음(이용권 미등록)";
     document.getElementById('cur-count').innerText = user.ticketType ? `${user.remainingCount}회 / ${user.totalCount}회` : "-";
     document.getElementById('cur-period').innerText = user.startDate ? `${user.startDate} ~ ${user.endDate}` : "이용 기간 정보 없음";
-
+    // renderMyPage 함수 내에 추가
+    document.getElementById("cancel-count").innerText = `${user.remainingCancelCount || 0}회`;
+    
     document.getElementById('edit-ticket-type').value = user.ticketType || '';
     document.getElementById('edit-total-count').value = user.totalCount || 0;
     document.getElementById('edit-remaining-count').value = user.remainingCount || 0;
