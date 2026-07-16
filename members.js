@@ -132,20 +132,20 @@ async function showMember(uid){
     
     }
     
-    document.getElementById("plus1")
-    .onclick=()=>addTicket(1);
+  const plus1 = document.getElementById("plus1");
+    if (plus1) plus1.onclick = () => addTicket(1);
     
-    document.getElementById("plus5")
-    .onclick=()=>addTicket(5);
+    const plus5 = document.getElementById("plus5");
+    if (plus5) plus5.onclick = () => addTicket(5);
     
-    document.getElementById("plus10")
-    .onclick=()=>addTicket(10);
+    const plus10 = document.getElementById("plus10");
+    if (plus10) plus10.onclick = () => addTicket(10);
     
-    document.getElementById("plus20")
-    .onclick=()=>addTicket(20);
+    const plus20 = document.getElementById("plus20");
+    if (plus20) plus20.onclick = () => addTicket(20);
     
-    document.getElementById("plus50")
-.onclick=()=>addTicket(50);
+    const plus50 = document.getElementById("plus50");
+    if (plus50) plus50.onclick = () => addTicket(50);
 
 /* 6. changeTicket 횟수 증감 */
     function changeValue(inputId, count){
