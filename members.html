@@ -413,22 +413,37 @@ placeholder="이름 또는 전화번호 검색">
 
 <hr>
     <h3>횟수 등록</h3>
+
     <div>
-    <input id="ticketType">
-  
-    <input id="remainTicketInput">
+      const plus1 = document.getElementById("plus1");
+      if (plus1) plus1.onclick = () => addTicket(1);
+      
+      const plus5 = document.getElementById("plus5");
+      if (plus5) plus5.onclick = () => addTicket(5);
+      
+      const plus10 = document.getElementById("plus10");
+      if (plus10) plus10.onclick = () => addTicket(10);
+      
+      const plus20 = document.getElementById("plus20");
+      if (plus20) plus20.onclick = () => addTicket(20);
+      
+      const plus50 = document.getElementById("plus50");
+      if (plus50) plus50.onclick = () => addTicket(50);
+    </div>
+    <div>
+    ticketType: <input id="ticketType">  
+    remainTicketInput: <input id="remainTicketInput">    
+    totalTicketInput:<input id="totalTicketInput">
     
-    <input id="totalTicketInput">
+    usedTicketInput:<input id="usedTicketInput">
     
-    <input id="usedTicketInput">
+    startDateInput:<input type="date" id="startDateInput">
     
-    <input type="date" id="startDateInput">
+    expireDateInput:<input type="date" id="expireDateInput">
     
-    <input type="date" id="expireDateInput">
+    cancelRemain:<input type="number" id="cancelRemain">
     
-    <input type="number" id="cancelRemain">
-    
-    <input type="number" id="sameDayCancelRemain">
+    sameDayCancelRemain:<input type="number" id="sameDayCancelRemain">
     
     <button id="saveBtn">저장</button>
     </div>
