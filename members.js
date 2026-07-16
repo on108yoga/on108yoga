@@ -211,12 +211,11 @@ alert("회원정보가 저장되었습니다.");
 /* 4. ticketCount */
 async function registerTicket(ticketCount, days){
 
-    // 회원 선택 안하면
     if(!selectedUid){
 
-    alert("회원을 먼저 선택해주세요.");
+        alert("회원을 먼저 선택해주세요.");
 
-    return;
+        return;
 
     }
 
@@ -231,6 +230,7 @@ async function registerTicket(ticketCount, days){
     today.toISOString().slice(0,10);
 
     let expireDate;
+    let startDate;
 
     // 기존 이용권이 살아있으면 이어붙이기
     if(
@@ -238,47 +238,52 @@ async function registerTicket(ticketCount, days){
         new Date(user.expireDate) > today
     ){
 
-        expireDate =
-        new Date(user.expireDate);
+        expireDate = new Date(user.expireDate);
+
+        // 기존 시작일 유지
+        startDate = user.startDate || todayString;
 
     }else{
 
-        // 만료됐으면 오늘부터 시작
-        expireDate = today;
+        // 만료됐으면 오늘부터 새 이용권 시작
+        expireDate = new Date(today);
+
+        startDate = todayString;
 
     }
 
     expireDate.setDate(
-        expireDate.getDate()+days
+        expireDate.getDate() + days
     );
 
     await updateDoc(
-    
-    doc(db,"users",selectedUid),
-    
-    {
-    
-    ticketType:`${ticketCount}회권`,
-    
-    startDate:
-    user.startDate || todayString,
-    
-    expireDate:
-    expireDate.toISOString().slice(0,10),
-    
-    totalTicket:
-    (user.totalTicket||0)+ticketCount,
-    
-    remainTicket:
-    (user.remainTicket||0)+ticketCount
-    
-    }
-    
+
+        doc(db,"users",selectedUid),
+
+        {
+
+            ticketType:`${ticketCount}회권`,
+
+            startDate:startDate,
+
+            expireDate:
+            expireDate.toISOString().slice(0,10),
+
+            totalTicket:
+            (user.totalTicket || 0) + ticketCount,
+
+            remainTicket:
+            (user.remainTicket || 0) + ticketCount
+
+        }
+
     );
 
     alert("이용권이 등록되었습니다.");
 
-    showMember(selectedUid);
+    await showMember(selectedUid);
+
+    await loadMembers();
 
 }
 
@@ -289,15 +294,11 @@ const ticket20 = document.getElementById("ticket20");
 const ticket30 = document.getElementById("ticket30");
 const ticket50 = document.getElementById("ticket50");
 
-ticket5.onclick  = ()=>registerTicket(5,20);
-
-ticket10.onclick = ()=>registerTicket(10,40);
-
-ticket20.onclick = ()=>registerTicket(20,80);
-
-ticket30.onclick = ()=>registerTicket(30,120);
-
-ticket50.onclick = ()=>registerTicket(50,200);
+if(ticket5) ticket5.onclick = ()=>registerTicket(5,20);
+if(ticket10) ticket10.onclick = ()=>registerTicket(10,40);
+if(ticket20) ticket20.onclick = ()=>registerTicket(20,80);
+if(ticket30) ticket30.onclick = ()=>registerTicket(30,120);
+if(ticket50) ticket50.onclick = ()=>registerTicket(50,200);
 
 /* 회원목록을 화면으로 호출 */
 loadMembers();
