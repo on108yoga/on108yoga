@@ -134,9 +134,15 @@ Number(remain.innerText)+count;
 total.innerText =
 Number(total.innerText)+count;
 
-
-document.getElementById("saveStatus").innerText =
-"저장 필요";
+    /* 저장필요 버튼 */
+    const saveStatus =
+    document.getElementById("saveStatus");
+    
+    if(saveStatus){
+    
+        saveStatus.innerText = "저장 필요";
+    
+    }
 
 }
 
@@ -173,31 +179,32 @@ alert("회원을 선택해주세요.");
 return;
 
 }
-
+    
+/* usedTicket */
 
 await updateDoc(
 
-doc(db,"users",selectedUid),
+    doc(db,"users",selectedUid),
 
-{
+    {
 
-remainTicket:Number(
-document.getElementById("remainTicket").innerText
-),
+        ticketType:`${ticketCount}회권`,
 
-totalTicket:Number(
-document.getElementById("totalTicket").innerText
-),
+        startDate:startDate,
 
-cancelRemain:Number(
-document.getElementById("cancelRemain").value
-),
+        expireDate:
+        expireDate.toISOString().slice(0,10),
 
-sameDayCancelRemain:Number(
-document.getElementById("sameDayCancelRemain").value
-)
+        totalTicket:
+        (user.totalTicket || 0) + ticketCount,
 
-}
+        remainTicket:
+        (user.remainTicket || 0) + ticketCount,
+
+        usedTicket:
+        user.usedTicket || 0
+
+    }
 
 );
 
