@@ -361,53 +361,58 @@ placeholder="이름 또는 전화번호 검색">
   <hr>
 
     <p>
-    이용권 :
-    <span id="ticketType"></span>
-    </p>
-    
-    <p>
-    시작일 :
-    <span id="startDate"></span>
-    </p>
-    
-    <p>
-    만료일 :
-    <span id="expireDate"></span>
-    </p>
-  
-  <p>
-  남은 이용권 :
-  <span id="remainTicket"></span>회
-  </p>
-  
-  <p>
-  총 구매 :
-  <span id="totalTicket"></span>회
-  </p>
-  
-  <p>
-  사용 :
-  <span id="usedTicket"></span>회
-  </p>
-  
-  <hr>
-  
-    <p>    
-    일반취소 가능    
-    <input
-    type="number"
-    id="cancelRemain"
-    min="0">    
-    </p>    
-    <p>    
-    당일취소 가능    
-    <input
-    type="number"
-    id="sameDayCancelRemain"
-    min="0">    
-    </p>
+<hr>
+
+<h3>이용권</h3>
+
+<p>
+이용권 :
+<input type="text" id="ticketType" style="width:120px;">
+</p>
+
+<p>
+남은 횟수 :
+<input type="number" id="remainTicketInput">
+</p>
+
+<p>
+총 구매횟수 :
+<input type="number" id="totalTicketInput">
+</p>
+
+<p>
+사용횟수 :
+<input type="number" id="usedTicketInput">
+</p>
+
+<p>
+시작일 :
+<input type="date" id="startDateInput">
+</p>
+
+<p>
+만료일 :
+<input type="date" id="expireDateInput">
+</p>
+
+<hr>
   
   <hr>
+  
+<h3>취소권</h3>
+
+<p>
+일반취소 :
+<input type="number" id="cancelRemain">
+</p>
+
+<p>
+당일취소 :
+<input type="number" id="sameDayCancelRemain">
+</p>
+
+<hr>
+    <h3>횟수 등록</h3>
    <div class="ticket-buttons">
   
     <button id="plus1">+1회</button>
@@ -422,7 +427,7 @@ placeholder="이름 또는 전화번호 검색">
   
   </div>
 
-    <h3>이용권 등록</h3>
+    <h3>기간 등록</h3>
 
 <button id="ticket5">5회권 등록<br><small>(20일)</small></button>
 
