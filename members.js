@@ -258,10 +258,21 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
     }
 });
 
+// members.js 파일 맨 아래의 formatPhone 함수를 이 코드로 덮어씌우세요.
 function formatPhone(phone) {
-    if(phone.length === 11) {
-        return phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
+    if (!phone) return '';
+    // 숫자만 남기기
+    const cleaned = ('' + phone).replace(/\D/g, '');
+    
+    // 11자리 휴대폰 번호 포맷팅 (010-XXXX-XXXX)
+    if (cleaned.length === 11) {
+        return cleaned.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
     }
+    // 10자리 번호 대응 (02-XXX-XXXX 또는 010-XXX-XXXX)
+    else if (cleaned.length === 10) {
+        return cleaned.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+    }
+    
     return phone;
 }
 
