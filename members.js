@@ -10,7 +10,7 @@ import {
     onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
-// 이제 전화번호가 아닌 Firestore의 문서 ID(UID 또는 미가입자용 전화번호)를 기준으로 회원을 추적합니다.
+// 현재 관리자 화면에서 선택된 회원의 문서 ID (UID 또는 연락처)
 let activeUserId = null; 
 
 const memberListContainer = document.getElementById('member-list-container');
@@ -54,15 +54,15 @@ function renderMemberList(docs) {
 
     docs.forEach((doc) => {
         const user = doc.data();
-        const id = doc.id; // UID 혹은 전화번호
+        const id = doc.id; // UID 또는 연락처
         const div = document.createElement('div');
         div.className = `member-item ${activeUserId === id ? 'active' : ''}`;
         
         div.onclick = () => selectMember(id, user);
 
-        // 아직 가입 안 한 회원은 별도 표시를 해주면 관리자가 구별하기 좋습니다.
-        const isJoined = id.length !== 11; // 11자리 연락처가 아니면 가입된 유저(UID)로 판단
-        const joinedBadge = isJoined ? '' : ' <span style="font-size:10px; color:#ef4444;">(미가입)</span>';
+        // id가 11자리 숫자(연락처) 형태라면 아직 홈페이지 가입을 안 한 '임시 등록 회원'입니다.
+        const isTemporary = id.length === 11 && !isNaN(id);
+        const joinedBadge = isTemporary ? ' <span style="font-size:10px; color:#f59e0b;">(미가입)</span>' : ' <span style="font-size:10px; color:#10b981;">(가입됨)</span>';
 
         div.innerHTML = `
             <div>
@@ -220,7 +220,7 @@ window.deleteCurrentMember = async () => {
     }
 };
 
-// 신규 회원 등록 저장 프로세스 (관리자 임시 등록 - 문서는 전화번호를 ID로 저장)
+// 신규 회원 등록 저장 프로세스 (관리자용)
 document.getElementById('register-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const phone = document.getElementById('reg-phone').value.replace(/[^0-9]/g, '');
@@ -231,24 +231,26 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
     const endDate = document.getElementById('reg-end').value;
 
     try {
-        // 이미 해당 번호로 가입된 정식 회원이 있는지 먼저 검사합니다.
+        // 이미 해당 번호로 가입(auth.js 완료)된 회원이 테이블에 있는지 검사합니다.
         const querySnapshot = await getDocs(usersCol);
+        
+        // 데이터 내 phone이 일치하면서, 문서ID가 phone이 아닌 것(즉, UID 문서인 것)을 검색합니다.
         const registeredUser = querySnapshot.docs.find(doc => doc.data().phone === phone && doc.id !== phone);
 
         if (registeredUser) {
-            // 이미 가입된 회원이 있다면 그 회원의 실제 UID 문서에 이용권을 바로 저장합니다.
+            // 가입된 회원이 있는 경우: 실제 회원 계정(UID 문서)에 이용권을 다이렉트로 업데이트합니다.
             const userDocRef = doc(db, 'users', registeredUser.id);
             await updateDoc(userDocRef, {
                 ticketType, totalCount, remainingCount: totalCount, startDate, endDate
             });
             alert(`이미 가입된 ${name} 회원님의 계정에 이용권을 즉시 부여했습니다.`);
         } else {
-            // 가입 전이라면 이전 방식대로 전화번호를 ID로 삼는 임시 문서를 생성합니다. (가입 시 병합됨)
+            // 아직 가입하지 않은 회원인 경우: 연락처를 문서 ID로 삼아 임시 문서를 생성합니다.
             const userDocRef = doc(db, 'users', phone);
             await setDoc(userDocRef, {
                 name, phone, ticketType, totalCount, remainingCount: totalCount, startDate, endDate, role: "member"
             });
-            alert("미가입 회원의 임시 정보가 추가되었습니다. 추후 가입 시 자동 매칭됩니다.");
+            alert("미가입 회원의 임시 정보가 추가되었습니다. 추후 이 번호로 가입하면 즉시 연동됩니다.");
         }
         closeModal();
     } catch (err) {
@@ -264,16 +266,4 @@ function formatPhone(phone) {
 }
 
 // 실시간 클라이언트 검색
-searchInput.addEventListener('input', async (e) => {
-    const keyword = e.target.value.toLowerCase();
-    try {
-        const querySnapshot = await getDocs(usersCol);
-        const filteredDocs = querySnapshot.docs.filter(doc => {
-            const data = doc.data();
-            return data.name.toLowerCase().includes(keyword) || data.phone.includes(keyword);
-        });
-        renderMemberList(filteredDocs);
-    } catch (err) {
-        console.error("검색 오류: ", err);
-    }
-});
+searchInput.addEventListener('input', async (e)
