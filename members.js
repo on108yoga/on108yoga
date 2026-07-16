@@ -324,65 +324,6 @@ async function registerTicket(ticketCount, days){
 }
 
 
-/* 숫자변경, firestore에 저장 
-const saveBtn =
-document.getElementById("saveBtn");
-
-
-if(saveBtn){
-
-    saveBtn.onclick = async()=>{
-    
-       저장만
-    
-    };
-    
-    async function registerTicket(){
-    
-    }
-    
-    /* usedTicket */
-    await updateDoc(
-
-    doc(db,"users",selectedUid),
-
-    {
-
-        ticketType:
-        document.getElementById("ticketType").value,
-
-        remainTicket:Number(
-            document.getElementById("remainTicketInput").value
-        ),
-
-        totalTicket:Number(
-            document.getElementById("totalTicketInput").value
-        ),
-
-        usedTicket:Number(
-            document.getElementById("usedTicketInput").value
-        ),
-
-        startDate:
-        document.getElementById("startDateInput").value,
-
-        expireDate:
-        document.getElementById("expireDateInput").value,
-
-        cancelRemain:Number(
-            document.getElementById("cancelRemain").value
-        ),
-
-        sameDayCancelRemain:Number(
-            document.getElementById("sameDayCancelRemain").value
-        )
-
-        }
-    
-    );
-    
-    alert("회원정보가 저장되었습니다.");*/
-
     
 /* 10. 버튼연결 */
 const ticket5 = document.getElementById("ticket5");
