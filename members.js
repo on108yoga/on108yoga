@@ -14,6 +14,8 @@ from
 const memberList =
 document.getElementById("memberList");
 
+console.log(memberList);
+
 let selectedUid = ""; /* 선택한 회원 기억 */
 
 /* 3. loadMembers 함수 */
