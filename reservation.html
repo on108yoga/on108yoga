@@ -6,24 +6,36 @@
     <title>요가 예약</title>
 
     <link rel="stylesheet" href="./reservation.css">
-
-    <!-- FullCalendar  -->
-     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js"></script>
     
     <style>
-        .navbar{
+        /* 네비게이션 바 클래스명 일치 처리 */
+        .menu {
             justify-content: center;
             display: flex;
             text-align: center;
+            align-items: center;
             gap: 15px;
-            background-color: #517e73;       
+            background-color: #517e73;
+            padding: 10px;
+            font-size: 14px;
         }
-        .navbar a{
+        .menu a {
             color: white;
             text-decoration: none;
+            font-weight: 500;
         }
-        body{
+        .menu a:hover {
+            text-decoration: underline;
+        }
+        #userInfo {
+            color: #fff;
+            font-weight: bold;
+        }
+        body {
             text-align: center;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #fcfcfc;
         }
         h1 {
             background-color: #fff5de;
@@ -31,95 +43,148 @@
             letter-spacing: 0.3em;
             margin: 0;
             padding: 20px 0;
+            color: #333;
         }
-        main{
-            margin: 0;
+        main {
+            margin: 20px auto;
             display: flex;
-            justify-content: center; /* 가로 중앙 */
-          /*  align-items: center;     /* 세로 중앙 */
-            height: 100vh;
-            }       
+            justify-content: center;
+            gap: 40px; /* 섹션 간 간격 확보 */
+            max-width: 1000px;
+            padding: 0 20px;
+        }       
     
-        section{
-            width: 300px;
-            text-align: center;
+        section {
+            width: 320px;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
-        .custom-calendar{
-             height: 180px;
+        /* 캘린더 디자인 정돈 */
+        .custom-calendar {
+             min-height: 180px;
         }
-        
-        h3{
-            
-        }
-        .menu{
-             display: flex;
-            justify-content: center; 
-            align-items: center;
-            gap: 15px;
-            padding: 10px;
-            font-size: 14px;
-        }
-        .reservation{
+        .calendar-header {
             display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
         }
-        #selectedDate{          
+        .calendar-header button {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .week-name {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        #weekCalendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        #selectedDate {          
             background-color: rgb(190, 231, 221);
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 16px;
         }
-        /* 버튼 */
-        button{
+        /* 버튼 공통 */
+        button {
             background-color: #fff;
-            border: 0 solid red;
-            margin: 10px;
+            border: 1px solid #ddd;
             border-radius: 5px;
             cursor: pointer;
         }
-        /* 시간선택 */
-        .time-btn{            
-            margin: 0 auto;
+        /* 시간선택 버튼 그룹 */
+        #timeButtons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 15px;
+        }
+        .time-btn {            
+            width: 100%;
+            padding: 10px;
             font-size: 14px;
-            border-radius: 10px;
+            border-radius: 8px;
             background: #fff;
             border: 2px solid rgb(77, 155, 119);
             color: #000;
-            gap: 10px;
+            transition: all 0.2s;
         }
         .time-btn:hover {
-          background: rgb(77, 155, 119);
-          color: #fff;
-        }
-        /* 예약하기 버튼 */
-        #reserveBtn{
-            font-size: 14px;
-            font-weight: bold;
-          background: #fff;
-          border: 1px solid #abb7b7;
-          color: #abb7b7;
-        }
-         #reserveBtn:hover {
-            background-color: tomato;
+            background: rgb(77, 155, 119);
             color: #fff;
         }
-        /* 로그아웃 버튼 */
-        #logoutBtn{
-            font-size: 14px;
+        /* 예약하기 버튼 */
+        #reserveBtn {
+            width: 100%;
+            padding: 12px;
+            font-size: 15px;
             font-weight: bold;
-            border: 1px solid gray;
+            background: #517e73;
+            border: none;
+            color: #fff;
+            margin: 15px 0 0 0;
+            border-radius: 8px;
+        }
+        #reserveBtn:hover {
+            background-color: tomato;
+        }
+        /* 로그아웃 버튼 */
+        #logoutBtn {
+            font-size: 12px;
+            padding: 4px 8px;
+            border: 1px solid #fff;
+            background: transparent;
+            color: white;
+        }
+        #logoutBtn:hover {
+            background: rgba(255,255,255,0.2);
         }
          
-        li{
-            font-size: 14px;
+        .notice ul {
+            text-align: left;
+            padding-left: 20px;
+            line-height: 1.8;
+        }
+        .notice li {
+            font-size: 13px;
+            color: #666;
         }
 
-         /* 768px 모바일&타블렛 */
-        @media all and (max-width: 768px){
-            main{display: flex;
+        footer {
+            margin-top: 40px;
+            padding: 20px;
+            background: #eee;
+            font-size: 12px;
+            color: #777;
+        }
+
+        /* 768px 모바일 & 태블릿 대응 */
+        @media all and (max-width: 768px) {
+            main {
+                display: flex;
                 flex-direction: column;
-                }
-             .calendar-area{order:1;}
-            .reservation-panel{order: 2;}
-            .notice{order: 3;}
-            footer{display: none;}
+                align-items: center;
+                gap: 20px;
+            }
+            section {
+                width: 90%;
+                box-sizing: border-box;
+            }
+            .calendar-area { order: 1; }
+            .reservation-panel { order: 2; }
+            .notice { order: 3; }
         }
     </style>
 </head>
@@ -128,110 +193,89 @@
 
 <header>   
     <nav class="menu">
-    <a href="index.html">홈</a>
-    <a href="reservation.html">예약</a>
-    <a href="mypage.html">마이페이지</a>
-    <span id="userInfo"></span>
-    <button id="logoutBtn">로그아웃</button>
+        <a href="index.html">홈</a>
+        <a href="reservation.html">예약</a>
+        <a href="mypage.html">마이페이지</a>
+        <span id="userInfo"></span>
+        <button id="logoutBtn">로그아웃</button>
     </nav>
     <h1>LOGO</h1>
 </header>
 
 <main>
-<hr>    
-<!-- 캘린더 -->
-  <section class="calendar-area">
-    <h3>Calendar</h3>
-    <section class="custom-calendar">    
-    <div class="calendar-header">
-        <button id="prevWeek">◀</button>
-        <h2 id="monthTitle">
-            2026년 7월
-        </h2>
-        <button id="nextWeek">▶</button>
-    </div>
-    <div class="week-name">
-        <div>일</div>
-        <div>월</div>
-        <div>화</div>
-        <div>수</div>
-        <div>목</div>
-        <div>금</div>
-        <div>토</div>
-    </div>
-    <div id="weekCalendar">
-    </div>
+    <!-- 1. 캘린더 영역 -->
+    <section class="calendar-area">
+        <h3>Calendar</h3>
+        <div class="custom-calendar">    
+            <div class="calendar-header">
+                <button id="prevWeek">◀</button>
+                <h2 id="monthTitle" style="font-size: 16px; margin: 0;">2026년 7월</h2>
+                <button id="nextWeek">▶</button>
+            </div>
+            <div class="week-name">
+                <div style="color: red;">일</div>
+                <div>월</div>
+                <div>화</div>
+                <div>수</div>
+                <div>목</div>
+                <div>금</div>
+                <div style="color: blue;">토</div>
+            </div>
+            <div id="weekCalendar">
+                <!-- 여기에 JS 파일(calendar.js)이 주간 날짜 셀들을 동적으로 생성하게 됩니다 -->
+            </div>
+        </div>
     </section>
-  </section>
 
-<hr>
-    
- <!-- 예약 패널 -->
-<section class="reservation-panel">
+    <!-- 2. 예약 패널 영역 -->
+    <section class="reservation-panel">
+        <h3><span id="selectedDate">날짜를 선택하세요</span></h3>
 
-<h3>
-<span id="selectedDate">
-날짜를 선택하세요
-</span>
-</h3>
+        <div id="timeButtons">
+            <button class="time-btn" data-time="09:30">
+                09:30 (예약 <span id="count0930">0</span> / 10명)
+            </button>
+            <button class="time-btn" data-time="11:00">
+                11:00 (예약 <span id="count1100">0</span> / 10명)
+            </button>
+            <button class="time-btn" data-time="18:30">
+                18:30 (예약 <span id="count1830">0</span> / 10명)
+            </button>
+            <button class="time-btn" data-time="20:00">
+                20:00 (예약 <span id="count2000">0</span> / 10명)
+            </button>
+        </div>
 
-<div id="timeButtons">
-<button class="time-btn" data-time="09:30">
-09:30<br>
-예약 <span id="count0930">0</span> / 10명
-</button>
+        <button id="reserveBtn">예약하기</button>
+        
+        <div id="myReservations">
+            <!-- 회원의 당일 예약 내역이 표시될 공간 -->
+        </div>
+    </section>
 
-<button class="time-btn" data-time="11:00">
-11:00<br>
-예약 <span id="count1100">0</span> / 10명
-</button>
-
-<button class="time-btn" data-time="18:30">
-18:30<br>
-예약 <span id="count1830">0</span> / 10명
-</button>
-
-<button class="time-btn" data-time="20:00">
-20:00<br>
-예약 <span id="count2000">0</span> / 10명
-</button>
-
-</div>
-<hr>
-<button id="reserveBtn">
-예약하기
-</button>
-<hr>
-<div id="myReservations">
-
-</div>
-
-</section>
-
- <!-- 예약 안내 -->
-<hr>
-<section class="notice">
-    <h3>예약 안내</h3>
-    <ul>
-        <li>월요일 ~ 금요일만 예약 가능합니다.</li>
-        <li>토요일 · 일요일은 예약이 불가능합니다.</li>
-        <li>공휴일은 예약이 불가능합니다.</li>
-        <li>지난 날짜는 예약할 수 없습니다.</li>
-        <li>하루 최대 예약 인원은 10명입니다.</li>
-        <li>정원이 차면 자동으로 예약이 마감됩니다.</li>
-    </ul>
-</section>
-<hr>
+    <!-- 3. 예약 안내 영역 -->
+    <section class="notice">
+        <h3>예약 안내</h3>
+        <ul>
+            <li>월요일 ~ 금요일만 예약 가능합니다.</li>
+            <li>토요일 · 일요일은 예약이 불가능합니다.</li>
+            <li>공휴일은 예약이 불가능합니다.</li>
+            <li>지난 날짜는 예약할 수 없습니다.</li>
+            <li>타임별 최대 예약 인원은 10명입니다.</li>
+            <li>정원이 차면 자동으로 예약이 마감됩니다.</li>
+        </ul>
+    </section>
 </main>
     
 <footer>
-<p>© 2026 Yoga Reservation</p>
+    <p>© 2026 Yoga Reservation</p>
 </footer>
 
-<script type="module" src="calendar.js"></script>
-<script type="module" src="reservation.js"></script>
+<!-- 스크립트 모듈 연동 -->
 <script type="module" src="firebase.js"></script>
 <script type="module" src="auth.js"></script>
+<script type="module" src="calendar.js"></script>
+<script type="module" src="reservation.js"></script>
     
 </body>
 </html>
