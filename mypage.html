@@ -3,100 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>마이페이지 - 내 수강권 현황</title>
+    <title>마이페이지 - 이용권 현황</title>
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-light: #e0e7ff;
-            --bg: #f3f4f6;
-            --card: #ffffff;
-            --text-dark: #1f2937;
-            --text-gray: #4b5563;
-            --border: #e5e7eb;
+            --primary-color: #4f46e5;
+            --bg-color: #f9fafb;
+            --card-bg: #ffffff;
+            --text-main: #111827;
+            --text-sub: #6b7280;
+            --border-color: #e5e7eb;
         }
-        body { font-family: 'Pretendard', sans-serif; margin: 0; padding: 20px; background-color: var(--bg); color: var(--text-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; box-sizing: border-box; }
-        .mypage-container { width: 100%; max-width: 480px; background: var(--card); padding: 30px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
-        
-        .header { text-align: center; margin-bottom: 25px; }
-        .welcome-msg { font-size: 20px; font-weight: bold; margin: 0; }
-        .welcome-sub { font-size: 14px; color: var(--text-gray); margin-top: 5px; }
 
-        /* 수강권 카드 디자인 */
-        .ticket-card { background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3); }
-        .ticket-name { font-size: 14px; opacity: 0.9; margin-bottom: 8px; font-weight: 500; }
-        .ticket-title { font-size: 22px; font-weight: bold; margin: 0 0 20px 0; }
-        
-        .count-info { display: flex; justify-content: space-between; align-items: baseline; }
-        .count-label { font-size: 13px; opacity: 0.8; }
-        .count-value { font-size: 36px; font-weight: 800; }
-        .count-total { font-size: 16px; opacity: 0.8; font-weight: normal; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 16px;
+        }
 
-        /* 상세 내역 리스트 */
-        .detail-list { border-top: 1px solid var(--border); padding-top: 20px; }
-        .detail-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed var(--border); font-size: 15px; }
-        .detail-item:last-child { border-bottom: none; }
-        .detail-label { color: var(--text-gray); }
-        .detail-val { font-weight: 600; }
-        
-        /* 버튼 및 링크 */
-        .btn-home { display: block; text-align: center; background-color: var(--primary-light); color: var(--primary); text-decoration: none; padding: 12px; border-radius: 8px; font-weight: bold; margin-top: 25px; transition: background 0.2s; }
-        .btn-home:hover { background-color: #c7d2fe; }
+        .mypage-container {
+            max-width: 480px;
+            margin: 0 auto;
+        }
 
-        /* 수강권이 없는 경우 */
-        .no-ticket { text-align: center; padding: 40px 0; color: var(--text-gray); }
-        .no-ticket-icon { font-size: 48px; margin-bottom: 10px; }
+        .welcome-section {
+            margin-bottom: 24px;
+        }
+
+        .welcome-section h1 {
+            font-size: 22px;
+            margin: 0 0 4px 0;
+            font-weight: 700;
+        }
+
+        .welcome-section p {
+            color: var(--text-sub);
+            margin: 0;
+            font-size: 14px;
+        }
+
+        /* 대시보드 카드 스타일 */
+        .info-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border-color);
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            color: var(--text-sub);
+            font-weight: 600;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* 이용권 이름 강조 */
+        .ticket-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+        }
+
+        /* 수치 강조 그리드 */
+        .count-grid {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .count-box {
+            flex: 1;
+            background: #f3f4f6;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .count-box .label {
+            font-size: 12px;
+            color: var(--text-sub);
+            margin-bottom: 4px;
+        }
+
+        .count-box .value {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        /* 날짜 및 상세 리스트 */
+        .detail-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            font-size: 14px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .detail-item .title {
+            color: var(--text-sub);
+        }
+
+        .detail-item .content {
+            font-weight: 500;
+        }
+
+        /* 남은 횟수 강조용 배지 */
+        .badge {
+            background-color: #e0e7ff;
+            color: var(--primary-color);
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-weight: 600;
+        }
+        
+        .badge.danger {
+            background-color: #fee2e2;
+            color: #ef4444;
+        }
     </style>
 </head>
 <body>
 
 <div class="mypage-container">
-    <div class="header">
-        <p class="welcome-msg" id="user-name">불러오는 중...</p>
-        <p class="welcome-sub" id="user-phone">010-0000-0000</p>
+    <!-- 상단 인사말 -->
+    <div class="welcome-section">
+        <h1>안녕하세요, <span id="user-name">회원</span>님!</h1>
+        <p>오늘도 건강하고 즐거운 하루 되세요.</p>
     </div>
 
-    <div id="ticket-section" style="display: none;">
-        <div class="ticket-card">
-            <div class="ticket-name">보유 수강권</div>
-            <p class="ticket-title" id="ticket-title">개인레슨 10회권</p>
-            <div class="count-info">
-                <span class="count-label">남은 횟수</span>
+    <!-- 1. 이용권 정보 카드 -->
+    <div class="info-card">
+        <div class="card-title">My Ticket</div>
+        <div id="ticket-name" class="ticket-name">보유하신 이용권이 없습니다.</div>
+        
+        <div class="count-grid">
+            <div class="count-box">
+                <div class="label">총 등록 횟수</div>
+                <div id="total-count" class="value">0회</div>
+            </div>
+            <div class="count-box" style="background: #eef2ff;">
+                <div class="label" style="color: var(--primary-color); font-weight: 600;">남은 이용 횟수</div>
+                <div id="remaining-count" class="value" style="color: var(--primary-color);">0회</div>
+            </div>
+        </div>
+
+        <ul class="detail-list">
+            <li class="detail-item">
+                <span class="title">시작일</span>
+                <span id="start-date" class="content">-</span>
+            </li>
+            <li class="detail-item">
+                <span class="title">종료일</span>
+                <span id="end-date" class="content">-</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- 2. 취소 제한 규정 카드 -->
+    <div class="info-card">
+        <div class="card-title">Cancel Policy</div>
+        
+        <ul class="detail-list">
+            <!-- A안: 전체 기간 취소 한도 -->
+            <li class="detail-item" style="align-items: center; padding: 12px 0;">
                 <div>
-                    <span class="count-value" id="remaining-count">0</span>
-                    <span class="count-total" id="total-count">/ 0회</span>
+                    <span class="title" style="display:block; font-weight: 600; color: var(--text-main);">총 취소 가능 횟수 (A안)</span>
+                    <span style="font-size: 11px; color: var(--text-sub);">이번 이용권 기간 내 전체 한도</span>
                 </div>
-            </div>
-        </div>
-
-        <div class="detail-list">
-            <div class="detail-item">
-                <span class="detail-label">시작일</span>
-                <span class="detail-val" id="start-date">-</span>
-            </div>
-            <div class="detail-item">
-                <span class="detail-label">만료 기한</span>
-                <span class="detail-val" id="end-date">-</span>
-            </div>
-            <div class="detail-item">
-                <span class="detail-label">남은 취소 가능 횟수</span>
-                <span class="detail-val" id="cancel-count" style="color: #ef4444;">0회</span>
-            </div>
-            <div class="detail-item">
-                <span class="detail-label">상태</span>
-                <span class="detail-val" id="ticket-status">-</span>
-            </div>
-        </div>
+                <span class="content">
+                    <span id="remaining-cancel" class="badge">0회</span> / <span id="total-cancel">0회</span>
+                </span>
+            </li>
+            
+            <!-- B안: 당일 취소 한도 -->
+            <li class="detail-item" style="align-items: center; padding: 12px 0;">
+                <div>
+                    <span class="title" style="display:block; font-weight: 600; color: var(--text-main);">당일 취소 가능 횟수 (B안)</span>
+                    <span style="font-size: 11px; color: var(--text-sub);">하루 동안 가능한 취소 한도</span>
+                </div>
+                <span class="content">
+                    <span id="remaining-today-cancel" class="badge danger">0회</span> / <span id="total-today-cancel">0회</span>
+                </span>
+            </li>
+        </ul>
     </div>
-
-    <div id="no-ticket-section" class="no-ticket" style="display: none;">
-        <div class="no-ticket-icon">🎫</div>
-        <h3>등록된 수강권이 없습니다.</h3>
-        <p>스튜디오에 문의하여 이용권을 등록해 주세요.</p>
-    </div>
-
-    <a href="index.html" class="btn-home">메인 화면으로 이동</a>
 </div>
 
+<!-- Firebase SDK 및 데이터 연동 스크립트 -->
 <script type="module" src="mypage.js"></script>
 </body>
 </html>
