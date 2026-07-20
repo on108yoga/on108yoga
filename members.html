@@ -132,10 +132,7 @@
                     <span id="cur-cancel-count" style="font-weight: bold; color: #ef4444;">-</span>
                 </div>
                     
-                <!-- members.html 상세정보 출력 영역 내부에 추가 -->
-                    <div class="detail-item" style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e5e7eb;">
-                        <span style="color: #4b5563;">남은 취소 가능 횟수 (총)</span>
-                        <span id="cur-cancel-count" style="font-weight: bold; color: #ef4444;">-</span>
+                <!-- members.html 상세정보 출력 영역 내부에 추가 -->                
                     </div>
                     <!-- [추가] 당일 취소 노출 칸 -->
                     <div class="detail-item" style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e5e7eb;">
@@ -162,20 +159,8 @@
                <div class="form-group" style="margin-bottom: 12px;">
                     <label>이용권 명칭</label>
                     <input type="text" id="edit-ticket-type" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
-                </div>
-                
-                <!-- 총 횟수 / 남은 횟수 나란히 배치 -->
-                <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-                    <div class="form-group" style="flex:1;">
-                        <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px;">총 횟수</label>
-                        <input type="number" id="edit-total-count" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
-                    </div>
-                    <div class="form-group" style="flex:1;">
-                        <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px;">남은 횟수 (수정 가능&서비스횟수)</label>
-                        <input type="number" id="edit-remaining-count" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
-                    </div>
-                </div>
-                
+                </div>             
+                    
                 <!-- 취소 횟수 설정 (A안) --> 
                 <div style="margin-bottom: 12px;">
                     <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px;">취소 횟수 설정 (A안)</label>
@@ -186,29 +171,6 @@
                 </div>
                 
                 <!-- [추가] 당일 취소 횟수 설정 (B안) -->
-                <div style="margin-bottom: 12px;">
-                    <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px;">당일 취소 횟수 설정 (B안)</label>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="number" id="edit-total-today-cancel" placeholder="당일 총 한도" style="width: 50%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        <input type="number" id="edit-remaining-today-cancel" placeholder="당일 남은 횟수" style="width: 50%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                    </div>
-                </div>
-                
-                /* 취소 가능 횟수 */
-                <div class="detail-item" style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e5e7eb;">
-                    <span style="color: #4b5563;">남은 취소 가능 횟수</span>
-                    <span id="cur-cancel-count" style="font-weight: bold; color: #ef4444;">-</span>
-                </div>
-                /* 총 취소 제한과 현재 남은 취소 횟수 */
-                <div style="margin-bottom: 12px;">
-                    <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px;">취소 횟수 설정 (A안)</label>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="number" id="edit-total-cancel" placeholder="총 한도" style="width: 50%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        <input type="number" id="edit-remaining-cancel" placeholder="현재 남은 횟수" style="width: 50%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                    </div>
-                </div>
-                /* 당일 취소 가능 횟수 */
-               <!-- members.html 수정 폼 내부에 추가 -->
                 <div style="margin-bottom: 12px;">
                     <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px;">당일 취소 횟수 설정 (B안)</label>
                     <div style="display: flex; gap: 10px;">
