@@ -1,84 +1,68 @@
-import { auth, db } from "./firebase.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
-import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+// Firebase 필요한 모듈 임포트 (본인 프로젝트 설정에 맞게 경로 확인)
+import { db } from './firebase-config.js'; 
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// DOM 요소 정의
-const userNameEl = document.getElementById("user-name");
-const userPhoneEl = document.getElementById("user-phone");
-const ticketSection = document.getElementById("ticket-section");
-const noTicketSection = document.getElementById("no-ticket-section");
+// 실제 구현 시에는 로그인된 회원의 UID 또는 저장된 문서 ID(phone 등)를 가져와야 합니다.
+// 여기서는 예시로 데모용 active 유저 ID를 정의합니다.
+const currentUserId = "01012345678"; // 혹은 auth.currentUser.uid;
 
-const ticketTitleEl = document.getElementById("ticket-title");
-const remainingCountEl = document.getElementById("remaining-count");
-const totalCountEl = document.getElementById("total-count");
-const startDateEl = document.getElementById("start-date");
-const endDateEl = document.getElementById("end-date");
-const ticketStatusEl = document.getElementById("ticket-status");
+async function loadMyPageData() {
+    if (!currentUserId) {
+        alert("로그인이 필요합니다.");
+        return;
+    }
 
-// 1. 로그인한 사용자 세션 모니터링
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        // 로그인된 상태라면 Firestore에서 해당 유저의 문서를 실시간 구독(onSnapshot)합니다.
-        const userDocRef = doc(db, "users", user.uid);
-        
-        onSnapshot(userDocRef, (docSnap) => {
-            if (docSnap.exists()) {
-                const userData = docSnap.data();
-                renderMyPage(userData);
+    try {
+        const userDocRef = doc(db, 'users', currentUserId);
+        const userSnap = await getDoc(userDocRef);
+
+        if (userSnap.exists()) {
+            const data = userSnap.data();
+
+            // 1. 기본 인적 사항
+            document.getElementById('user-name').innerText = data.name || "회원";
+
+            // 2. 이용권 정보 맵핑
+            if (data.ticketType) {
+                document.getElementById('ticket-name').innerText = data.ticketType;
+                document.getElementById('total-count').innerText = `${data.totalCount || 0}회`;
+                document.getElementById('remaining-count').innerText = `${data.remainingCount || 0}회`;
+                document.getElementById('start-date').innerText = data.startDate || "-";
+                document.getElementById('end-date').innerText = data.endDate || "-";
             } else {
-                alert("가입 정보가 유효하지 않습니다. 고객센터에 문의해 주세요.");
-                location.href = "index.html";
+                document.getElementById('ticket-name').innerText = "보유하신 이용권이 없습니다.";
+                document.getElementById('ticket-name').style.color = "#6b7280";
             }
-        });
-    } else {
-        // 로그인하지 않은 사용자는 로그인 페이지로 튕겨냅니다.
-        alert("로그인이 필요한 페이지입니다.");
-        location.href = "index.html"; // 본인의 로그인 화면 주소로 맞춰주세요.
-    }
-});
 
-// 2. 화면에 회원의 이용권 데이터 반영하기
-function renderMyPage(user) {
-    // 기본 개인정보 노출
-    userNameEl.innerText = `${user.name} 회원님`;
-    userPhoneEl.innerText = formatPhone(user.phone);
+            // 3. 취소 정책 (A안 - 총 취소 횟수)
+            const totalCancel = data.totalCancelLimit || 0;
+            const remainingCancel = data.remainingCancelCount || 0;
+            document.getElementById('total-cancel').innerText = `${totalCancel}회`;
+            document.getElementById('remaining-cancel').innerText = `${remainingCancel}회`;
+            
+            // 남은 횟수가 0이면 배지 색상을 붉게 변경 (UI 디테일)
+            if(remainingCancel === 0) {
+                document.getElementById('remaining-cancel').classList.add('danger');
+            }
 
-    // 이용권 존재 유무에 따른 분기 처리
-    if (user.ticketType && user.totalCount > 0) {
-        noTicketSection.style.display = "none";
-        ticketSection.style.display = "block";
+            // 4. 취소 정책 (B안 - 당일 취소 횟수)
+            const totalTodayCancel = data.totalTodayCancelLimit || 0;
+            const remainingTodayCancel = data.remainingTodayCancelCount || 0;
+            document.getElementById('total-today-cancel').innerText = `${totalTodayCancel}회`;
+            document.getElementById('remaining-today-cancel').innerText = `${remainingTodayCancel}회`;
 
-        ticketTitleEl.innerText = user.ticketType;
-        remainingCountEl.innerText = user.remainingCount;
-        totalCountEl.innerText = `/ ${user.totalCount}회`;
-        startDateEl.innerText = user.startDate;
-        endDateEl.innerText = user.endDate;
+            if(remainingTodayCancel > 0) {
+                // 당일 취소 여유가 있으면 초록/파란 계열 배지로 유지하기 위해 danger 클래스 제거
+                document.getElementById('remaining-today-cancel').classList.remove('danger');
+            }
 
-        // 이용 기간 및 남은 횟수 상태 판별
-        const todayStr = new Date().toISOString().split("T")[0];
-        if (user.endDate < todayStr) {
-            ticketStatusEl.innerText = "기간 만료";
-            ticketStatusEl.style.color = "#ef4444"; // 빨간색
-        } else if (user.remainingCount <= 0) {
-            ticketStatusEl.innerText = "횟수 소진 완료";
-            ticketStatusEl.style.color = "#ef4444";
         } else {
-            ticketStatusEl.innerText = "이용중";
-            ticketStatusEl.style.color = "#10b981"; // 초록색
+            alert("회원 정보가 존재하지 않습니다.");
         }
-    } else {
-        // 이용권 정보가 없는 회원일 경우
-        ticketSection.style.display = "none";
-        noTicketSection.style.display = "block";
+    } catch (error) {
+        console.error("마이페이지 로딩 오류:", error);
     }
 }
 
-// 전화번호 포맷팅 가이드
-function formatPhone(phone) {
-    if (!phone) return '';
-    const cleaned = ('' + phone).replace(/\D/g, '');
-    if (cleaned.length === 11) {
-        return cleaned.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
-    }
-    return phone;
-}
+// 페이지가 로드되면 데이터를 불러옵니다.
+window.addEventListener('DOMContentLoaded', loadMyPageData);
