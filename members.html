@@ -100,7 +100,7 @@
         <div class="member-list" id="member-list-container">
             </div>
     </div>
-
+/* 기존 회원 */
     <div class="member-detail-section" id="detail-section">
         <div class="placeholder-text" id="detail-placeholder">
             <h3>회원을 선택해 주세요</h3>
@@ -169,7 +169,20 @@
                         </div>
                     </div>
                 </div>
-
+                /* 취소 가능 횟수 */
+                <div class="detail-item" style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e5e7eb;">
+                    <span style="color: #4b5563;">남은 취소 가능 횟수</span>
+                    <span id="cur-cancel-count" style="font-weight: bold; color: #ef4444;">-</span>
+                </div>
+                /* 총 취소 제한과 현재 남은 취소 횟수 */
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px;">취소 횟수 설정 (A안)</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" id="edit-total-cancel" placeholder="총 한도" style="width: 50%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <input type="number" id="edit-remaining-cancel" placeholder="현재 남은 횟수" style="width: 50%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                </div>
+                /* 시작일 & 종료일 */
                 <div style="display: flex; gap: 10px;">
                     <div class="form-group" style="flex:1;">
                         <label>시작일</label>
@@ -191,6 +204,7 @@
     </div>
 </div>
 
+    /* 신규등록 */
 <div id="register-modal" class="modal">
     <div class="modal-content">
         <h3>신규 회원 등록</h3>
@@ -209,6 +223,13 @@
                     <option value="50,200">50회 / 200일</option>
                 </select>
             </div>
+
+            /* 취소 기본 한도를 정할 수 있도록 입력 칸 */
+            <div style="margin-bottom: 12px;">
+                <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px;">기본 취소 가능 횟수 (A안)</label>
+                <input type="number" id="reg-cancel-count" placeholder="예: 3 (미입력 시 0)" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+            </div>
+            
             <div class="form-group"><label>이용권 이름</label><input type="text" id="reg-ticket" required></div>
             <div class="form-group"><label>횟수</label><input type="number" id="reg-count" required></div>
             <div class="form-group"><label>시작일</label><input type="date" id="reg-start" onchange="calculateRegEndDate()" required></div>
