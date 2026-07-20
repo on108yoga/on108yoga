@@ -131,8 +131,20 @@
                     <span style="color: #4b5563;">남은 취소 가능 횟수</span>
                     <span id="cur-cancel-count" style="font-weight: bold; color: #ef4444;">-</span>
                 </div>
+                    
+                <!-- members.html 상세정보 출력 영역 내부에 추가 -->
+                    <div class="detail-item" style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e5e7eb;">
+                        <span style="color: #4b5563;">남은 취소 가능 횟수 (총)</span>
+                        <span id="cur-cancel-count" style="font-weight: bold; color: #ef4444;">-</span>
+                    </div>
+                    <!-- [추가] 당일 취소 노출 칸 -->
+                    <div class="detail-item" style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e5e7eb;">
+                        <span style="color: #4b5563;">남은 당일취소 가능 횟수</span>
+                        <span id="cur-today-cancel-count" style="font-weight: bold; color: #f59e0b;">-</span>
+                    </div>
             </div>
-
+            
+            /* 관리자 회원 */
             <h3>이용권 설정 및 변경</h3>
             <div class="ticket-management">
                 <div class="form-group">
@@ -182,6 +194,16 @@
                         <input type="number" id="edit-remaining-cancel" placeholder="현재 남은 횟수" style="width: 50%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
                     </div>
                 </div>
+                /* 당일 취소 가능 횟수 */
+               <!-- members.html 수정 폼 내부에 추가 -->
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px;">당일 취소 횟수 설정 (B안)</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" id="edit-total-today-cancel" placeholder="당일 총 한도" style="width: 50%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <input type="number" id="edit-remaining-today-cancel" placeholder="당일 남은 횟수" style="width: 50%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                </div>
+                
                 /* 시작일 & 종료일 */
                 <div style="display: flex; gap: 10px;">
                     <div class="form-group" style="flex:1;">
@@ -229,7 +251,13 @@
                 <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px;">기본 취소 가능 횟수 (A안)</label>
                 <input type="number" id="reg-cancel-count" placeholder="예: 3 (미입력 시 0)" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
             </div>
-            
+
+            <!-- members.html 등록 모달 폼 내부에 추가 -->
+            <div style="margin-bottom: 12px;">
+                <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px;">기본 당일취소 가능 횟수 (B안)</label>
+                <input type="number" id="reg-today-cancel-count" placeholder="예: 1 (미입력 시 0)" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+            </div>
+                        
             <div class="form-group"><label>이용권 이름</label><input type="text" id="reg-ticket" required></div>
             <div class="form-group"><label>횟수</label><input type="number" id="reg-count" required></div>
             <div class="form-group"><label>시작일</label><input type="date" id="reg-start" onchange="calculateRegEndDate()" required></div>
