@@ -106,6 +106,20 @@ function showMemberDetail(id, user) {
     document.getElementById('edit-remaining-cancel').value = user.remainingCancelCount || 0;
     
     document.getElementById('edit-template-select').value = '';
+
+    /* 당일취소 */
+    // 1. 화면 표시 데이터 매핑 (총 취소 vs 당일 취소)
+    document.getElementById('cur-cancel-count').innerText = user.ticketType ? `${user.remainingCancelCount || 0}회 / ${user.totalCancelLimit || 0}회` : "-";
+    document.getElementById('cur-today-cancel-count').innerText = user.ticketType ? `${user.remainingTodayCancelCount || 0}회 / ${user.totalTodayCancelLimit || 0}회` : "-";
+
+    // 2. 수정 폼 input 값 매핑 (기존 취소 횟수 아래에 배치)
+    document.getElementById('edit-total-cancel').value = user.totalCancelLimit || 0;
+    document.getElementById('edit-remaining-cancel').value = user.remainingCancelCount || 0;
+    
+    // [추가] 당일 취소 수정 데이터 바인딩
+    document.getElementById('edit-total-today-cancel').value = user.totalTodayCancelLimit || 0;
+    document.getElementById('edit-remaining-today-cancel').value = user.remainingTodayCancelCount || 0;
+    
 }
 
 function closeDetailView() {
@@ -182,6 +196,10 @@ window.updateUserTicket = async () => {
     const totalCancelLimit = parseInt(document.getElementById('edit-total-cancel').value) || 0;
     const remainingCancelCount = parseInt(document.getElementById('edit-remaining-cancel').value) || 0;
 
+    // [추가] 당일 취소 변수 읽기
+    const totalTodayCancelLimit = parseInt(document.getElementById('edit-total-today-cancel').value) || 0;
+    const remainingTodayCancelCount = parseInt(document.getElementById('edit-remaining-today-cancel').value) || 0;
+    
     try {
         const userDocRef = doc(db, 'users', activeUserId);
         await updateDoc(userDocRef, {
@@ -190,11 +208,13 @@ window.updateUserTicket = async () => {
             remainingCount,
             startDate,
             endDate,
-            // [추가] Firestore 업데이트 항목
             totalCancelLimit,
-            remainingCancelCount
+            remainingCancelCount,
+            // [추가] Firestore 업데이트 항목
+            totalTodayCancelLimit,
+            remainingTodayCancelCount
         });
-        alert("이용권 및 취소 제한 정보가 성공적으로 변경되었습니다.");
+        alert("이용권 및 취소(총/당일) 제한 정보가 성공적으로 변경되었습니다.");
     } catch (err) {
         alert("수정 실패: " + err);
     }
@@ -212,11 +232,14 @@ window.resetUserTicket = async () => {
             remainingCount: 0,
             startDate: "",
             endDate: "",
-            // [추가] 취소 정보 초기화
+            // 총 취소 관련 정보 초기화
             totalCancelLimit: 0,
-            remainingCancelCount: 0
+            remainingCancelCount: 0, // 👈 콤마가 누락되지 않도록 주의하세요!
+            // 당일 취소 관련 정보 초기화
+            totalTodayCancelLimit: 0,
+            remainingTodayCancelCount: 0
         });
-        alert("이용권이 제거되었습니다.");
+        alert("이용권 및 모든 취소 권한 정보가 초기화(제거)되었습니다.");
     } catch (err) {
         alert("초기화 실패: " + err);
     }
@@ -248,14 +271,24 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
     const startDate = document.getElementById('reg-start').value;
     const endDate = document.getElementById('reg-end').value;
     
-    // [추가] 등록할 때 입력한 취소 횟수
+    // [수정] 총 취소 횟수와 당일 취소 횟수를 각각 안전하게 가져옵니다.
     const cancelCount = parseInt(document.getElementById('reg-cancel-count').value) || 0;
+    const todayCancelCount = parseInt(document.getElementById('reg-today-cancel-count').value) || 0;
 
     try {
         const querySnapshot = await getDocs(usersCol);
         const registeredUser = querySnapshot.docs.find(doc => doc.data().phone === phone && doc.id !== phone);
 
+        // 공통으로 들어갈 취소 정책 객체 정의
+        const cancelData = {
+            totalCancelLimit: cancelCount,
+            remainingCancelCount: cancelCount,
+            totalTodayCancelLimit: todayCancelCount,
+            remainingTodayCancelCount: todayCancelCount
+        };
+
         if (registeredUser) {
+            // 1. 이미 가입된 유저가 있을 때 (UID 문서 업데이트)
             const userDocRef = doc(db, 'users', registeredUser.id);
             await updateDoc(userDocRef, {
                 ticketType, 
@@ -263,12 +296,11 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
                 remainingCount: totalCount, 
                 startDate, 
                 endDate,
-                // [추가]
-                totalCancelLimit: cancelCount,
-                remainingCancelCount: cancelCount
+                ...cancelData // 콤마 누락 에러 방지를 위해 spread 연산자로 안전하게 병합
             });
             alert(`이미 가입된 ${name} 회원님의 계정에 이용권 및 취소 정책을 즉시 부여했습니다.`);
         } else {
+            // 2. 가입 전 회원일 때 (전화번호 임시 문서 생성)
             const userDocRef = doc(db, 'users', phone);
             await setDoc(userDocRef, {
                 name, 
@@ -279,17 +311,17 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
                 startDate, 
                 endDate, 
                 role: "member",
-                // [추가]
-                totalCancelLimit: cancelCount,
-                remainingCancelCount: cancelCount
+                ...cancelData // 임시 회원 문서에도 총 취소/당일 취소 필드 모두 저장
             });
             alert("미가입 회원의 임시 정보가 추가되었습니다. 추후 이 번호로 가입하면 즉시 연동됩니다.");
         }
         closeModal();
     } catch (err) {
+        console.error("등록 중 발생한 상세 에러:", err);
         alert("등록 실패: " + err);
     }
 });
+
 // ==========================================
 // members.js 최하단부 대체 코드 (250라인 이하)
 // ==========================================
