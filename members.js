@@ -290,7 +290,6 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
         alert("등록 실패: " + err);
     }
 });
-
 // ==========================================
 // members.js 최하단부 대체 코드 (250라인 이하)
 // ==========================================
