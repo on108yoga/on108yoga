@@ -5,6 +5,9 @@
     <!-- 모바일 반응형을 위한 필수 태그 (하나만 남겨두었습니다) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
+    <!-- Use Swiper from CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.css"/>
+    
     <!-- 구글 폰트 및 프리텐다드 불러오기  -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -438,7 +441,26 @@
 
         <h2 id="about">about</h2><br>
             <div class="about">
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5ieWJaIsBoymrjKW_m2eQMEasCDSYqWib30T3HCULQw&s=10" alt="about 이미지">
+                <!-- Slider main container -->
+                <div class="swiper">
+                <!-- Additional required wrapper -->
+                <div class="swiper-wrapper">
+                    <!-- Slides -->
+                    <div class="swiper-slide"><img src=""></div>
+                    <div class="swiper-slide">Slide 2</div>
+                    <div class="swiper-slide">Slide 3</div>
+                </div>
+    
+                <!-- If we need pagination -->
+                <div class="swiper-pagination"></div>
+    
+                <!-- If we need navigation buttons -->
+                <div class="swiper-button-prev"></div>
+                <div class="swiper-button-next"></div>
+    
+                <!-- If we need scrollbar -->
+                <div class="swiper-scrollbar"></div>
+                </div>
             </div>
         <br><br>
 
@@ -481,6 +503,37 @@
             </dl>
         </div>
     </footer>
+
+            <!-- CDN -->
+        <script src="https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.js"></script> 
+        <script>
+                    const swiper = new Swiper('.swiper', {
+            // Optional parameters
+            direction: 'vertical', //:위아래 슬라이드
+            loop: true,
+
+             autoplay: {
+                delay: 2500,
+                disableOnInteraction: false,
+                },
+
+            // If we need pagination
+            pagination: {
+                el: '.swiper-pagination',
+            },
+
+            // Navigation arrows
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+
+            // And if we need scrollbar
+            scrollbar: {
+                el: '.swiper-scrollbar',
+            },
+            });
+        </script>
        
            <script>
           // 사용자가 스크롤을 할 때마다 브라우저가 이 함수를 실행합니다
