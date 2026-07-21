@@ -213,32 +213,39 @@
 
                 <!-- 이용권 설정 및 변경 폼 밑에 추가 -->
                     <div style="margin-top: 30px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <h3 style="margin: 0;">결제 및 환불 내역</h3>
-                            <!-- 선택 사항: 전체 내역 일괄 삭제 버튼 -->
-                            <button type="button" onclick="clearAllPaymentHistory()" style="background: none; border: 1px solid #d1d5db; color: #6b7280; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer;">전체 내역 초기화</button>
-                        </div>
-                        
-                        <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px;">
-                            <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 13px;">
-                                <thead style="background: #f9fafb; position: sticky; top: 0; border-bottom: 1px solid var(--border);">
-                                    <tr>
-                                        <th style="padding: 8px;">일시</th>
-                                        <th style="padding: 8px;">구분</th>
-                                        <th style="padding: 8px;">이용권 명</th>
-                                        <th style="padding: 8px;">횟수</th>
-                                        <th style="padding: 8px;">금액</th>
-                                        <th style="padding: 8px;">관리</th> <!-- 👈 추가된 부분 -->
-                                    </tr>
-                                </thead>
-                                <tbody id="payment-history-list">
-                                    <tr>
-                                        <td colspan="6" style="padding: 15px; color: #9ca3af;">내역이 없습니다.</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <h3 style="margin: 0;">결제 및 환불 내역</h3>
+                        <!-- 선택 내역 삭제 버튼 -->
+                        <button type="button" 
+                                onclick="deleteSelectedPaymentHistory()" 
+                                style="background: #fee2e2; border: 1px solid #fca5a5; color: #ef4444; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer;">
+                            선택 삭제
+                        </button>
                     </div>
+                    
+                    <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 13px;">
+                            <thead style="background: #f9fafb; position: sticky; top: 0; border-bottom: 1px solid var(--border);">
+                                <tr>
+                                    <!-- 전체 선택 체크박스 -->
+                                    <th style="padding: 8px; width: 35px;">
+                                        <input type="checkbox" id="check-all-history" onchange="toggleAllHistorySelect(this)">
+                                    </th>
+                                    <th style="padding: 8px;">일시</th>
+                                    <th style="padding: 8px;">구분</th>
+                                    <th style="padding: 8px;">이용권 명</th>
+                                    <th style="padding: 8px;">횟수</th>
+                                    <th style="padding: 8px;">금액</th>
+                                </tr>
+                            </thead>
+                            <tbody id="payment-history-list">
+                                <tr>
+                                    <td colspan="6" style="padding: 15px; color: #9ca3af;">내역이 없습니다.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
                 <!-- 이용권 설정 및 변경 여기까지 -->
 
             </div>
