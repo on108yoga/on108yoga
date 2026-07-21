@@ -136,6 +136,21 @@
             width: 100%;
             gap: 4px 0;
         }
+        /* 날짜 선택 시 강조 효과 */
+            .day-box.selected {
+                background-color: #517e73 !important;
+                color: #ffffff !important;
+                font-weight: bold;
+                border-radius: 50%;
+            }
+            
+            /* 주말 및 공휴일 색상 */
+            .day-box.sunday, .day-box.holiday {
+                color: #e11d48; /* 빨간색 */
+            }
+            .day-box.saturday {
+                color: #2563eb; /* 파란색 */
+            }
 
         /* calendar.js에서 생성되는 날짜 셀 스타일 맞춤 */
         #weekCalendar div, .date-cell {
