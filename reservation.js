@@ -226,8 +226,11 @@ document.querySelectorAll(".time-btn").forEach(btn => {
 예약하기
 ================================
 */
-const reserveBtn = document.getElementById("reserveBtn");
-
+/*
+================================
+예약하기 (잔여 횟수 차감 필드명 통합 수정)
+================================
+*/
 if (reserveBtn) {
     reserveBtn.addEventListener("click", async () => {
         if (!auth.currentUser) {
@@ -238,6 +241,12 @@ if (reserveBtn) {
 
         if (!selectedDate) {
             alert("날짜를 선택해주세요.");
+            return;
+        }
+
+        // 주말 및 공휴일 예약 방지
+        if (isWeekendOrHoliday(selectedDate)) {
+            alert("토요일, 일요일 및 공휴일은 예약이 불가능합니다.");
             return;
         }
 
@@ -253,16 +262,26 @@ if (reserveBtn) {
             return;
         }
 
-        // 2. 잔여 횟수 체크 및 사용자 이름 조회
+        // 2. 잔여 횟수 체크
         const userDocRef = doc(db, "users", auth.currentUser.uid);
         const userSnap = await getDoc(userDocRef);
+        
         let remCount = 0;
         let userName = auth.currentUser.displayName || "";
-        
+        let countFieldName = "remCount"; // 기본 차감할 필드명
+
         if (userSnap.exists()) {
             const userData = userSnap.data();
-            remCount = userData.remCount ?? userData.remainingCount ?? 0;
             if (userData.name) userName = userData.name;
+
+            // remainingCount가 존재하는 경우 해당 필드명을 사용
+            if (userData.remainingCount !== undefined && userData.remCount === undefined) {
+                remCount = userData.remainingCount;
+                countFieldName = "remainingCount";
+            } else {
+                remCount = userData.remCount ?? 0;
+                countFieldName = "remCount";
+            }
         }
 
         if (remCount <= 0) {
@@ -309,16 +328,16 @@ if (reserveBtn) {
                 createdAt: new Date()
             });
 
-            // 6. 회원 잔여 횟수 1회 차감
+            // 6. 회원 잔여 횟수 1회 차감 (동적으로 매칭된 필드 차감)
             await updateDoc(userDocRef, {
-                remCount: increment(-1)
+                [countFieldName]: increment(-1)
             });
 
             alert("예약이 완료되었습니다.");
 
             loadReservation();
             loadMyReservation();
-            loadUserProfile(auth.currentUser); // 👈 함수명 정정 완료
+            loadUserProfile(auth.currentUser);
 
         } catch (err) {
             console.error("예약 오류:", err);
@@ -329,7 +348,7 @@ if (reserveBtn) {
 
 /*
 ================================
-예약 취소
+예약 취소 (필드명 매칭 복구)
 ================================
 */
 window.cancelReservation = async function(id) {
@@ -343,16 +362,26 @@ window.cancelReservation = async function(id) {
         // 회원 잔여 횟수 1회 복구
         if (auth.currentUser) {
             const userDocRef = doc(db, "users", auth.currentUser.uid);
-            await updateDoc(userDocRef, {
-                remCount: increment(1)
-            });
+            const userSnap = await getDoc(userDocRef);
+
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                // remainingCount 필드를 쓰고 있는 계정이면 remainingCount를 +1, 아니면 remCount를 +1
+                const countFieldName = (userData.remainingCount !== undefined && userData.remCount === undefined) 
+                    ? "remainingCount" 
+                    : "remCount";
+
+                await updateDoc(userDocRef, {
+                    [countFieldName]: increment(1)
+                });
+            }
         }
 
         alert("예약이 취소되었습니다.");
 
         loadReservation();
         loadMyReservation();
-        if (auth.currentUser) loadUserProfile(auth.currentUser); // 👈 함수명 정정 완료
+        if (auth.currentUser) loadUserProfile(auth.currentUser);
 
     } catch (err) {
         console.error("취소 오류:", err);
