@@ -31,53 +31,51 @@ async function loadMyReservations(userUid) {
     const listContainer = document.getElementById('reservation-list');
     const loadingElem = document.getElementById('reservation-loading');
 
-    if (!listContainer) return;
+    console.log("🔍 [예약 내역 조회 시작] UID:", userUid);
+
+    if (!listContainer) {
+        console.warn("⚠️ 'reservation-list' 아이디를 가진 HTML 요소를 찾을 수 없습니다.");
+        return;
+    }
 
     try {
-        // 1. 내 UID와 일치하는 예약 문서 조회 (날짜 기준 오름차순 정렬)
+        // 색인 에러 방지를 위해 orderBy를 지우고 단순 조회로 테스트
         const q = query(
             collection(db, "reservations"),
-            where("userId", "==", userUid),
-            orderBy("date", "asc") // 날짜순 정렬 (색인 설정 필요할 수 있음)
+            where("userId", "==", userUid)
         );
 
         const querySnapshot = await getDocs(q);
+        console.log("✅ [예약 내역 조회 완료] 총 개수:", querySnapshot.size);
 
         // 로딩 텍스트 숨기기
         if (loadingElem) loadingElem.style.display = 'none';
-        listContainer.innerHTML = ''; // 기존 목록 초기화
+        listContainer.innerHTML = '';
 
-        // 2. 예약 내역이 없는 경우
         if (querySnapshot.empty) {
             listContainer.innerHTML = `
-                <div class="empty-msg" style="padding: 20px; text-align: center; color: #999;">
+                <div style="padding: 20px; text-align: center; color: #999;">
                     아직 예약된 내역이 없습니다.
                 </div>
             `;
             return;
         }
 
-        // 3. 예약 문서 반복 출력
         querySnapshot.forEach((doc) => {
             const data = doc.data();
             const docId = doc.id;
 
-            // 카드 엘리먼트 생성
             const itemCard = document.createElement('div');
             itemCard.className = 'reservation-card';
             itemCard.innerHTML = `
                 <div class="res-info">
-                    <span class="res-date">📅 ${data.date}</span>
-                    <span class="res-time">⏰ ${data.time}</span>
-                    ${data.className ? `<span class="res-title">🏋️ ${data.className}</span>` : ''}
+                    <span class="res-date">📅 ${data.date || '날짜 없음'}</span>
+                    <span class="res-time">⏰ ${data.time || '시간 없음'}</span>
                 </div>
                 <div class="res-status">
                     <span class="badge ${data.status === 'canceled' ? 'badge-canceled' : 'badge-active'}">
                         ${data.status === 'canceled' ? '취소됨' : '예약완료'}
                     </span>
-                    ${data.status !== 'canceled' ? `
-                        <button class="btn-cancel" onclick="cancelReservation('${docId}')">예약 취소</button>
-                    ` : ''}
                 </div>
             `;
 
@@ -85,9 +83,9 @@ async function loadMyReservations(userUid) {
         });
 
     } catch (error) {
-        console.error("🚨 예약 내역 조회 실패:", error);
+        console.error("🚨 예약 내역 조회 중 실제 에러 발생:", error);
         if (loadingElem) {
-            loadingElem.innerText = "예약 내역을 불러오는 중 오류가 발생했습니다.";
+            loadingElem.innerText = `오류 발생: ${error.message}`;
         }
     }
 }
