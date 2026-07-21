@@ -86,32 +86,88 @@ async function loadUserProfile(user) {
 날짜 선택 (calendar.js에서 호출)
 ================================
 */
-/*
-================================
-날짜 선택 (calendar.js에서 호출)
-================================
-*/
 window.setSelectedDate = function(date) {
     selectedDate = date;
     console.log("선택 날짜:", selectedDate);
 
     const todayStr = getTodayString();
 
-    // 지나간 날짜를 선택했을 때
+    // 1. 주말 및 공휴일 체크
+    if (isWeekendOrHoliday(selectedDate)) {
+        alert("토요일, 일요일 및 공휴일은 휴무일이므로 예약이 불가능합니다.");
+        clearTimeCounts();
+        selectedDate = "";
+        return;
+    }
+
+    // 2. 지난 날짜 선택 체크
     if (selectedDate < todayStr) {
         alert("지난 날짜는 선택 또는 예약할 수 없습니다.");
-        
-        // 지난 날짜일 경우 기존 표시된 인원 카운트를 모두 0으로 초기화
-        classTimes.forEach(time => {
-            const id = "count" + time.replace(":", "");
-            const element = document.getElementById(id);
-            if (element) element.innerText = "0";
-        });
-        return; // 예약 조회 함수 실행 안 함
+        clearTimeCounts();
+        selectedDate = "";
+        return;
     }
 
     loadReservation();
 };
+
+// 인원 카운트 뷰 초기화 헬퍼 함수
+function clearTimeCounts() {
+    classTimes.forEach(time => {
+        const id = "count" + time.replace(":", "");
+        const element = document.getElementById(id);
+        if (element) element.innerText = "0";
+    });
+}
+
+/*
+================================
+주말 및 공휴일 체크 유틸리티
+================================
+*/
+function isWeekendOrHoliday(dateStr) {
+    if (!dateStr) return false;
+
+    // YYYY-MM-DD 스트링을 Date 객체로 변환 (타임존 오차 방지용 T00:00:00 추가)
+    const targetDate = new Date(`${dateStr}T00:00:00`);
+    const day = targetDate.getDay(); // 0: 일요일, 6: 토요일
+
+    // 1. 주말(토요일, 일요일) 체크
+    if (day === 0 || day === 6) {
+        return true;
+    }
+
+    // 2. 주요 양력 고정 공휴일 (MM-DD)
+    const monthDay = dateStr.slice(5); // "MM-DD"
+    const fixedHolidays = [
+        "01-01", // 신정
+        "03-01", // 삼일절
+        "05-05", // 어린이날
+        "06-06", // 현충일
+        "08-15", // 광복절
+        "10-03", // 개천절
+        "10-09", // 한글날
+        "12-25"  // 크리스마스
+    ];
+
+    if (fixedHolidays.includes(monthDay)) {
+        return true;
+    }
+
+    // 3. 주요 음력/대체 공휴일 지정 (연도별 추가 필요 시 여기에 YYYY-MM-DD 등록)
+    const variableHolidays = [
+        // 2026년 기준 주요 설날/추석/부처님오신날 등
+        "2026-02-16", "2026-02-17", "2026-02-18", // 설날 연휴
+        "2026-05-24", // 부처님오신날
+        "2026-09-24", "2026-09-25", "2026-09-26"  // 추석 연휴
+    ];
+
+    if (variableHolidays.includes(dateStr)) {
+        return true;
+    }
+
+    return false;
+}
 
 /*
 ================================
