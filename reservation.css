@@ -86,6 +86,11 @@ section {
     padding: 25px;
     border-radius: 25px;
     box-shadow: 0 5px 20px rgba(0,0,0,.1);
+
+     width: 100%;
+     max-width: 320px; /* 캘린더 적정 너비 고정 */
+     margin: 0 auto;
+     box-sizing: border-box;
 }
 
 /* 헤더 영역 */
@@ -126,25 +131,38 @@ section {
 /* 요일 헤더 (정렬은 보장하되 원래 컬러 복원) */
 .week-name {
     display: grid !important;
-    grid-template-columns: repeat(7, 1fr) !important;
+    grid-template-columns: repeat(7, 1fr) !important; /* 무조건 7등분 */
     text-align: center;
-    margin-top: 20px;
+    margin-top: 15px;
     color: #777;
     font-weight: bold;
     width: 100%;
     box-sizing: border-box;
+
+    font-size: 14px;
 }
 
-.week-name div:first-child {
-    color: #d9534f; /* 일요일 빨강 */
+/* 요일 색상 설정 */
+.week-name > div {
+  padding: 8px 0;
+  color: #555;
 }
-
-.week-name div:last-child {
-    color: #4a90e2; /* 토요일 파랑 */
-}
+.week-name > div:first-child { color: #d9534f; } /* 일요일 빨강 */
+.week-name > div:last-child { color: #4a90e2; }  /* 토요일 파랑 */
 
 /* 날짜 그리드 */
-#weekCalendar,
+/* 3. 날짜 그리드 영역 (#weekCalendar) - ID 선택자로 확실하게 고정 */
+#weekCalendar {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important; /* 요일과 동일하게 7등분 */
+  gap: 0 !important; /* 간격으로 인한 밀림 방지 */
+  margin-top: 10px;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  justify-items: center; /* 셀 내부 요소 중앙 정렬 */
+  align-items: center;
+}
+
 #calendarDates {
     display: grid !important;
     grid-template-columns: repeat(7, 1fr) !important;
@@ -153,14 +171,41 @@ section {
     box-sizing: border-box; /* 너비 초과 방지 */
 }
 
+/* 4. 개별 날짜 박스 (.day-box) */
 .day-box {
-    height: 45px; /* 약간 슬림하게 조정하여 세로 비율 맞춤 */
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    cursor: pointer;
-    box-sizing: border-box;
-    font-weight: 500;
+  width: 100% !important;
+  height: 40px !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  box-sizing: border-box !important;
+  margin: 0 !important; /* 마진으로 인한 간격 오차 제거 */
+}
+/* 주말 날짜 텍스트 색상 */
+.day-box:nth-child(7n + 1) { color: #d9534f; } /* 일요일 날짜 빨강 */
+.day-box:nth-child(7n) { color: #4a90e2; }     /* 토요일 날짜 파랑 */
+/* 5. 선택된 날짜 (23일처럼 파란색 동그라미 처리) */
+.day-box.selected,
+.day-box.active {
+  position: relative;
+  background-color: transparent !important; /* 박스 자체는 투명 유지 */
+  color: #ffffff !important;
+  font-weight: bold;
+}
+
+/* 파란 원을 글자 뒤에 예쁘게 띄우기 (다른 날짜 영역을 절대 침범하지 않음) */
+.day-box.selected::before,
+.day-box.active::before {
+  content: "";
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  background-color: #4a90e2;
+  border-radius: 50%;
+  z-index: -1; /* 글자 뒤로 배치 */
 }
 
 /* 날짜 숫자 동그라미 스타일 복원 */
