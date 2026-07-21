@@ -1,5 +1,5 @@
 /* =========================================================
-   1. 기본 리셋 및 글로벌 스타일
+   1. 기본 레이아웃 & 글로벌 스타일
    ========================================================= */
 * {
     box-sizing: border-box;
@@ -45,7 +45,7 @@ h1 {
     color: #333;
 }
 
-/* 사용자 프로필 및 잔여 횟수 카드 */
+/* 사용자 프로필 카드 */
 .user-info-card-wrapper {
     max-width: 1000px;
     margin: 20px auto 0;
@@ -59,7 +59,6 @@ h1 {
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
-/* 레이아웃 구조 */
 main {
     margin: 20px auto;
     display: flex;
@@ -72,7 +71,7 @@ main {
 section {
     flex: 1;
     min-width: 280px;
-    max-width: 320px;
+    max-width: 340px;
     background: #ffffff;
     padding: 20px;
     border-radius: 12px;
@@ -80,16 +79,16 @@ section {
 }
 
 /* =========================================================
-   2. 커스텀 캘린더 스타일
+   2. 커스텀 캘린더 (원래의 예쁜 디자인 복원!)
    ========================================================= */
 .custom-calendar {
-    background: #fffaf0;
+    background: #fffaf0; /* 따뜻한 아이보리 톤 배경 */
     padding: 25px;
     border-radius: 25px;
     box-shadow: 0 5px 20px rgba(0,0,0,.1);
-    min-height: 250px;
 }
 
+/* 헤더 영역 */
 .calendar-header {
     display: flex;
     justify-content: space-between;
@@ -97,31 +96,34 @@ section {
 }
 
 .calendar-header h2 {
-    font-size: 20px;
+    font-size: 22px;
     color: #405346;
     margin: 0;
+    font-weight: bold;
 }
 
+/* 동글동글 화살표 버튼 복원 */
 .calendar-header button {
-    border: none;
-    background: #405346;
-    color: white;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
+    border: none !important;
+    background: #405346 !important;
+    color: white !important;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
     cursor: pointer;
     font-size: 16px;
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: background 0.2s;
+    transition: transform 0.2s, background-color 0.2s;
 }
 
 .calendar-header button:hover {
-    background: #2c3a31;
+    background: #2c3a31 !important;
+    transform: scale(1.05);
 }
 
-/* 요일 헤더 (7등분 고정) */
+/* 요일 헤더 (정렬은 보장하되 원래 컬러 복원) */
 .week-name {
     display: grid !important;
     grid-template-columns: repeat(7, 1fr) !important;
@@ -129,7 +131,6 @@ section {
     margin-top: 20px;
     color: #777;
     font-weight: bold;
-    font-size: 14px;
 }
 
 .week-name div:first-child {
@@ -140,8 +141,8 @@ section {
     color: #4a90e2; /* 토요일 파랑 */
 }
 
-/* 주간/월간 날짜 그리드 (7등분 고정) */
-#weekCalendar, 
+/* 날짜 그리드 */
+#weekCalendar,
 #calendarDates {
     display: grid !important;
     grid-template-columns: repeat(7, 1fr) !important;
@@ -150,40 +151,41 @@ section {
 }
 
 .day-box {
-    height: 50px;
+    height: 55px;
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
     cursor: pointer;
 }
 
-/* 날짜 동그라미 감싸기 */
+/* 날짜 숫자 동그라미 스타일 복원 */
 .day-box span {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     display: flex;
     justify-content: center;
     align-items: center;
     border-radius: 50%;
     font-size: 14px;
-    transition: all 0.2s ease;
+    transition: background 0.2s, color 0.2s;
 }
 
-/* 요일별 & 공휴일 색상 */
+.day-box:hover span {
+    background: #f2dfc6; /* 원래의 부드러운 오렌지 계열 호버 */
+}
+
+/* 주말 및 공휴일 색상 */
 .day-box.sunday span,
 .day-box.holiday span {
     color: #d9534f;
+    font-weight: bold;
 }
 
 .day-box.saturday span {
     color: #4a90e2;
 }
 
-.day-box:hover span {
-    background: #f2dfc6;
-}
-
-/* 선택된 날짜 강조 (동그라미 파란색) */
+/* 날짜 선택 시 블루 강조 */
 .day-box.selected span {
     background: #4a90e2 !important;
     color: white !important;
@@ -191,7 +193,7 @@ section {
 }
 
 /* =========================================================
-   3. 시간 선택 & 예약 카드 스타일
+   3. 시간 선택 & 내 예약 카드 (원래 디자인 복원)
    ========================================================= */
 #selectedDate {          
     background-color: rgb(190, 231, 221);
@@ -215,7 +217,7 @@ section {
     font-size: 14px;
     border-radius: 8px;
     background: #fff;
-    border: 1.5px solid rgb(77, 155, 119);
+    border: 1px solid #ddd;
     color: #333;
     transition: 0.2s;
     cursor: pointer;
@@ -232,7 +234,7 @@ section {
     font-weight: bold;
 }
 
-/* 예약하기 버튼 */
+/* 예약하기 버튼 호버 효과 복원 */
 #reserveBtn {
     width: 100%;
     padding: 12px;
@@ -253,7 +255,7 @@ section {
     transform: translateY(-2px);
 }
 
-/* 내 예약 카드 및 취소 버튼 */
+/* 내 예약 카드 & 취소 버튼 모션 복원 */
 .my-reservation {
     display: flex;
     align-items: center;
@@ -281,7 +283,7 @@ section {
 }
 
 /* =========================================================
-   4. 기타 요소 및 모바일 대응
+   4. 기타 및 모바일 대응
    ========================================================= */
 #logoutBtn {
     font-size: 12px;
@@ -313,7 +315,6 @@ footer {
     color: #777;
 }
 
-/* 모바일 반응형 (768px 이하) */
 @media all and (max-width: 768px) {
     main {
         flex-direction: column;
