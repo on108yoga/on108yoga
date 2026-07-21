@@ -2,13 +2,12 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <!-- 모바일 반응형을 위한 필수 태그 (하나만 남겨두었습니다) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- Use Swiper from CDN -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.css"/>
     
-    <!-- 구글 폰트 및 프리텐다드 불러오기  -->
+    <!-- 구글 폰트 및 프리텐다드 불러오기 -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,61 +19,66 @@
     
     <link rel="stylesheet" href="./su_hp.css">
     <style>
-       *{padding: 0; margin: 0; box-sizing: border-box;}   
+        * { padding: 0; margin: 0; box-sizing: border-box; }   
+        
         /* ─── [1] 공통 기본 스타일 ─── */
         body {
             margin: 0;
             padding: 0;
             font-family: 'Noto Sans KR', sans-serif;
-            background-color: #fff5de; /* 기존 header 배경색을 전체 배경으로 지정 */
+            background-color: #fff5de;
         }
-         header {
+        
+        header {
             width: 100%;   
-            align-items: flex-start;
             background-color: #fff5de;
             padding-bottom: 20px;     
             position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000; /* 헤더를 무조건 맨 위에 배치 */
+            border-bottom: 1px solid #caaa95;
         }
-        #h1{
+
+        #h1 {
             padding-top: 10px;
             display: flex;
             justify-content: center;
         }
+
         .menu {
             display: flex;
-            flex-grow: 2;
-            margin: auto;
             justify-content: center;
             letter-spacing: 0.3em;
             gap: 15px;
             padding: 15px;
             list-style: none;
         }
+
         .menu a {
-            color: #29462d;            
-        }      
-         .menu2 {
+            color: #29462d;             
+        }     
+
+        .menu2 {
             height: 40px;
             display: flex;
             background-color: #517e73;
             gap: 15px;
             justify-content: center;
             padding-top: 5px;
-         }
-        #guestMenu{
+        }
+
+        #guestMenu, #memberMenu {
             display: flex;
             align-items: center;
-            gap: 20px;   /* 메뉴 사이 간격 */
+            gap: 20px;
         }
-        #memberMenu{
-            display: flex;
-            align-items: center;
-            gap: 20px;   /* 메뉴 사이 간격 */
-        }
-        a{
-            color:#fff;
+
+        a {
+            color: #fff;
             text-decoration: none;
         }
+
         a:hover {
             color: red;
             background-color: #fff;
@@ -84,12 +88,12 @@
 
         h2 {
             display: flex;
-            justify-content: flex-end; /* 오른쪽 정렬 */
-            width: 90%;               /* 100% 대신 좌우 여백을 주어 더 예쁘게 조절 */
+            justify-content: flex-end; 
+            width: 90%;               
             height: 50px;
-            margin: 0 auto;           /* 상자 자체는 화면 중앙 유지 */
+            margin: 20px auto 10px auto;           
             color: #29462d;
-            align-items: center;       /* 글자가 세로 중앙에 오도록 추가 */
+            align-items: center;       
             letter-spacing: 10px;     
             padding-right: 20px;  
 
@@ -97,7 +101,7 @@
             border-style: dotted;
             border-color: #506e5c;
             border-radius: 20px 0px; 
-            border-shadow: 2px 2px 2px #fff, -2px -2px 2px #fff;
+            box-shadow: 2px 2px 2px #fff, -2px -2px 2px #fff; /* 오타 수정: border-shadow -> box-shadow */
 
             font-family: 'Noto Sans KR', sans-serif;
             font-weight: 100; 
@@ -107,97 +111,67 @@
             color: #caaa95;
         }
 
-        main{
-            padding-top: 50px;
-        }
-        /* 메인 콘텐츠 감싸는 상자 생성 (좌우 여백 확보) 
+        /* ⭐ fixed 헤더 높이(약 200px)만큼 main 패딩을 주어 내용이 안 가려지게 설정 */
         main {
-            max-width: 1200px;
+            padding-top: 220px; 
+            max-width: 1000px;
             margin: 0 auto;
-            padding: 0 20px;
-        }*/
-        
-        /*
-        div {
-            max-width: 100%;
-            display: flex;
-            justify-content: center;
-        }*/
+        }
+
         .notice {
-            width: 800px;
+            width: 100%;
+            max-width: 800px;
             height: 500px;
             overflow: hidden;
             border: 2px solid #fff; 
             margin: 0 auto;
         }
+
         .notice img {
             width: 100%;
             height: 100%;
             object-fit: cover; 
         }
+
         .notice:hover img {
             transform: scale(1.1); 
             transition: transform 0.3s ease; 
         }
 
-       nav ul{
+        nav ul {
             list-style: none;
             display: flex;
             gap: 10px;
         }
+
         nav li {
             width: 80px;
             display: block;
             color: #fff;
             font-family: sans-serif; 
         }
+
         nav li:hover {
             color: red;
-        }
-        
-        .menu {
-            justify-content: center;
-            display: flex;
-            text-align: center;
-            letter-spacing: 0.3em;
-            gap: 15px;
-            padding: 15px;
-            list-style: none;
-            /* ⭐ 상단 고정을 위한 필수 스타일 3줄 ⭐ */
-            position: sticky;   /* 스크롤 시 화면에 고정 */
-            top: 0;             /* 화면 맨 위에 붙음 */
-            z-index: 1000;      /* 다른 콘텐츠(영상, 지도 등)보다 항상 위에 보이도록 설정 */
-        }
-        ul a, button a {
-            color: white;
-            text-decoration: none;  
-        }
-
-        .navbar{
-            justify-content: center;
-            display: flex;
-            text-align: center;
-            gap: 15px;
-            padding: 15px;
-            background-color: #eee;
-            color: white;
         }
 
         /* 테이블 기본 스타일 */
         table {
             width: 100%;
-            max-width: 800px; /* 테이블이 너무 넓어지지 않게 고정 */
-            margin: 0 auto;   /* 테이블 중앙 정렬 */
+            max-width: 800px; 
+            margin: 0 auto;   
             border-collapse: collapse; 
             text-align: center;
         }
+
         th, td {
             width: 14.28%; 
             border: 1px solid #ccc;
             padding: 7px;
             height: 40px; 
-            background-color: #fff; /* 내용 가독성을 위해 흰색 배경 추가 */
+            background-color: #fff; 
         }
+
         th {
             background-color: #aae2d4; 
         }
@@ -208,23 +182,17 @@
             line-height: 1.8;
         }
 
-        /* 섹션(지도, 영상, 블로그) 스타일 수정 */
-        div ifram {
-            display: flex;
-            justify-content: center; 
-            align-items: center;     
-            width: 100%;             
-            max-width: 800px;        /* PC 최대 너비 제한 */
-            margin: 0 auto;          /* 가운데 정렬 */
-        }
+        /* 섹션(지도, 영상, 블로그) 오타 수정 (ifram -> iframe) */
         div iframe, div video {
-            width: 100%;             /* 가로는 무조건 부모에게 맞춤 */
-            max-width: 100%; 
-            height: 450px;           /* 시원하게 세로 길이 늘림 */
+            width: 100%;             
+            max-width: 800px; 
+            height: 450px;           
             border: none;
+            display: block;
+            margin: 0 auto;
         }
        
-        ifram:hover {
+        iframe:hover {
             opacity: 0.9; 
         }
 
@@ -232,59 +200,71 @@
             background-color: #fff;
             margin-top: 50px;
         }
+
         .footer dl {
             text-align: center;
             padding: 30px 0px; 
             color: #739e98;
             margin: 0;
         }
+
         .footer dt {
             font-weight: bold;
             margin-top: 10px;
         }
+
         .footer dd {
             margin: 0 0 10px 0;
         }
 
-         /* 슬라이드 */
-        #slide{
-            
+        /* 슬라이드 */
+        #slide {
             width: 100%;
-            height: 500px;
+            height: 100%;
             border: 1px solid red;
             overflow: hidden;
-            max-width: 800px;        /* PC 최대 너비 제한 */
-            margin: 0 auto;          /* 가운데 정렬 */
+            max-width: 800px;        
+            margin: 0 auto;          
         }
-        .slide-wrap{ /* 움직이는 애 */
+
+        .slide-wrap {
             width: 300%;
             height: 100%;
             display: flex;
 
             animation-name: slide;
-            animation-duration: 10s;/*10초*/
+            animation-duration: 10s;
             animation-iteration-count: infinite;
         }
-        @keyframes slide{
-            0%{transform: translateX(0%);}
-            20%{transform: translateX(0%);}/*2초동안 안움직임*/
-            22%{transform: translateX(-33.3%);}/*2초 움직임*/
-            44%{transform: translateX(-33.3%);}
-            46%{transform: translateX(-66.6%);}
-            66%{transform: translateX(-66.6%);}
-            100%{transform: translateX(0%);}
-        }
-        .slide-wrap>div{
-            width: calc(100%/3);
-            height: 100%;
-        }
-        .slide01{background-color: bisque;}
-        .slide02{background-color: burlywood;}
-        .slide03{background-color: darkgray;}
 
-        /* ─── [2] ⭐ 대망의 모바일 전용 반응형 스타일 (화면 너비 768px 이하) ─── */
+        @keyframes slide {
+            0% { transform: translateX(0%); }
+            20% { transform: translateX(0%); }
+            22% { transform: translateX(-33.3%); }
+            44% { transform: translateX(-33.3%); }
+            46% { transform: translateX(-66.6%); }
+            66% { transform: translateX(-66.6%); }
+            100% { transform: translateX(0%); }
+        }
+
+        .slide-wrap > div {
+            width: calc(100% / 3);
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .slide01 { background-color: bisque; }
+        .slide02 { background-color: burlywood; }
+        .slide03 { background-color: darkgray; }
+
+        /* ─── [2] 모바일 반응형 스타일 (너비 768px 이하) ─── */
         @media (max-width: 768px) {
-            /* 1. 상단 메뉴 가로폭이 좁아지므로 자연스럽게 줄바꿈 배치 */
+            main {
+                padding-top: 260px; /* 모바일은 메뉴가 줄바꿈되어 헤더가 더 길어지므로 여백 추가 */
+            }
+
             .menu {
                 flex-wrap: wrap; 
                 gap: 10px;
@@ -292,44 +272,25 @@
                 font-size: 14px;
             }
             
-            /* 2. 공지사항 이미지 상자 모바일 대응 */
             .notice {
-                width: 100%;  /* 화면 가로에 꽉 차게 */
-                height: 300px; /* 높이도 스마트폰 화면 비율에 맞게 줄임 */
+                width: 100%;  
+                height: 300px; 
             }
 
-            /* 3. 시간표(Table) 스크롤바 생성 */
-            /* 화면이 아주 작아져도 글자가 깨지지 않고 가로 스크롤로 편하게 보게 만듭니다 */
             table {
                 display: block;
                 width: 100%;
-                overflow-x: auto; /* 가로 스크롤 활성화 */
-                white-space: nowrap; /* 글자가 밑으로 깨져서 내려가는 것 방지 */
+                overflow-x: auto; 
+                white-space: nowrap; 
             }
 
-            /* 4. 블로그 포스팅, 영상, 지도 세로 높이 모바일 맞춤 조정 */
             div iframe {
-                height: 250px; /* 모바일에서는 세로가 너무 길면 불편하므로 적당히 축소 */
+                height: 250px; 
             }
 
-            /* 5. 제목 텍스트 크기 축소 */
             h2 {
                 font-size: 20px;
                 letter-spacing: 5px;
-            }
-        }
-        @media all and (max-width:768px){
-            main{
-                flex-direction: column;
-            }
-            section{
-                order:0;
-            }
-            .aside01{
-                order:1;                
-            }
-            .aside02{
-                order:2;                
             }
         }
     </style>
@@ -352,216 +313,184 @@
             </nav>
         </div>
         <div>
-        <nav class="menu2">
-            <div id="guestMenu">
-                <a href="login.html">로그인</a>
-                <a href="signup.html">회원가입</a>
-            </div>   
-            <div id="memberMenu" style="display:none;">
-                <a href="members.html"
-                    id="memberManageLink"
-                    style="display:none;">
-                    회원관리
-                    </a>
-                <a href="tickets.html">이용권</a>
-                <span id="userInfo"></span>
-                <a href="reservation.html">예약</a>
-                <a href="mypage.html">마이페이지</a>
-                <a href="#" id="logoutBtn">로그아웃</a>
-            </div>
-        </nav>
+            <nav class="menu2">
+                <div id="guestMenu">
+                    <a href="login.html">로그인</a>
+                    <a href="signup.html">회원가입</a>
+                </div>   
+                <div id="memberMenu" style="display:none;">
+                    <a href="members.html" id="memberManageLink" style="display:none;">회원관리</a>
+                    <a href="tickets.html">이용권</a>
+                    <span id="userInfo"></span>
+                    <a href="reservation.html">예약</a>
+                    <a href="mypage.html">마이페이지</a>
+                    <a href="#" id="logoutBtn">로그아웃</a>
+                </div>
+            </nav>
         </div>
-        </header>
-    <hr><br>    
+    </header>
 
-    <!-- 전체 본문을 감싸서 양옆 여백을 예쁘게 주는 main 태그 배치 -->
+    <!-- 전체 본문을 감싸서 여백을 주는 main 영역 -->
     <div class="wrap">
-    <main>
-        <div class="aside01"></div>
-        <section>
-        <span id="banner">
-        <h2>system</h2>
-        <p></p>
-
-        <h2 id="notice">notice</h2><br>
-        <div class="notice">
-             <div id="slide">
-            <div class="slide-wrap">
-                <div class="slide01">이미지와 광고텍스트1</div>
-                <div class="slide02">이미지와 광고텍스트2</div>
-                <div class="slide03">이미지와 광고텍스트3</div>
-            </div>
-        </div>
-        <br>
-
-        <h2 id="class">class</h2><br>
-        <table>
-            <thead>
-                <tr>
-                    <th>시간</th>
-                    <th>월</th>
-                    <th>화</th>
-                    <th>수</th>
-                    <th>목</th>
-                    <th>금</th>
-                    <th>토</th>
-                </tr>
-            </thead>        
-            <tbody>
-                <tr>
-                    <td>10:00 - 11:00</td><td>교정하타</td><td>빈야사</td><td>교정하타</td><td>빈야사</td><td>교정하타</td><td rowspan="5">휴일</td>
-                </tr>
-                <tr>
-                    <td>11:00 - 12:00</td><td>빈야사</td><td>교정하타</td><td>빈야사</td><td>교정하타</td><td>빈야사</td>
-                </tr>
-                <tr>
-                    <td>12:00 - 18:00</td><td colspan="5">1:1개인</td>
-                </tr>
-                 <tr>
-                    <td>18:00 - 19:00</td><td>빈야사</td><td>교정하타</td><td>빈야사</td><td>교정하타</td><td>빈야사</td>
-                </tr>
-                <tr>
-                    <td>19:30 - 20:30</td><td>교정하타</td><td>빈야사</td><td>교정하타</td><td>빈야사</td><td>교정하타</td>
-                </tr>
-            </tbody>
-        </table>
-        <br>
-        <p>        
-            [price] <br>
-            1개월 <br>
-            주2회 &nbsp; <del>정가 000000원</del> -> <ins>할인가 000000원</ins><br>
-            주3회 &nbsp; <del>정가 000000원</del> -> <ins>할인가 000000원</ins><br>
-            주5회 &nbsp; <del>정가 000000원</del> -> <ins>할인가 000000원</ins><br>
-            3개월 <br>
-            주2회 &nbsp; <del>정가 000000원</del> -> <ins>할인가 000000원</ins><br>
-            주3회 &nbsp; <del>정가 000000원</del> -> <ins>할인가 000000원</ins><br>
-            주5회 &nbsp; <del>정가 000000원</del> -> <ins>할인가 000000원</ins>
-        </p>
-        <br><br>
-
-        <h2 id="about">about</h2><br>
-            <div class="about">
-                <!-- Slider main container -->
-                <div class="swiper">
-                <!-- Additional required wrapper -->
-                <div class="swiper-wrapper">
-                    <!-- Slides -->
-                    <div class="swiper-slide"><img src=""></div>
-                    <div class="swiper-slide">Slide 2</div>
-                    <div class="swiper-slide">Slide 3</div>
+        <main>
+            <div class="aside01"></div>
+            
+            <section>
+                <div id="banner">
+                    <h2>system</h2>
+                    <p></p>
                 </div>
-    
-                <!-- If we need pagination -->
-                <div class="swiper-pagination"></div>
-    
-                <!-- If we need navigation buttons -->
-                <div class="swiper-button-prev"></div>
-                <div class="swiper-button-next"></div>
-    
-                <!-- If we need scrollbar -->
-                <div class="swiper-scrollbar"></div>
+
+                <h2 id="notice">notice</h2><br>
+                <div class="notice">
+                    <div id="slide">
+                        <div class="slide-wrap">
+                            <div class="slide01">이미지와 광고텍스트1</div>
+                            <div class="slide02">이미지와 광고텍스트2</div>
+                            <div class="slide03">이미지와 광고텍스트3</div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        <br><br>
+                <br>
 
-        <h2 id="photo">photo</h2><br>
-        <div>
-            <!-- 블로그 포스팅 화면을 가져오는 iframe -->
-            <iframe src="https://blog.naver.com/on108yoga" style="box-shadow: 0 4px 10px rgba(0,0,0,0.1);"></iframe>
-        </div>
-        <br><br>
-     
-        <h2 id="video">video</h2><br>
-        <div class="video-section">
-            <iframe src="https://www.youtube.com/embed/kPzgvh0sOSE?si=zhmBnNZGPvfBgPs9" title="YouTube video player" allowfullscreen></iframe>
-        </div>
-        <br><br>
+                <h2 id="class">class</h2><br>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>시간</th>
+                            <th>월</th>
+                            <th>화</th>
+                            <th>수</th>
+                            <th>목</th>
+                            <th>금</th>
+                            <th>토</th>
+                        </tr>
+                    </thead>        
+                    <tbody>
+                        <tr>
+                            <td>10:00 - 11:00</td><td>교정하타</td><td>빈야사</td><td>교정하타</td><td>빈야사</td><td>교정하타</td><td rowspan="5">휴일</td>
+                        </tr>
+                        <tr>
+                            <td>11:00 - 12:00</td><td>빈야사</td><td>교정하타</td><td>빈야사</td><td>교정하타</td><td>빈야사</td>
+                        </tr>
+                        <tr>
+                            <td>12:00 - 18:00</td><td colspan="5">1:1개인</td>
+                        </tr>
+                        <tr>
+                            <td>18:00 - 19:00</td><td>빈야사</td><td>교정하타</td><td>빈야사</td><td>교정하타</td><td>빈야사</td>
+                        </tr>
+                        <tr>
+                            <td>19:30 - 20:30</td><td>교정하타</td><td>빈야사</td><td>교정하타</td><td>빈야사</td><td>교정하타</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <br>
+                <p>        
+                    [price] <br>
+                    1개월 <br>
+                    주2회 &nbsp; <del>정가 000000원</del> -> <ins>할인가 000000원</ins><br>
+                    주3회 &nbsp; <del>정가 000000원</del> -> <ins>할인가 000000원</ins><br>
+                    주5회 &nbsp; <del>정가 000000원</del> -> <ins>할인가 000000원</ins><br>
+                    3개월 <br>
+                    주2회 &nbsp; <del>정가 000000원</del> -> <ins>할인가 000000원</ins><br>
+                    주3회 &nbsp; <del>정가 000000원</del> -> <ins>할인가 000000원</ins><br>
+                    주5회 &nbsp; <del>정가 000000원</del> -> <ins>할인가 000000원</ins>
+                </p>
+                <br><br>
 
-        <h2 id="location">location</h2><br>
-        <div class="map-section">
-            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3259.7520461624617!2d129.0092626606202!3d35.21264470642503!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3568953982421f41%3A0xaefde9fbc3bc7283!2z7IiZ65Ox!5e0!3m2!1sko!2skr!4v1782349634599!5m2!1sko!2skr" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
-        </div>
-        </section>
-        <br><br>    
-     <div class="aside02"></div>
-    </main>
-</div> 
+                <h2 id="about">about</h2><br>
+                <div class="about">
+                    <!-- Swiper container -->
+                    <div class="swiper" style="height: 300px; width: 100%; max-width: 800px;">
+                        <div class="swiper-wrapper">
+                            <div class="swiper-slide" style="background: #e2d4aa; display: flex; align-items: center; justify-content: center;">Slide 1</div>
+                            <div class="swiper-slide" style="background: #c3b490; display: flex; align-items: center; justify-content: center;">Slide 2</div>
+                            <div class="swiper-slide" style="background: #a59775; display: flex; align-items: center; justify-content: center;">Slide 3</div>
+                        </div>
+                        <div class="swiper-pagination"></div>
+                        <div class="swiper-button-prev"></div>
+                        <div class="swiper-button-next"></div>
+                        <div class="swiper-scrollbar"></div>
+                    </div>
+                </div>
+                <br><br>
+
+                <h2 id="photo">photo</h2><br>
+                <div>
+                    <iframe src="https://blog.naver.com/on108yoga" style="box-shadow: 0 4px 10px rgba(0,0,0,0.1);"></iframe>
+                </div>
+                <br><br>
+             
+                <h2 id="video">video</h2><br>
+                <div class="video-section">
+                    <iframe src="https://www.youtube.com/embed/kPzgvh0sOSE?si=zhmBnNZGPvfBgPs9" title="YouTube video player" allowfullscreen></iframe>
+                </div>
+                <br><br>
+
+                <h2 id="location">location</h2><br>
+                <div class="map-section">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3259.7520461624617!2d129.0092626606202!3d35.21264470642503!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3568953982421f41%3A0xaefde9fbc3bc7283!2z7IiZ65Ox!5e0!3m2!1sko!2skr!4v1782349634599!5m2!1sko!2skr" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+                </div>
+            </section>
+            
+            <div class="aside02"></div>
+        </main>
+    </div> 
+
     <footer>
         <div class="footer">
-            <dl>    <button onclick="scrollToTop()" id="topBtn" title="Go to top"><a href="#menu">↑</a></button>
+            <dl>
+                <button onclick="scrollToTop()" id="topBtn" title="Go to top" style="padding: 5px 10px;"><a href="#menu" style="color: #000;">↑ TOP</a></button>
                 <dt>Visit</dt>
                 <dd>busan</dd>        
                 <dt>blog</dt>
                 <dd>www.blog.com</dd>
                 <dt>Contact</dt>
                 <dd>010-0000-0000</dd>
-                <dt><i class="fa-brands fa-airbnb"></i>instagram</dt>
+                <dt><i class="fa-brands fa-instagram"></i> instagram</dt>
                 <dd>asdasd</dd>
-                <br>
-                
-                <br><br>
             </dl>
         </div>
     </footer>
 
-            <!-- CDN -->
-        <script src="https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.js"></script> 
-        <script>
-                    const swiper = new Swiper('.swiper', {
-            // Optional parameters
-            direction: 'vertical', //:위아래 슬라이드
+    <!-- JS CDN & Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.js"></script> 
+    <script>
+        const swiper = new Swiper('.swiper', {
+            direction: 'vertical',
             loop: true,
-
-             autoplay: {
+            autoplay: {
                 delay: 2500,
                 disableOnInteraction: false,
-                },
-
-            // If we need pagination
-            pagination: {
-                el: '.swiper-pagination',
             },
-
-            // Navigation arrows
+            pagination: { el: '.swiper-pagination' },
             navigation: {
                 nextEl: '.swiper-button-next',
                 prevEl: '.swiper-button-prev',
             },
+            scrollbar: { el: '.swiper-scrollbar' },
+        });
 
-            // And if we need scrollbar
-            scrollbar: {
-                el: '.swiper-scrollbar',
-            },
+        window.onscroll = function() { scrollFunction() };
+        
+        function scrollFunction() {
+            const topButton = document.getElementById("topBtn");
+            if (document.body.scrollTop > 500 || document.documentElement.scrollTop > 500) {
+                topButton.style.display = "inline-block";
+            } else {
+                topButton.style.display = "none";
+            }
+        }
+        
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
             });
-        </script>
-       
-           <script>
-          // 사용자가 스크롤을 할 때마다 브라우저가 이 함수를 실행합니다
-          window.onscroll = function() { scrollFunction() };
-        
-          function scrollFunction() {
-              const topButton = document.getElementById("topBtn");
-              
-              // 스크롤 위치가 300px보다 커지면 나타나고, 작아지면 다시 숨깁니다
-              if (document.body.scrollTop > 1500 || document.documentElement.scrollTop > 1500) {
-                  topButton.style.display = "block";
-              } else {
-                  topButton.style.display = "none";
-              }
-          }
-        
-          // 버튼을 클릭했을 때 맨 위로 부드럽게 올라가는 기능
-          function scrollToTop() {
-              window.scrollTo({
-                  top: 0,
-                  behavior: 'smooth'
-              });
-          }
-        </script>
+        }
+    </script>
 
     <script type="module" src="firebase.js"></script>
     <script type="module" src="auth.js"></script>
-
-    
 </body>
 </html>
