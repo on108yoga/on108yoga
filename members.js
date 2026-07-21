@@ -158,7 +158,7 @@ function addDays(dateStr, days) {
 // 이용권 템플릿 변경 자동화 - 수정용
 window.applyTemplateToEdit = () => {
     const select = document.getElementById('edit-template-select');
-    if(!select.value) return;
+    if (!select.value) return;
 
     const [count, days] = select.value.split(',');
     const startDate = document.getElementById('edit-start-date').value || new Date().toISOString().split('T')[0];
@@ -166,9 +166,13 @@ window.applyTemplateToEdit = () => {
     document.getElementById('edit-start-date').value = startDate;
     document.getElementById('edit-ticket-type').value = `${count}회권 (${days}일)`;
     document.getElementById('edit-total-count').value = count;
-    document.getElementById('edit-remaining-count').value = count;
+    
+    // 💡 핵심: 템플릿 선택 시 잔여 횟수도 총 횟수와 동일하게 설정합니다.
+    document.getElementById('edit-remaining-count').value = count; 
+    
     document.getElementById('edit-end-date').value = addDays(startDate, days);
 };
+
 
 window.calculateEditEndDate = () => {
     const select = document.getElementById('edit-template-select');
