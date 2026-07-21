@@ -1,4 +1,5 @@
-import { db } from "./firebase.js";
+import { db } from "./firebase.js"; // Firebase 설정 파일
+
 import {
     collection,
     doc,
@@ -7,7 +8,10 @@ import {
     setDoc,
     updateDoc,
     deleteDoc,
-    onSnapshot
+    onSnapshot,
+    addDoc,
+    query,
+    orderBy
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
 // 현재 관리자 화면에서 선택된 회원의 문서 ID (UID 또는 연락처)
@@ -271,47 +275,84 @@ window.calculateRegEndDate = () => {
     }
 };
 
+// 1. 회원의 결제/환불 내역 불러오기
+async function loadPaymentHistory(userId) {
+    const historyContainer = document.getElementById('payment-history-list');
+    historyContainer.innerHTML = '<tr><td colspan="5" style="padding: 15px;">조회 중...</td></tr>';
+
+    try {
+        const historyRef = collection(db, 'users', userId, 'paymentHistory');
+        const q = query(historyRef, orderBy('createdAt', 'desc'));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+            historyContainer.innerHTML = '<tr><td colspan="5" style="padding: 15px; color: #9ca3af;">내역이 없습니다.</td></tr>';
+            return;
+        }
+
+        let html = '';
+        querySnapshot.forEach((docSnap) => {
+            const item = docSnap.data();
+            const isRefund = item.type === '환불';
+            const typeBadge = isRefund 
+                ? `<span style="color: #ef4444; font-weight: bold;">[환불]</span>`
+                : `<span style="color: #4f46e5; font-weight: bold;">[결제]</span>`;
+            
+            const amountText = isRefund 
+                ? `-${Number(item.amount || 0).toLocaleString()}원`
+                : `+${Number(item.amount || 0).toLocaleString()}원`;
+
+            html += `
+                <tr style="border-bottom: 1px solid #f3f4f6;">
+                    <td style="padding: 8px; color: #6b7280;">${item.date || '-'}</td>
+                    <td style="padding: 8px;">${typeBadge}</td>
+                    <td style="padding: 8px;">${item.ticketType || '-'}</td>
+                    <td style="padding: 8px;">+${item.addedCount || 0}회</td>
+                    <td style="padding: 8px; font-weight: bold;">${amountText}</td>
+                </tr>
+            `;
+        });
+        historyContainer.innerHTML = html;
+
+    } catch (err) {
+        console.error("내역 로드 실패:", err);
+        historyContainer.innerHTML = '<tr><td colspan="5" style="padding: 15px; color: #ef4444;">내역을 불러오지 못했습니다.</td></tr>';
+    }
+}
 
 // 3. 이용권 수정 저장
 // 이용권 저장 및 횟수 추가/수정
+// 3. 이용권 저장/수정 시 결제 내역 기록
 window.updateUserTicket = async () => {
     if (!activeUserId) {
-        alert("선택된 회원이 없습니다. 왼쪽 목록에서 회원을 먼저 선택해주세요.");
+        alert("선택된 회원이 없습니다.");
         return;
     }
 
     const ticketType = document.getElementById('edit-ticket-type')?.value.trim() || "";
-    
-    const parseNum = (id) => {
-        const elem = document.getElementById(id);
-        if (!elem) return 0;
-        const val = parseInt(elem.value, 10);
-        return isNaN(val) ? 0 : val;
-    };
-
-    // 입력창에서 입력된 값
-    const inputTotalCount = parseNum('edit-total-count');
-    const inputRemainingCount = parseNum('edit-remaining-count');
+    const inputTotalCount = parseInt(document.getElementById('edit-total-count')?.value, 10) || 0;
+    const inputRemainingCount = parseInt(document.getElementById('edit-remaining-count')?.value, 10) || 0;
     const startDate = document.getElementById('edit-start-date')?.value || "";
     const endDate = document.getElementById('edit-end-date')?.value || "";
     
     // 취소 횟수 관련
-    const totalCancelLimit = parseNum('edit-total-cancel');
-    const remainingCancelCount = parseNum('edit-remaining-cancel');
-    const totalTodayCancelLimit = parseNum('edit-total-today-cancel');
-    const remainingTodayCancelCount = parseNum('edit-remaining-today-cancel');
+    const totalCancelLimit = parseInt(document.getElementById('edit-total-cancel')?.value, 10) || 0;
+    const remainingCancelCount = parseInt(document.getElementById('edit-remaining-cancel')?.value, 10) || 0;
+    const totalTodayCancelLimit = parseInt(document.getElementById('edit-total-today-cancel')?.value, 10) || 0;
+    const remainingTodayCancelCount = parseInt(document.getElementById('edit-remaining-today-cancel')?.value, 10) || 0;
+
+    // 결제 금액 추가 입력을 위한 확인 (필요 시 prompt 사용 또는 폼 입력값 활용)
+    const priceStr = prompt("결제/충전 금액을 입력해 주세요 (원):", "0");
+    const payAmount = parseInt(priceStr, 10) || 0;
 
     try {
         const userDocRef = doc(db, 'users', activeUserId);
         
-        // 💡 핵심: 기존에 입력창에 지정된 횟수 그대로 저장
-        // 만약 '기존 잔여 횟수 + 추가 이용권'을 실시간으로 입력창에 반영하려면 
-        // 템플릿 선택(applyTemplateToEdit) 시 기존 값에 더해지도록 구성합니다.
-        
+        // 1) 회원 이용권 정보 업데이트
         await updateDoc(userDocRef, {
             ticketType,
             totalCount: inputTotalCount,
-            remainingCount: inputRemainingCount, // 입력된 잔여 횟수 반영
+            remainingCount: inputRemainingCount,
             startDate,
             endDate,
             totalCancelLimit,
@@ -320,13 +361,29 @@ window.updateUserTicket = async () => {
             remainingTodayCancelCount
         });
 
-        alert("이용권 정보가 성공적으로 반영되었습니다.");
+        // 2) 결제/충전 내역 저장 (서브 컬렉션)
+        const todayStr = new Date().toISOString().split('T')[0];
+        const historyRef = collection(db, 'users', activeUserId, 'paymentHistory');
+        
+        await addDoc(historyRef, {
+            type: "결제", // 또는 "충전"
+            ticketType: ticketType,
+            addedCount: inputRemainingCount,
+            amount: payAmount,
+            date: todayStr,
+            createdAt: new Date()
+        });
+
+        alert("이용권 정보 및 결제 내역이 정상적으로 저장되었습니다.");
+        
+        // 내역 목록 새로고침
+        loadPaymentHistory(activeUserId);
+
     } catch (err) {
         console.error("수정 오류:", err);
         alert("수정 실패: " + err.message);
     }
 };
-
 
 // 명시적으로 전역(window) 객체에 등록
 window.updateUserTicket = updateUserTicket;
