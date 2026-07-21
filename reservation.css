@@ -81,22 +81,11 @@ section {
 /* =========================================================
    2. 커스텀 캘린더 (원래의 예쁜 디자인 복원!)
    ========================================================= */
-/* 1. 캘린더 전체 감싸는 박스 */
-.calendar-area {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* 화면이 넓어져도 캘린더를 중앙에 이쁘게 배치 */
-}
-
 .custom-calendar {
-     width: 100% !important;
-     max-width: 340px !important; /* ⭐️ 핵심: 화면이 넓어져도 캘린더가 과도하게 늘어나 정렬이 깨지는 것 방지 */
-     margin: 0 auto;
-     box-sizing: border-box !important;
-     background:#fff5de; /* 기존 캘린더 배경색 유지 */     
-     padding: 20px;
-     border-radius: 20px;
+    background: #fffaf0; /* 따뜻한 아이보리 톤 배경 */
+    padding: 25px;
+    border-radius: 25px;
+    box-shadow: 0 5px 20px rgba(0,0,0,.1);
 }
 
 /* 헤더 영역 */
@@ -115,15 +104,14 @@ section {
 
 /* 동글동글 화살표 버튼 복원 */
 .calendar-header button {
-   border:none;
-   background:#405346;  
-    width: 32px !important;       /* 버튼 가로 크기 */
-    height: 32px !important;      /* 버튼 세로 크기 */
-    min-width: 32px !important;   /* 크기 유지를 위한 최소 너비 */
-    padding: 0 !important;        /* 내부 여백 제거 */
+    border: none !important;
+    background: #405346 !important;
+    color: white !important;
+    width: 40px !important;
+    height: 40px !important;
     border-radius: 50% !important;
     cursor: pointer;
-    font-size: 13px !important;   /* 화살표 아이콘 크기 축소 */
+    font-size: 16px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -137,87 +125,37 @@ section {
 
 /* 요일 헤더 (정렬은 보장하되 원래 컬러 복원) */
 .week-name {
-  display: grid !important;
-  grid-template-columns: repeat(7, 1fr) !important; /* 정확히 7등분 */
-  width: 100% !important;
-  margin-top: 15px;
-  padding: 0 !important;
-  box-sizing: border-box !important;
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    text-align: center;
+    margin-top: 20px;
+    color: #777;
+    font-weight: bold;
 }
 
-/* 요일 색상 설정 */
-.week-name > div {
-  text-align: center !important;
-  font-weight: bold;
-  font-size: 14px;
-  padding: 5px 0;
-  color: #555;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.week-name div:first-child {
+    color: #d9534f; /* 일요일 빨강 */
 }
-.week-name > div:first-child { color: #d9534f; } /* 일요일 빨강 */
-.week-name > div:last-child { color: #4a90e2; }  /* 토요일 파랑 */
+
+.week-name div:last-child {
+    color: #4a90e2; /* 토요일 파랑 */
+}
 
 /* 날짜 그리드 */
-/* 3. 날짜 그리드 영역 (#weekCalendar) - ID 선택자로 확실하게 고정 */
-#weekCalendar {
-  display: grid !important;
-  grid-template-columns: repeat(7, 1fr) !important; /* 요일과 동일하게 7등분 */
-  gap: 0 !important; /* 간격으로 인한 밀림 방지 */
-  margin-top: 10px;
-  width: 100% !important;
-  box-sizing: border-box !important;
-  justify-items: center; /* 셀 내부 요소 중앙 정렬 */
-  align-items: center;
-}
-
+#weekCalendar,
 #calendarDates {
     display: grid !important;
     grid-template-columns: repeat(7, 1fr) !important;
     margin-top: 10px;
     width: 100%;
-    box-sizing: border-box; /* 너비 초과 방지 */
 }
 
-/* 4. 개별 날짜 박스 (.day-box) */
 .day-box {
-  width: 100% !important;
-  height: 40px !important;
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  box-sizing: border-box !important;
-  margin: 0 !important; /* 마진으로 인한 간격 오차 제거 */
-}
-/* 주말 날짜 텍스트 색상 */
-.day-box:nth-child(7n + 1) { color: #d9534f; } /* 일요일 날짜 빨강 */
-.day-box:nth-child(7n) { color: #4a90e2; }     /* 토요일 날짜 파랑 */
-/* 5. 선택된 날짜 (23일처럼 파란색 동그라미 처리) */
-.day-box.selected,
-.day-box.active {
-  position: relative;
-  background-color: transparent !important; /* 박스 자체는 투명 유지 */
-  color: #ffffff !important;
-  font-weight: bold;
-}
-
-/* 파란 원을 글자 뒤에 예쁘게 띄우기 (다른 날짜 영역을 절대 침범하지 않음) */
-.day-box.selected::before,
-.day-box.active::before {
-  content: "";
-  position: absolute;
-  width: 34px;
-  height: 34px;
-  background-color: #4a90e2;
-  border-radius: 50%;
-  z-index: -1; /* 글자뒤로 배치 */
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%); /* ⭐️ 원 위치를 셀의 정확한 중앙으로 고정 */
+    height: 55px;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    cursor: pointer;
 }
 
 /* 날짜 숫자 동그라미 스타일 복원 */
