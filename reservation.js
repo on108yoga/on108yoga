@@ -169,24 +169,43 @@ function isWeekendOrHoliday(dateStr) {
 ================================
 */
 async function loadReservation() {
-    if (!selectedDate) return;
+    if (!selectedDate) {
+        console.warn("⚠️ selectedDate가 지정되지 않았습니다.");
+        return;
+    }
 
     clearTimeCounts();
 
+    console.log(`🔍 [예약 현황 조회 시작] 날짜: "${selectedDate}"`);
+
     for (const time of classTimes) {
-        const q = query(
-            collection(db, "reservations"),
-            where("date", "==", selectedDate),
-            where("time", "==", time)
-        );
+        try {
+            const q = query(
+                collection(db, "reservations"),
+                where("date", "==", selectedDate),
+                where("time", "==", time)
+            );
 
-        const snapshot = await getDocs(q);
-        const count = snapshot.size;
-        const id = "count" + time.replace(":", "");
-        const element = document.getElementById(id);
+            const snapshot = await getDocs(q);
+            const count = snapshot.size;
 
-        if (element) {
-            element.innerText = count;
+            // 🧪 디버깅용 콘솔 로그 (0명으로 뜨는 이유를 찾아줍니다)
+            if (count > 0) {
+                console.log(`✅ [매칭 성공] 시간: ${time} -> ${count}명 예약됨`);
+            } else {
+                console.log(`🔍 시간: ${time} -> 조회결과 0명`);
+            }
+
+            const id = "count" + time.replace(":", "");
+            const element = document.getElementById(id);
+
+            if (element) {
+                element.innerText = count;
+            } else {
+                console.warn(`⚠️ HTML 요소를 찾을 수 없습니다: id="${id}"`);
+            }
+        } catch (error) {
+            console.error(`🚨 [${time}] 예약 조회 중 오류 발생:`, error);
         }
     }
 }
