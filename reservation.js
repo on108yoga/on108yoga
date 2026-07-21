@@ -175,14 +175,16 @@ if (reserveBtn) {
             return;
         }
 
-        // 2. 잔여 횟수 체크
+        // 2. 잔여 횟수 체크 및 사용자 이름 조회
         const userDocRef = doc(db, "users", auth.currentUser.uid);
         const userSnap = await getDoc(userDocRef);
         let remCount = 0;
+        let userName = auth.currentUser.displayName || "";
         
         if (userSnap.exists()) {
             const userData = userSnap.data();
             remCount = userData.remCount ?? userData.remainingCount ?? 0;
+            if (userData.name) userName = userData.name;
         }
 
         if (remCount <= 0) {
@@ -223,7 +225,7 @@ if (reserveBtn) {
             // 5. 예약 저장
             await addDoc(collection(db, "reservations"), {
                 uid: auth.currentUser.uid,
-                name: auth.currentUser.displayName || "",
+                name: userName,
                 date: selectedDate,
                 time: selectedTime,
                 createdAt: new Date()
@@ -238,7 +240,7 @@ if (reserveBtn) {
 
             loadReservation();
             loadMyReservation();
-            loadUserTicketCount(auth.currentUser);
+            loadUserProfile(auth.currentUser); // 👈 함수명 정정 완료
 
         } catch (err) {
             console.error("예약 오류:", err);
@@ -272,7 +274,7 @@ window.cancelReservation = async function(id) {
 
         loadReservation();
         loadMyReservation();
-        if (auth.currentUser) loadUserTicketCount(auth.currentUser);
+        if (auth.currentUser) loadUserProfile(auth.currentUser); // 👈 함수명 정정 완료
 
     } catch (err) {
         console.error("취소 오류:", err);
@@ -331,12 +333,11 @@ async function loadMyReservation() {
 로그인 후 자동으로 불러오기
 ================================
 */
-// 예시: 로그인 상태 감지 부분
 onAuthStateChanged(auth, (user) => {
     console.log("현재 로그인:", user);
 
     if (user) {
         loadMyReservation();
-        loadUserProfile(user); // 👈 이름 + 잔여 횟수 통합 로드
+        loadUserProfile(user);
     }
 });
