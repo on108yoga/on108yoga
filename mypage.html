@@ -188,19 +188,22 @@
             font-size: 12px;
             color: #777;
         }
-        @media all and (max-width: 768px) {
-            main {
-                flex-direction: column;
-                align-items: center;
-                gap: 20px;
+       /* 모바일 화면 여백 설정 */
+        @media (max-width: 768px) {
+            body {
+                padding: 0 16px; /* 전체 화면 좌우 여백 16px */
+                box-sizing: border-box;
             }
-            section {
-                width: 100%;
-                max-width: 100%;
+
+            /* 표를 감싸는 영역이나 table 태그 */
+            table {
+                width: 100% !important;
+                margin: 0 auto;
             }
-            .calendar-area { order: 1; }
-            .reservation-panel { order: 2; }
-            .notice { order: 3; }
+
+            table th, table td {
+                padding: 10px 8px; /* 표 안쪽 셀 여백 */
+            }
         }
     </style>
 </head>
