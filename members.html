@@ -114,30 +114,44 @@
             </div>
 
             <h3>현재 사용 중인 이용권</h3>
-            <div class="info-grid">
+                   <div class="info-grid">
+                <!-- 1. 이용권 구분 -->
                 <div>
                     <div class="info-label">이용권 구분</div>
-                    <div class="info-value" id="cur-ticket">10회권 (40일)</div>
+                    <div class="info-value" id="cur-ticket">-</div>
                 </div>
+            
+                <!-- 2. 이용권 잔여 횟수 -->
                 <div>
-                    <div class="info-label">잔여 횟수</div>
-                    <div class="info-value" id="cur-count" style="color: var(--primary);">8회 / 10회</div>
+                    <div class="info-label">이용권 잔여 횟수</div>
+                    <div class="info-value" id="cur-count" style="color: var(--primary);">-</div>
                 </div>
+            
+                <!-- 3. 일반 취소 남은 횟수 -->
+                <div>
+                    <div class="info-label">남은 취소 횟수</div>
+                    <div class="info-value" id="cur-cancel-count" style="color: #ef4444;">-</div>
+                </div>
+            
+                <!-- 4. 당일 취소 남은 횟수 -->
+                <div>
+                    <div class="info-label">남은 당일취소 횟수</div>
+                    <div class="info-value" id="cur-today-cancel-count" style="color: #f59e0b;">-</div>
+                </div>
+            
+                <!-- 5. 이용 기간 (2열 전체 차지) -->
                 <div style="grid-column: span 2;">
                     <div class="info-label">이용 기간 (시작일 ~ 만료일)</div>
-                    <div class="info-value" id="cur-period">2026-07-01 ~ 2026-08-10</div>
+                    <div class="info-value" id="cur-period">-</div>
                 </div>
-                <div class="detail-item" style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e5e7eb;">
-                    <span style="color: #4b5563;">남은 취소 가능 횟수</span>
-                    <span id="cur-cancel-count" style="font-weight: bold; color: #ef4444;">-</span>
-                </div>
-                    
+            </div>
+                                
                 <!-- members.html 상세정보 출력 영역 내부에 추가 -->          
-                <!-- [추가] 당일 취소 노출 칸 -->
+                <!-- [추가] 당일 취소 노출 칸 
                 <div class="detail-item" style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e5e7eb;">
                         <span style="color: #4b5563;">남은 당일취소 가능 횟수</span>
                         <span id="cur-today-cancel-count" style="font-weight: bold; color: #f59e0b;">-</span>
-                </div>
+                </div>-->
             </div>
             
           
