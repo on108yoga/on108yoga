@@ -1,108 +1,164 @@
-import { db } from './firebase-config.js'; // 본인의 설정 파일 경로로 맞추세요
-// getDoc 대신 실시간 연동을 위해 onSnapshot을 추가합니다.
-import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.15.0firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+// mypage.js (전화번호 문서 ID 및 Auth UID 이중 지원 버전)
+import { db, auth } from './firebase.js';
+import { 
+    doc, 
+    onSnapshot,
+    collection,
+    query,
+    where,
+    getDocs
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+import { 
+    onAuthStateChanged 
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
-const auth = getAuth();
+let unsubscribeUser = null;
 
-// [중요] 사용자가 로그인했는지 감지한 후 실시간 연동을 시작합니다.
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
     if (user) {
-        // Firebase Auth의 고유 UID 기준 연동
-        const currentUserId = user.uid; 
-        
         // 실시간 연동 시작
-        initRealtimeMyPage(currentUserId);
+        await startRealtimeMyPage(user);
     } else {
         alert("로그인이 만료되었거나 정보가 없습니다. 로그인 페이지로 이동합니다.");
-        window.location.href = "index.html"; // 로그인 페이지 경로
+        window.location.href = "index.html";
     }
 });
 
-// 관리자 변경 사항을 실시간으로 감시하는 함수
-function initRealtimeMyPage(userId) {
-    const userDocRef = doc(db, 'users', userId);
+async function startRealtimeMyPage(user) {
+    if (unsubscribeUser) unsubscribeUser();
 
-    // onSnapshot은 데이터가 바뀌면 자동으로 콜백 함수를 실행합니다 (새로고침 필요 없음)
-    onSnapshot(userDocRef, (docSnap) => {
+    // 1단계: 먼저 auth.uid 기준으로 문서를 찾아봅니다.
+    let targetDocId = user.uid;
+    let userDocRef = doc(db, 'users', targetDocId);
+
+    // 2단계: Auth에 등록된 전화번호나 입력된 정보로 전화번호 문서가 있는지 체크
+    // Firebase Auth user.phoneNumber (예: +821012345678 -> 01012345678로 변환)
+    let cleanPhone = "";
+    if (user.phoneNumber) {
+        cleanPhone = user.phoneNumber.replace("+82", "0").replace(/[^0-9]/g, '');
+    }
+
+    // 만약 cleanPhone이 존재하고, 관리자가 전화번호(예: 01012345678)로 미리 등록한 문서가 있다면 그 ID를 우선 사용
+    if (cleanPhone) {
+        const phoneDocRef = doc(db, 'users', cleanPhone);
+        // 전화번호 문서 실시간 연결
+        bindSnapshot(phoneDocRef);
+        return;
+    }
+
+    // 전화번호 형태의 Auth 계정이 아니라면 일단 UID 문서 연결
+    bindSnapshot(userDocRef);
+}
+
+function bindSnapshot(docRef) {
+    unsubscribeUser = onSnapshot(docRef, (docSnap) => {
         if (docSnap.exists()) {
             const data = docSnap.data();
-
-            // 1. 회원 이름 반영
-            const userNameElem = document.getElementById('user-name');
-            if (userNameElem) userNameElem.innerText = data.name || "회원";
-
-            // 2. 이용권 정보 맵핑 (관리자 필드명과 100% 일치 확인)
-            const ticketNameElem = document.getElementById('ticket-name');
-            const totalCountElem = document.getElementById('total-count');
-            const remainingCountElem = document.getElementById('remaining-count');
-            const startDateElem = document.getElementById('start-date');
-            const endDateElem = document.getElementById('end-date');
-
-            if (data.ticketType && data.ticketType !== "") {
-                if (ticketNameElem) {
-                    ticketNameElem.innerText = data.ticketType;
-                    ticketNameElem.style.color = "var(--primary-color)";
-                }
-                if (totalCountElem) totalCountElem.innerText = `${data.totalCount || 0}회`;
-                
-                // remainingCount 필드 매칭 (reservation.js와 동일)
-                const remCount = data.remainingCount ?? data.ticketCount ?? data.remCount ?? 0;
-                if (remainingCountElem) remainingCountElem.innerText = `${remCount}회`;
-
-                if (startDateElem) startDateElem.innerText = data.startDate || "-";
-                if (endDateElem) endDateElem.innerText = data.endDate || "-";
-            } else {
-                // 관리자가 '이용권 리셋'을 눌러서 ticketType이 ""이 된 경우 처리
-                if (ticketNameElem) {
-                    ticketNameElem.innerText = "보유하신 이용권이 없습니다.";
-                    ticketNameElem.style.color = "#6b7280";
-                }
-                if (totalCountElem) totalCountElem.innerText = "0회";
-                if (remainingCountElem) remainingCountElem.innerText = "0회";
-                if (startDateElem) startDateElem.innerText = "-";
-                if (endDateElem) endDateElem.innerText = "-";
-            }
-
-            // 3. 취소 정책 실시간 반영 (A안 - 총 취소 횟수)
-            const totalCancel = data.totalCancelLimit || data.totalCancel || 0;
-            const remainingCancel = data.remainingCancelCount || data.remainingCancel || 0;
-
-            const totalCancelElem = document.getElementById('total-cancel');
-            const remainingCancelElem = document.getElementById('remaining-cancel');
-
-            if (totalCancelElem) totalCancelElem.innerText = `${totalCancel}회`;
-            if (remainingCancelElem) {
-                remainingCancelElem.innerText = `${remainingCancel}회`;
-                if (remainingCancel <= 0) {
-                    remainingCancelElem.classList.add('danger');
-                } else {
-                    remainingCancelElem.classList.remove('danger');
-                }
-            }
-
-            // 4. 취소 정책 실시간 반영 (B안 - 당일 취소 횟수)
-            const totalTodayCancel = data.totalTodayCancelLimit || data.totalTodayCancel || 0;
-            const remainingTodayCancel = data.remainingTodayCancelCount || data.remainingTodayCancel || 0;
-
-            const totalTodayCancelElem = document.getElementById('total-today-cancel');
-            const remainingTodayCancelElem = document.getElementById('remaining-today-cancel');
-
-            if (totalTodayCancelElem) totalTodayCancelElem.innerText = `${totalTodayCancel}회`;
-            if (remainingTodayCancelElem) {
-                remainingTodayCancelElem.innerText = `${remainingTodayCancel}회`;
-                if (remainingTodayCancel <= 0) {
-                    remainingTodayCancelElem.classList.add('danger');
-                } else {
-                    remainingTodayCancelElem.classList.remove('danger');
-                }
-            }
-
+            renderMyPageUI(data);
         } else {
-            // 🔥 오타 수정: console.error
-            console.error("Firestore에 해당 유저 문서가 존재하지 않습니다.");
+            console.warn("Firestore에서 회원 정보를 찾을 수 없습니다. (ID:", docRef.id, ")");
+            // fallback: 전화번호 컬렉션 검색 시도
+            searchUserByPhoneQuery();
         }
     }, (error) => {
-        console.error("실시간 데이터 연동 중 오류 발생:", error);
+        console.error("실시간 데이터 연동 실패:", error);
     });
+}
+
+// 회원의 phone 필드로 users 컬렉션을 2차 검색
+async function searchUserByPhoneQuery() {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    let phone = user.phoneNumber ? user.phoneNumber.replace("+82", "0").replace(/[^0-9]/g, '') : "";
+    
+    if (!phone) return;
+
+    try {
+        const q = query(collection(db, "users"), where("phone", "==", phone));
+        const querySnap = await getDocs(q);
+
+        if (!querySnap.empty) {
+            const foundDoc = querySnap.docs[0];
+            // 해당 문서 ID로 실시간 구독 다시 설정
+            if (unsubscribeUser) unsubscribeUser();
+            unsubscribeUser = onSnapshot(doc(db, "users", foundDoc.id), (snap) => {
+                if (snap.exists()) renderMyPageUI(snap.data());
+            });
+        }
+    } catch (err) {
+        console.error("2차 검색 오류:", err);
+    }
+}
+
+// 화면 랜더링 전용 함수
+function renderMyPageUI(data) {
+    // 1. 회원 이름
+    const userNameElem = document.getElementById('user-name');
+    if (userNameElem) userNameElem.innerText = data.name || "회원";
+
+    // 2. 이용권 정보
+    const ticketNameElem = document.getElementById('ticket-name');
+    const totalCountElem = document.getElementById('total-count');
+    const remainingCountElem = document.getElementById('remaining-count');
+    const startDateElem = document.getElementById('start-date');
+    const endDateElem = document.getElementById('end-date');
+
+    if (data.ticketType && data.ticketType !== "") {
+        if (ticketNameElem) {
+            ticketNameElem.innerText = data.ticketType;
+            ticketNameElem.style.color = "var(--primary-color)";
+        }
+        if (totalCountElem) totalCountElem.innerText = `${data.totalCount || 0}회`;
+        
+        // remainingCount 최우선 적용
+        const remCount = data.remainingCount ?? data.ticketCount ?? 0;
+        if (remainingCountElem) remainingCountElem.innerText = `${remCount}회`;
+
+        if (startDateElem) startDateElem.innerText = data.startDate || "-";
+        if (endDateElem) endDateElem.innerText = data.endDate || "-";
+    } else {
+        if (ticketNameElem) {
+            ticketNameElem.innerText = "보유하신 이용권이 없습니다.";
+            ticketNameElem.style.color = "#6b7280";
+        }
+        if (totalCountElem) totalCountElem.innerText = "0회";
+        if (remainingCountElem) remainingCountElem.innerText = "0회";
+        if (startDateElem) startDateElem.innerText = "-";
+        if (endDateElem) endDateElem.innerText = "-";
+    }
+
+    // 3. 취소 정책 (A안 - 총 취소 횟수)
+    const totalCancel = data.totalCancelLimit ?? data.totalCancel ?? 0;
+    const remainingCancel = data.remainingCancelCount ?? data.remainingCancel ?? 0;
+
+    const totalCancelElem = document.getElementById('total-cancel');
+    const remainingCancelElem = document.getElementById('remaining-cancel');
+
+    if (totalCancelElem) totalCancelElem.innerText = `${totalCancel}회`;
+    if (remainingCancelElem) {
+        remainingCancelElem.innerText = `${remainingCancel}회`;
+        if (remainingCancel <= 0) {
+            remainingCancelElem.classList.add('danger');
+        } else {
+            remainingCancelElem.classList.remove('danger');
+        }
+    }
+
+    // 4. 취소 정책 (B안 - 당일 취소 횟수)
+    const totalTodayCancel = data.totalTodayCancelLimit ?? data.totalTodayCancel ?? 0;
+    const remainingTodayCancel = data.remainingTodayCancelCount ?? data.remainingTodayCancel ?? 0;
+
+    const totalTodayCancelElem = document.getElementById('total-today-cancel');
+    const remainingTodayCancelElem = document.getElementById('remaining-today-cancel');
+
+    if (totalTodayCancelElem) totalTodayCancelElem.innerText = `${totalTodayCancel}회`;
+    if (remainingTodayCancelElem) {
+        remainingTodayCancelElem.innerText = `${remainingTodayCancel}회`;
+        if (remainingTodayCancel <= 0) {
+            remainingTodayCancelElem.classList.add('danger');
+        } else {
+            remainingTodayCancelElem.classList.remove('danger');
+        }
+    }
 }
