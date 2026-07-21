@@ -140,8 +140,19 @@
     </style>
 </head>
 <body>
+        <header>    
+    <nav class="menu">
+        <a href="index.html">홈</a>
+        <a href="reservation.html">예약</a>
+        <a href="mypage.html">마이페이지</a>
+        <span id="userInfo"></span>
+        <button id="logoutBtn">로그아웃</button>
+    </nav>
+    <h1>LOGO</h1>
+    </header>
 
-<div class="mypage-container">
+    <main>
+    <div class="mypage-container">
     <!-- 상단 인사말 -->
     <div class="welcome-section">
         <h1>안녕하세요, <span id="user-name">회원</span>님!</h1>
@@ -205,6 +216,11 @@
         </ul>
     </div>
 </div>
+        </main>
+
+    <footer>
+        
+    </footer>
 
 <!-- Firebase SDK 및 데이터 연동 스크립트 -->
 <script type="module" src="mypage.js"></script>
