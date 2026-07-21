@@ -40,10 +40,23 @@
             border-bottom: 1px solid #caaa95;
         }
 
-        #h1 {
-            padding-top: 10px;
-            display: flex;
-            justify-content: center;
+         #logo-gradient {
+            font-family: 'Poppins', 'Montserrat', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            text-decoration: none;
+            letter-spacing: -0.02em;
+        
+            /* 핵심: 텍스트에 그라데이션 입히기 */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            
+            transition: filter 0.3s ease;
+        }
+        
+        #logo:hover {
+            filter: brightness(1.2); /* 마우스 올리면 더 밝아짐 */
         }
 
         .menu {
@@ -297,7 +310,7 @@
 
 <body>
     <header>
-        <div><h1 id="h1">ON108YOGA</h1></div>
+        <div><h1 id="logo">ON108YOGA</h1></div>
         <div>
             <nav>                
                 <ul class="menu" id="menu">                    
