@@ -7,7 +7,7 @@
 
     <link rel="stylesheet" href="./reservation.css">
     
-    <style>
+   <style>
         /* 기본 Box-Sizing 및 Reset */
         * {
             box-sizing: border-box;
@@ -98,12 +98,12 @@
             margin-bottom: 15px;
         }
         
-        /* 1. 화살표 버튼 색상 확실하게 고정 */
+        /* 화살표 버튼 색상 고정 */
         #prevWeek, #nextWeek {
             background: none !important;
             border: none !important;
             font-size: 18px !important;
-            color: #3b82f6 !important; /* 원하시는 화살표 색상 */
+            color: #3b82f6 !important;
             cursor: pointer;
             padding: 4px 8px;
             transition: color 0.2s;
@@ -112,66 +112,46 @@
             color: #1d4ed8 !important;
         }
 
-        /* 2. 요일(Header) 영역 - 7등분 정렬 */
+        /* 요일(Header) 및 날짜(Body) - 정확히 동일한 7등분 Grid 적용 */
         .week-name, #weekCalendar {
             display: grid !important;
             grid-template-columns: repeat(7, 1fr) !important;
             text-align: center;
             width: 100%;
+            align-items: center;
         }
         .week-name div {
             padding: 4px 0;
+            font-size: 14px;
         }
 
-        /* 1. 요일 헤더 레이아웃 (일 월 화 수 목 금 토) */
-         
-
-        /* 3. 날짜(Body) 영역 - 요일 영역과 완전 동일한 7등분 Grid 적용 */
-
-        
-        /* 날짜 선택 시 강조 효과 */
-        .day-box {                
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    height: 36px;
-                    cursor: pointer;
-                    font-size: 14px;
-                    border-radius: 50%; /* 동그라미 */
-                    margin: 0 auto;
-                    width: 36px;
-                }
-            .day-box.selected {
-                background-color: #3b82f6 !important;
-                color: white !important;
-                font-weight: bold;
-            }
-            /*.day-box.selected {
-                background-color: #517e73 !important;
-                color: #ffffff !important;
-                font-weight: bold;
-                border-radius: 50%;
-            }*/
-            
-            /* 주말 및 공휴일 색상 */
-            .day-box.sunday, .day-box.holiday {
-                color: #e11d48; /* 빨간색 */
-            }
-            .day-box.saturday {
-                color: #2563eb; /* 파란색 */
-            }
-
-        /* calendar.js에서 생성되는 날짜 셀 스타일 맞춤 */
-        # div, .date-cell {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 32px;
-            height: 32px;
-            margin: 0 auto;
+        /* ✨ [수정/단일화] 날짜 셀 통합 스타일 (충돌 요소 완벽 제거) */
+        .day-box, .date-cell {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            width: 34px !important;
+            height: 34px !important;
+            margin: 0 auto !important;
             font-size: 14px;
-            border-radius: 50%;
+            border-radius: 50% !important; /* 원형 */
             cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        /* 주말 및 공휴일 색상 */
+        .day-box.sunday, .day-box.holiday {
+            color: #e11d48; /* 빨간색 */
+        }
+        .day-box.saturday {
+            color: #2563eb; /* 파란색 */
+        }
+
+        /* 날짜 선택 시 파란색 동그라미 강조 */
+        .day-box.selected {
+            background-color: #3b82f6 !important;
+            color: #ffffff !important;
+            font-weight: bold;
         }
 
         #selectedDate {          
