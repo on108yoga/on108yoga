@@ -149,14 +149,16 @@
             <div class="ticket-management">
                 <div class="form-group">
                     <label>이용권 템플릿 선택</label>
-                    <select id="edit-template-select" onchange="applyTemplateToEdit()">
-                        <option value="">-- 직접 입력 또는 요금제 선택 --</option>
-                        <option value="5,20">5회 / 20일</option>
-                        <option value="10,40">10회 / 40일</option>
-                        <option value="20,80">20회 / 80일</option>
-                        <option value="30,120">30회 / 120일</option>
-                        <option value="50,200">50회 / 200일</option>
-                    </select>
+                    <!-- 1. 이용권 수정 영역 드롭다운 -->
+                        <select id="edit-template-select" onchange="applyTemplateToEdit()">
+                            <option value="">-- 직접 입력 또는 요금제 선택 --</option>
+                            <option value="1,7,1,1">1회 / 7일 (취소 1회, 당일취소 1회)</option>
+                            <option value="5,20,2,1">5회 / 20일 (취소 2회, 당일취소 1회)</option>
+                            <option value="10,40,4,2">10회 / 40일 (취소 4회, 당일취소 2회)</option>
+                            <option value="20,80,8,4">20회 / 80일 (취소 8회, 당일취소 4회)</option>
+                            <option value="30,120,12,6">30회 / 120일 (취소 12회, 당일취소 6회)</option>
+                            <option value="50,200,20,10">50회 / 200일 (취소 20회, 당일취소 10회)</option>
+                        </select>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 12px;">
@@ -222,14 +224,16 @@
             
             <div class="form-group">
                 <label>이용권 프리셋</label>
-                <select id="reg-template" onchange="applyTemplateToReg()">
-                    <option value="">직접 설정</option>
-                    <option value="5,20">5회 / 20일</option>
-                    <option value="10,40">10회 / 40일</option>
-                    <option value="20,80">20회 / 80일</option>
-                    <option value="30,120">30회 / 120일</option>
-                    <option value="50,200">50회 / 200일</option>
-                </select>
+                <!-- 2. 신규 회원 등록 모달 드롭다운 -->
+                    <select id="reg-template" onchange="applyTemplateToReg()">
+                        <option value="">직접 설정</option>
+                        <option value="1,7,1,1">1회 / 7일 (취소 1회, 당일취소 1회)</option>
+                        <option value="5,20,2,1">5회 / 20일 (취소 2회, 당일취소 1회)</option>
+                        <option value="10,40,4,2">10회 / 40일 (취소 4회, 당일취소 2회)</option>
+                        <option value="20,80,8,4">20회 / 80일 (취소 8회, 당일취소 4회)</option>
+                        <option value="30,120,12,6">30회 / 120일 (취소 12회, 당일취소 6회)</option>
+                        <option value="50,200,20,10">50회 / 200일 (취소 20회, 당일취소 10회)</option>
+                    </select>
             </div>
 
             <!-- 기본 취소 가능 횟수 -->
