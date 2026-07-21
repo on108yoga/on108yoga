@@ -131,6 +131,8 @@ section {
     margin-top: 20px;
     color: #777;
     font-weight: bold;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .week-name div:first-child {
@@ -148,14 +150,17 @@ section {
     grid-template-columns: repeat(7, 1fr) !important;
     margin-top: 10px;
     width: 100%;
+    box-sizing: border-box; /* 너비 초과 방지 */
 }
 
 .day-box {
-    height: 55px;
+    height: 45px; /* 약간 슬림하게 조정하여 세로 비율 맞춤 */
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
     cursor: pointer;
+    box-sizing: border-box;
+    font-weight: 500;
 }
 
 /* 날짜 숫자 동그라미 스타일 복원 */
