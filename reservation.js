@@ -331,11 +331,12 @@ async function loadMyReservation() {
 로그인 후 자동으로 불러오기
 ================================
 */
+// 예시: 로그인 상태 감지 부분
 onAuthStateChanged(auth, (user) => {
     console.log("현재 로그인:", user);
 
     if (user) {
         loadMyReservation();
-        loadUserTicketCount(user);
+        loadUserProfile(user); // 👈 이름 + 잔여 횟수 통합 로드
     }
 });
