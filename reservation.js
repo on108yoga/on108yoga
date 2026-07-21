@@ -14,7 +14,8 @@ import {
     getDoc,
     updateDoc,
     increment,
-    serverTimestamp
+    serverTimestamp,
+    onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
 import {
@@ -23,6 +24,7 @@ import {
 
 let selectedDate = "";
 let selectedTime = "";
+let unsubscribeUser = null; // 실시간 감시 해제용
 
 const classTimes = [
     "09:30",
@@ -50,32 +52,35 @@ function getTodayString() {
 
 /*
 ================================
-사용자 프로필(성명 + 잔여 횟수) 불러오기
+사용자 프로필(성명 + 잔여 횟수) 실시간 불러오기 (수정됨 🔥)
 ================================
 */
-async function loadUserProfile(user) {
+function listenUserProfile(user) {
     const nameElement = document.getElementById("myUserName");
     const countElement = document.getElementById("myTicketCount");
     if (!user) return;
 
-    try {
-        const userDocRef = doc(db, "users", user.uid);
-        const userSnap = await getDoc(userDocRef);
+    // 이전 감시자가 있다면 중단
+    if (unsubscribeUser) unsubscribeUser();
 
+    const userDocRef = doc(db, "users", user.uid);
+
+    // 💡 onSnapshot으로 변경하여 관리자가 members.html에서 수정하면 예약 화면에서도 '즉시' 업데이트됨
+    unsubscribeUser = onSnapshot(userDocRef, (userSnap) => {
         let userName = user.displayName || "회원";
-        let remCount = 0; // ✨ 기본값을 0으로 설정하여 오작동 방지
+        let remCount = 0;
 
         if (userSnap.exists()) {
             const userData = userSnap.data();
             if (userData.name) userName = userData.name;
 
-            // DB 필드 매칭 (ticketCount > remCount > remainingCount)
-            if (userData.ticketCount !== undefined) {
+            // 🛑 [핵심 수정] members.js에서 사용 중인 remainingCount를 1순위로 조회!
+            if (userData.remainingCount !== undefined) {
+                remCount = Number(userData.remainingCount);
+            } else if (userData.ticketCount !== undefined) {
                 remCount = Number(userData.ticketCount);
             } else if (userData.remCount !== undefined) {
                 remCount = Number(userData.remCount);
-            } else if (userData.remainingCount !== undefined) {
-                remCount = Number(userData.remainingCount);
             } else {
                 remCount = 0;
             }
@@ -83,12 +88,11 @@ async function loadUserProfile(user) {
 
         if (nameElement) nameElement.innerText = `${userName} 님`;
         if (countElement) countElement.innerText = `${remCount} 회`;
-
-    } catch (err) {
+    }, (err) => {
         console.error("사용자 정보 로드 실패:", err);
         if (nameElement) nameElement.innerText = `${user.displayName || '회원'} 님`;
         if (countElement) countElement.innerText = "0 회";
-    }
+    });
 }
 
 /*
@@ -205,7 +209,7 @@ document.querySelectorAll(".time-btn").forEach(btn => {
 
 /*
 ================================
-예약하기 (0회 예약 철저 차단 로직 적용)
+예약하기 (수정됨 🔥)
 ================================
 */
 if (reserveBtn) {
@@ -239,7 +243,6 @@ if (reserveBtn) {
         }
 
         try {
-            // 🛑 [핵심 1] DB에서 현재 잔여 횟수를 실시간으로 다시 가져와 강력 검증
             const userDocRef = doc(db, "users", user.uid);
             const userSnap = await getDoc(userDocRef);
 
@@ -251,27 +254,28 @@ if (reserveBtn) {
             const userData = userSnap.data();
             let userName = userData.name || user.displayName || "회원";
             
-            let countFieldName = "ticketCount";
+            // 🛑 [핵심 수정] 차감할 필드명을 members.js와 동일하게 remainingCount로 고정
+            let countFieldName = "remainingCount";
             let remCount = 0;
 
-            if (userData.ticketCount !== undefined) {
+            if (userData.remainingCount !== undefined) {
+                remCount = Number(userData.remainingCount);
+                countFieldName = "remainingCount";
+            } else if (userData.ticketCount !== undefined) {
                 remCount = Number(userData.ticketCount);
                 countFieldName = "ticketCount";
             } else if (userData.remCount !== undefined) {
                 remCount = Number(userData.remCount);
                 countFieldName = "remCount";
-            } else if (userData.remainingCount !== undefined) {
-                remCount = Number(userData.remainingCount);
-                countFieldName = "remainingCount";
             }
 
-            // 🛑 [핵심 2] 횟수권 0 이하 차단 (경고창 후 즉시 중단)
+            // 횟수권 0 이하 차단
             if (remCount <= 0) {
                 alert(`⚠️ 남은 이용권 횟수가 없습니다. (잔여: ${remCount}회)\n이용권을 충전 후 다시 시도해주세요.`);
-                return; // 여기서 로직 완전히 중단
+                return;
             }
 
-            // 3. 동일 시간대 중복 예약 체크
+            // 동일 시간대 중복 예약 체크
             const duplicateQuery = query(
                 collection(db, "reservations"),
                 where("uid", "==", user.uid),
@@ -285,7 +289,7 @@ if (reserveBtn) {
                 return;
             }
 
-            // 4. 정원 체크 (최대 10명)
+            // 정원 체크 (최대 10명)
             const countQuery = query(
                 collection(db, "reservations"),
                 where("date", "==", selectedDate),
@@ -298,7 +302,7 @@ if (reserveBtn) {
                 return;
             }
 
-            // 5. 예약 데이터 생성
+            // 예약 데이터 생성
             await addDoc(collection(db, "reservations"), {
                 uid: user.uid,
                 name: userName,
@@ -307,7 +311,7 @@ if (reserveBtn) {
                 createdAt: serverTimestamp()
             });
 
-            // 6. 회원 문서 잔여 횟수 1회 차감 (-1)
+            // 회원 문서 잔여 횟수 1회 차감 (-1)
             await updateDoc(userDocRef, {
                 [countFieldName]: increment(-1)
             });
@@ -317,7 +321,6 @@ if (reserveBtn) {
             // 화면 상태 동기화
             loadReservation();
             loadMyReservation();
-            loadUserProfile(user);
 
         } catch (err) {
             console.error("예약 오류:", err);
@@ -328,7 +331,7 @@ if (reserveBtn) {
 
 /*
 ================================
-예약 취소 (잔여 횟수 +1 복구)
+예약 취소 (수정됨 🔥)
 ================================
 */
 window.cancelReservation = async function(id) {
@@ -345,10 +348,11 @@ window.cancelReservation = async function(id) {
             if (userSnap.exists()) {
                 const userData = userSnap.data();
                 
-                let countFieldName = "ticketCount";
-                if (userData.ticketCount === undefined) {
-                    if (userData.remCount !== undefined) countFieldName = "remCount";
-                    else if (userData.remainingCount !== undefined) countFieldName = "remainingCount";
+                // 🛑 [핵심 수정] 취소 복구 시에도 remainingCount 필드를 최우선으로 차감 복구 (+1)
+                let countFieldName = "remainingCount";
+                if (userData.remainingCount === undefined) {
+                    if (userData.ticketCount !== undefined) countFieldName = "ticketCount";
+                    else if (userData.remCount !== undefined) countFieldName = "remCount";
                 }
 
                 await updateDoc(userDocRef, {
@@ -361,7 +365,6 @@ window.cancelReservation = async function(id) {
 
         loadReservation();
         loadMyReservation();
-        if (auth.currentUser) loadUserProfile(auth.currentUser);
 
     } catch (err) {
         console.error("취소 오류:", err);
@@ -421,12 +424,14 @@ async function loadMyReservation() {
 
 /*
 ================================
-로그인 상태 변경 감지
+로그인 상태 변경 감지 (수정됨 🔥)
 ================================
 */
 onAuthStateChanged(auth, (user) => {
     if (user) {
         loadMyReservation();
-        loadUserProfile(user);
+        listenUserProfile(user); // 실시간 리스너 실행
+    } else {
+        if (unsubscribeUser) unsubscribeUser();
     }
 });
