@@ -207,6 +207,7 @@ window.calculateRegEndDate = () => {
 };
 
 // 3. 이용권 수정 저장
+// 3. 이용권 수정 저장
 window.updateUserTicket = async () => {
     if (!activeUserId) {
         alert("선택된 회원이 없습니다. 왼쪽 목록에서 회원을 먼저 선택해주세요.");
@@ -214,25 +215,34 @@ window.updateUserTicket = async () => {
     }
 
     const ticketType = document.getElementById('edit-ticket-type')?.value.trim() || "";
-    const totalCount = parseInt(document.getElementById('edit-total-count')?.value) || 0;
-    const remainingCount = parseInt(document.getElementById('edit-remaining-count')?.value) || 0;
+    
+    // 입력된 숫자를 안전하게 변환하는 함수
+    const parseNum = (id) => {
+        const elem = document.getElementById(id);
+        if (!elem) return 0;
+        const val = parseInt(elem.value, 10);
+        return isNaN(val) ? 0 : val;
+    };
+
+    const totalCount = parseNum('edit-total-count');
+    const remainingCount = parseNum('edit-remaining-count'); // 👈 여기서 input의 값을 정상 수집합니다.
     const startDate = document.getElementById('edit-start-date')?.value || "";
     const endDate = document.getElementById('edit-end-date')?.value || "";
     
-    // [추가] 취소 가능 횟수 필드값 읽기
-    const totalCancelLimit = parseInt(document.getElementById('edit-total-cancel')?.value) || 0;
-    const remainingCancelCount = parseInt(document.getElementById('edit-remaining-cancel')?.value) || 0;
+    // 취소 관련 제한 횟수
+    const totalCancelLimit = parseNum('edit-total-cancel');
+    const remainingCancelCount = parseNum('edit-remaining-cancel');
     
-    // [추가] 당일 취소 변수 읽기
-  const totalTodayCancelLimit = parseInt(document.getElementById('edit-total-today-cancel')?.value) || 0;
-    const remainingTodayCancelCount = parseInt(document.getElementById('edit-remaining-today-cancel')?.value) || 0;
+    // 당일 취소 제한 횟수
+    const totalTodayCancelLimit = parseNum('edit-total-today-cancel');
+    const remainingTodayCancelCount = parseNum('edit-remaining-today-cancel');
 
     try {
         const userDocRef = doc(db, 'users', activeUserId);
         await updateDoc(userDocRef, {
             ticketType,
             totalCount,
-            remainingCount,
+            remainingCount, // Firestore에 잔여 횟수 정확히 반영
             startDate,
             endDate,
             totalCancelLimit,
@@ -240,12 +250,13 @@ window.updateUserTicket = async () => {
             totalTodayCancelLimit,
             remainingTodayCancelCount
         });
-        alert("이용권 및 취소 제한 정보가 성공적으로 수정되었습니다.");
+        alert("이용권 및 잔여 횟수 정보가 성공적으로 수정되었습니다.");
     } catch (err) {
         console.error("수정 오류:", err);
         alert("수정 실패: " + err.message);
     }
-}
+};
+
 
 // 명시적으로 전역(window) 객체에 등록
 window.updateUserTicket = updateUserTicket;
