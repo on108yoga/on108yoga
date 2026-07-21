@@ -13,7 +13,9 @@ import {
     doc,
     getDoc,
     updateDoc,
-    increment
+    increment,
+    addDoc,
+    serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
 import {
@@ -31,6 +33,8 @@ const classTimes = [
 ];
 
 const MAX_PEOPLE = 10;
+
+const reserveBtn = document.getElementById("reserveBtn");
 
 /*
 ================================
@@ -226,6 +230,75 @@ document.querySelectorAll(".time-btn").forEach(btn => {
 예약하기
 ================================
 */
+// 예약하기 버튼 클릭 이벤트
+if (reserveBtn) {
+    reserveBtn.addEventListener("click", async () => {
+        const user = auth.currentUser;
+        if (!user) {
+            alert("로그인이 필요합니다.");
+            return;
+        }
+
+        // 1. 선택된 날짜와 시간 확인 (calendar.js에서 저장된 selectedDate 사용)
+        const date = window.selectedDate; // 예: "2026-07-21"
+        const selectedTimeBtn = document.querySelector(".time-btn.active"); // 선택된 시간 버튼
+
+        if (!date) {
+            alert("날짜를 선택해 주세요.");
+            return;
+        }
+        if (!selectedTimeBtn) {
+            alert("시간을 선택해 주세요.");
+            return;
+        }
+
+        const time = selectedTimeBtn.dataset.time;
+
+        try {
+            // 2. 현재 사용자의 잔여 횟수 확인
+            const userRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userRef);
+
+            if (!userSnap.exists()) {
+                alert("회원 정보를 찾을 수 없습니다.");
+                return;
+            }
+
+            const userData = userSnap.data();
+            let currentTickets = userData.ticketCount !== undefined ? userData.ticketCount : 4;
+
+            // 3. 횟수 부족 체크
+            if (currentTickets <= 0) {
+                alert("남은 예약 횟수가 없습니다.");
+                return;
+            }
+
+            // 4. 예약 데이터 생성 (reservations 컬렉션)
+            await addDoc(collection(db, "reservations"), {
+                userId: user.uid,
+                userName: userData.name || user.displayName || "회원",
+                date: date,
+                time: time,
+                createdAt: serverTimestamp()
+            });
+
+            // 5. 회원 문서 잔여 횟수 1회 차감 (-1)
+            const newTicketCount = currentTickets - 1;
+            await updateDoc(userRef, {
+                ticketCount: newTicketCount
+            });
+
+            // 6. UI 즉시 연동 반영
+            updateTicketCountUI(newTicketCount);
+
+            alert(`예약이 완료되었습니다! (남은 횟수: ${newTicketCount}회)`);
+
+        } catch (error) {
+            console.error("예약 실패:", error);
+            alert("예약 처리 중 오류가 발생했습니다.");
+        }
+    });
+}
 /*
 ================================
 예약하기 (잔여 횟수 차감 필드명 통합 수정)
