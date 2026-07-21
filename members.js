@@ -223,11 +223,12 @@ window.applyTemplateToReg = () => {
 };
 
 // 3. 회원의 결제/환불/취소 내역 불러오기
+// 1. 회원의 결제/환불 내역 불러오기 (삭제 버튼 및 ID 포함)
 async function loadPaymentHistory(userId) {
     const historyContainer = document.getElementById('payment-history-list');
     if (!historyContainer) return;
 
-    historyContainer.innerHTML = '<tr><td colspan="5" style="padding: 15px; text-align:center;">조회 중...</td></tr>';
+    historyContainer.innerHTML = '<tr><td colspan="6" style="padding: 15px; text-align:center;">조회 중...</td></tr>';
 
     try {
         const historyRef = collection(db, 'users', userId, 'paymentHistory');
@@ -235,16 +236,16 @@ async function loadPaymentHistory(userId) {
         const querySnapshot = await getDocs(q);
 
         if (querySnapshot.empty) {
-            historyContainer.innerHTML = '<tr><td colspan="5" style="padding: 15px; text-align:center; color: #9ca3af;">내역이 없습니다.</td></tr>';
+            historyContainer.innerHTML = '<tr><td colspan="6" style="padding: 15px; text-align:center; color: #9ca3af;">내역이 없습니다.</td></tr>';
             return;
         }
 
         let html = '';
         querySnapshot.forEach((docSnap) => {
             const item = docSnap.data();
+            const historyId = docSnap.id; // 문서 ID
             const type = item.type || '결제';
             
-            // 💡 [핵심 수정 2] '환불' 및 '취소'에 따른 배지 및 금액 색상 조건 강화
             const isNegative = type === '환불' || type === '취소';
             const typeBadge = isNegative 
                 ? `<span style="color: #ef4444; font-weight: bold;">[${type}]</span>`
@@ -265,6 +266,13 @@ async function loadPaymentHistory(userId) {
                     <td style="padding: 8px;">${item.ticketType || '-'}</td>
                     <td style="padding: 8px;">${countText}</td>
                     <td style="padding: 8px; font-weight: bold;">${amountText}</td>
+                    <td style="padding: 8px;">
+                        <button type="button" 
+                                onclick="deletePaymentHistory('${userId}', '${historyId}')" 
+                                style="background: #fee2e2; color: #ef4444; border: none; padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">
+                            삭제
+                        </button>
+                    </td>
                 </tr>
             `;
         });
@@ -272,9 +280,48 @@ async function loadPaymentHistory(userId) {
 
     } catch (err) {
         console.error("내역 로드 실패:", err);
-        historyContainer.innerHTML = '<tr><td colspan="5" style="padding: 15px; text-align:center; color: #ef4444;">내역을 불러오지 못했습니다.</td></tr>';
+        historyContainer.innerHTML = '<tr><td colspan="6" style="padding: 15px; text-align:center; color: #ef4444;">내역을 불러오지 못했습니다.</td></tr>';
     }
 }
+
+// 2. 단일 결제/환불 내역 선택 삭제 함수
+window.deletePaymentHistory = async (userId, historyId) => {
+    if (!confirm("선택한 내역을 삭제하시겠습니까?\n(이 작업은 취소할 수 없으며, 회원 잔여 횟수에는 영향을 주지 않습니다.)")) return;
+
+    try {
+        const historyDocRef = doc(db, 'users', userId, 'paymentHistory', historyId);
+        await deleteDoc(historyDocRef);
+        
+        alert("선택한 내역이 삭제되었습니다.");
+        loadPaymentHistory(userId); // 목록 새로고침
+    } catch (err) {
+        console.error("내역 삭제 오류:", err);
+        alert("내역 삭제 실패: " + err.message);
+    }
+};
+
+// 3. (선택) 전체 결제 내역 초기화 함수
+window.clearAllPaymentHistory = async () => {
+    if (!activeUserId) return;
+    if (!confirm("이 회원의 전체 결제/환불 내역을 모두 삭제하시겠습니까?")) return;
+
+    try {
+        const historyRef = collection(db, 'users', activeUserId, 'paymentHistory');
+        const querySnapshot = await getDocs(historyRef);
+
+        const deletePromises = [];
+        querySnapshot.forEach((docSnap) => {
+            deletePromises.push(deleteDoc(doc(db, 'users', activeUserId, 'paymentHistory', docSnap.id)));
+        });
+
+        await Promise.all(deletePromises);
+        alert("모든 결제/환불 내역이 삭제되었습니다.");
+        loadPaymentHistory(activeUserId);
+    } catch (err) {
+        console.error("전체 내역 삭제 오류:", err);
+        alert("전체 내역 삭제 실패: " + err.message);
+    }
+};
 
 // 4. 이용권 저장/수정 시 결제 내역 기록
 window.updateUserTicket = async () => {
