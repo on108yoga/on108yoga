@@ -40,7 +40,15 @@
             z-index: 1000; /* 헤더를 무조건 맨 위에 배치 */
             border-bottom: 1px solid #caaa95;
         }
-
+        /* 로고 */
+        .logowrap{
+            width: 100%;
+            display: flex;
+            justify-content: center; /* 👈 핵심: 가로 방향 중앙 정렬 */
+            align-items: center;     /* 세로 방향 중앙 정렬 */
+            padding: 16px 0;         /* 위아래 여백 */
+            background-color: #ffffff; /* 헤더 배경색 (필요시 수정) */
+        }
          #logo{
            font-family: 'Poppins', sans-serif;
             font-size: 28px;               /* PC 글자 크기 */
@@ -314,7 +322,7 @@
 
 <body>
     <header>
-        <div><h1 id="logo">ON108YOGA</h1></div>
+        <div class="logowrap"><h1 id="logo">ON108YOGA</h1></div>
         <div>
             <nav>                
                 <ul class="menu" id="menu">                    
