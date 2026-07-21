@@ -1,5 +1,5 @@
 // mypage.js (전화번호 문서 ID 및 Auth UID 이중 지원 버전)
-import { db, auth } from './firebase.js';
+import { db, auth } from '/firebase.js';
 import { 
     doc, 
     onSnapshot,
