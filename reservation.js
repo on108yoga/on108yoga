@@ -47,27 +47,37 @@ function getTodayString() {
 
 /*
 ================================
-사용자 잔여 횟수 불러오기
+사용자 프로필(성명 + 잔여 횟수) 불러오기
 ================================
 */
-async function loadUserTicketCount(user) {
+async function loadUserProfile(user) {
+    const nameElement = document.getElementById("myUserName");
     const countElement = document.getElementById("myTicketCount");
-    if (!countElement || !user) return;
+    if (!user) return;
 
     try {
         const userDocRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userDocRef);
 
+        let userName = user.displayName || "회원";
+        let remCount = 0;
+
         if (userSnap.exists()) {
             const userData = userSnap.data();
-            // remCount 또는 remainingCount 속성 사용
-            const remCount = userData.remCount ?? userData.remainingCount ?? 0;
-            countElement.innerText = `${remCount}회`;
-        } else {
-            countElement.innerText = "0회";
+            // Firestore에 이름 정보가 있으면 우선 반영
+            if (userData.name) userName = userData.name;
+            // remCount 또는 remainingCount 속성 조회
+            remCount = userData.remCount ?? userData.remainingCount ?? 0;
         }
+
+        // HTML에 이름과 잔여 횟수 표시
+        if (nameElement) nameElement.innerText = `${userName} 님`;
+        if (countElement) countElement.innerText = `${remCount}회`;
+
     } catch (err) {
-        console.error("잔여 횟수 로드 실패:", err);
+        console.error("사용자 정보 로드 실패:", err);
+        if (nameElement) nameElement.innerText = `${user.displayName || '회원'} 님`;
+        if (countElement) countElement.innerText = "0회";
     }
 }
 
