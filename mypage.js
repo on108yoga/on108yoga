@@ -28,67 +28,70 @@ onAuthStateChanged(auth, async (user) => {
 
 // 📌 [1] 내 예약 목록 불러오기 함수
 // mypage.js
+// mypage.js
 async function loadMyReservations(userOrUid) {
     const listContainer = document.getElementById('reservation-list');
     const loadingElem = document.getElementById('reservation-loading');
 
-    if (!listContainer) {
-        console.warn("⚠️ 'reservation-list' 아이디를 가진 HTML 요소를 찾을 수 없습니다.");
-        return;
-    }
+    if (!listContainer) return;
 
     try {
-        // 1. 유저 정보 추출 (문자열이 들어오든 객체가 들어오든 대응)
         const currentUser = auth.currentUser;
-        const uid = typeof userOrUid === 'string' ? userOrUid : (userOrUid?.uid || currentUser?.uid || "");
         
-        // 전화번호 정형화 (01012345678)
-        let phone = (currentUser?.phoneNumber || "").replace(/[^0-9]/g, '');
-        if (phone.startsWith("82")) phone = "0" + phone.substring(2);
+        // 1. 회원 식별 키값들 전부 추출
+        const uid = typeof userOrUid === 'string' ? userOrUid : (userOrUid?.uid || currentUser?.uid || "");
+        const rawEmail = currentUser?.email || "";
+        
+        // @yoga.local 같은 가상 이메일에서 Pure ID(전화번호)만 추출 (예: 01021230991)
+        const pureId = rawEmail.includes('@') ? rawEmail.split('@')[0] : rawEmail;
+        const cleanPhone = pureId.replace(/[^0-9]/g, '');
 
-        const email = currentUser?.email || "";
+        console.log(`🔍 [예약 내역 조회 조건] UID: "${uid}", PureID: "${pureId}", Phone: "${cleanPhone}"`);
 
-        console.log(`🔍 [예약 내역 조회] 검색 조건 - UID: "${uid}", Phone: "${phone}", Email: "${email}"`);
-
-        // 2. 전체 예약 목록을 불러온 후 내 데이터만 필터링 (필드명 mismatch 완벽 방지)
+        // 2. reservations 데이터 가져오기
         const querySnapshot = await getDocs(collection(db, "reservations"));
-        console.log("✅ [DB 전체 예약 문서 개수]:", querySnapshot.size);
+        console.log("📦 전체 예약 건수:", querySnapshot.size);
 
         let myReservations = [];
 
+        // 3. 다양한 필드명/값 형태를 모두 비교
         querySnapshot.forEach((docSnap) => {
             const data = docSnap.data();
             
-            // userId, uid, phone, email 중 하나라도 내 정보와 일치하는지 체크
-            const isMyBooking = 
-                (uid && (data.userId === uid || data.uid === uid)) ||
-                (phone && (data.userId === phone || data.phone === phone || (data.phone && data.phone.replace(/[^0-9]/g, '') === phone))) ||
-                (email && (data.userId === email || data.email === email));
+            // DB에 저장될 수 있는 다양한 필드값
+            const targetUser = String(data.userId || data.uid || data.phone || data.user_id || data.memberId || "");
+            const targetPhone = targetUser.replace(/[^0-9]/g, '');
 
-            if (isMyBooking) {
+            // 매칭 조건: UID 일치 OR 순수아이디/이메일 일치 OR 전화번호 일치
+            const isMatch = 
+                (uid && targetUser === uid) ||
+                (pureId && targetUser === pureId) ||
+                (rawEmail && targetUser === rawEmail) ||
+                (cleanPhone && cleanPhone.length >= 8 && targetPhone === cleanPhone);
+
+            if (isMatch) {
                 myReservations.push({ id: docSnap.id, ...data });
             }
         });
 
-        console.log("🎉 [내 예약 매칭 결과]:", myReservations);
+        console.log("🎉 [회원 예약 내역 매칭 성공]:", myReservations);
 
-        // 3. UI 처리
+        // 4. UI 출력
         if (loadingElem) loadingElem.style.display = 'none';
         listContainer.innerHTML = '';
 
         if (myReservations.length === 0) {
             listContainer.innerHTML = `
-                <div style="padding: 24px; text-align: center; color: #888; background: #f9f9f9; border-radius: 8px;">
+                <div style="padding: 20px; text-align: center; color: #888;">
                     아직 예약된 내역이 없습니다.
                 </div>
             `;
             return;
         }
 
-        // 날짜순 내림차순 정렬 (최신 예약을 위로)
+        // 날짜 내림차순 정렬
         myReservations.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
-        // 카드 생성
         myReservations.forEach((res) => {
             const itemCard = document.createElement('div');
             itemCard.className = 'reservation-card';
@@ -108,7 +111,7 @@ async function loadMyReservations(userOrUid) {
         });
 
     } catch (error) {
-        console.error("🚨 예약 내역 조회 중 에러 발생:", error);
+        console.error("🚨 예약 내역 조회 오류:", error);
         if (loadingElem) {
             loadingElem.innerText = `오류 발생: ${error.message}`;
         }
