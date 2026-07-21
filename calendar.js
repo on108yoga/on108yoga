@@ -61,6 +61,33 @@ date.setDate(
 day.getDate()+i
 );
 
+    // calendar.js 내부 예시
+
+function renderWeek(baseDate) {
+    const calendarContainer = document.getElementById('weekCalendar');
+    calendarContainer.innerHTML = ''; // 기존 날짜 초기화
+
+    // 현재 선택된 주의 "일요일" 계산
+    const currentSunday = new Date(baseDate);
+    currentSunday.setDate(baseDate.getDate() - baseDate.getDay()); // 0 = 일요일
+
+    // 일(0)부터 토(6)까지 정확히 7일간 그리드 생성
+    for (let i = 0; i < 7; i++) {
+        const day = new Date(currentSunday);
+        day.setDate(currentSunday.getDate() + i);
+
+        const dateCell = document.createElement('div');
+        dateCell.classList.add('date-cell');
+        dateCell.textContent = day.getDate(); // 날짜 숫자 표시
+        dateCell.dataset.date = day.toISOString().split('T')[0]; // YYYY-MM-DD 데이터 저장
+
+        // 필요시 클릭 이벤트 추가
+        dateCell.addEventListener('click', () => selectDate(day));
+
+        calendarContainer.appendChild(dateCell);
+        // 🔥 중요: 7번 정확히 appendChild 되므로 일~토 요일 헤더와 1:1로 정확히 맞아떨어집니다!
+    }
+}
 
 
 let dateBox =
