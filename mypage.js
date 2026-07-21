@@ -6,7 +6,8 @@ import {
     collection,
     query,
     where,
-    getDocs
+    getDocs,
+    orderBy
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 import { 
     onAuthStateChanged 
@@ -25,7 +26,74 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-// 회원 데이터 동기화 시작
+// 📌 [1] 내 예약 목록 불러오기 함수
+async function loadMyReservations(userUid) {
+    const listContainer = document.getElementById('reservation-list');
+    const loadingElem = document.getElementById('reservation-loading');
+
+    if (!listContainer) return;
+
+    try {
+        // 1. 내 UID와 일치하는 예약 문서 조회 (날짜 기준 오름차순 정렬)
+        const q = query(
+            collection(db, "reservations"),
+            where("userId", "==", userUid),
+            orderBy("date", "asc") // 날짜순 정렬 (색인 설정 필요할 수 있음)
+        );
+
+        const querySnapshot = await getDocs(q);
+
+        // 로딩 텍스트 숨기기
+        if (loadingElem) loadingElem.style.display = 'none';
+        listContainer.innerHTML = ''; // 기존 목록 초기화
+
+        // 2. 예약 내역이 없는 경우
+        if (querySnapshot.empty) {
+            listContainer.innerHTML = `
+                <div class="empty-msg" style="padding: 20px; text-align: center; color: #999;">
+                    아직 예약된 내역이 없습니다.
+                </div>
+            `;
+            return;
+        }
+
+        // 3. 예약 문서 반복 출력
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            const docId = doc.id;
+
+            // 카드 엘리먼트 생성
+            const itemCard = document.createElement('div');
+            itemCard.className = 'reservation-card';
+            itemCard.innerHTML = `
+                <div class="res-info">
+                    <span class="res-date">📅 ${data.date}</span>
+                    <span class="res-time">⏰ ${data.time}</span>
+                    ${data.className ? `<span class="res-title">🏋️ ${data.className}</span>` : ''}
+                </div>
+                <div class="res-status">
+                    <span class="badge ${data.status === 'canceled' ? 'badge-canceled' : 'badge-active'}">
+                        ${data.status === 'canceled' ? '취소됨' : '예약완료'}
+                    </span>
+                    ${data.status !== 'canceled' ? `
+                        <button class="btn-cancel" onclick="cancelReservation('${docId}')">예약 취소</button>
+                    ` : ''}
+                </div>
+            `;
+
+            listContainer.appendChild(itemCard);
+        });
+
+    } catch (error) {
+        console.error("🚨 예약 내역 조회 실패:", error);
+        if (loadingElem) {
+            loadingElem.innerText = "예약 내역을 불러오는 중 오류가 발생했습니다.";
+        }
+    }
+}
+
+
+// [2] 회원 데이터 동기화 시작
 async function initMyPageSync(user) {
     if (unsubscribeUser) unsubscribeUser();
 
