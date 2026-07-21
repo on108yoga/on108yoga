@@ -1,5 +1,5 @@
 // reservation.js
-console.log("reservation.js 실행");
+console.log("reservation.js 실행 (v12.15.0)");
 
 import { auth, db } from "./firebase.js";
 
@@ -63,17 +63,24 @@ async function loadUserProfile(user) {
         const userSnap = await getDoc(userDocRef);
 
         let userName = user.displayName || "회원";
-        let remCount = 4; // 기본 4회
+        let remCount = 0; // ✨ 기본값을 0으로 설정하여 오작동 방지
 
         if (userSnap.exists()) {
             const userData = userSnap.data();
             if (userData.name) userName = userData.name;
 
-            // ticketCount -> remCount -> remainingCount 순으로 잔여 횟수 호환 처리
-            remCount = userData.ticketCount ?? userData.remCount ?? userData.remainingCount ?? 4;
+            // DB 필드 매칭 (ticketCount > remCount > remainingCount)
+            if (userData.ticketCount !== undefined) {
+                remCount = Number(userData.ticketCount);
+            } else if (userData.remCount !== undefined) {
+                remCount = Number(userData.remCount);
+            } else if (userData.remainingCount !== undefined) {
+                remCount = Number(userData.remainingCount);
+            } else {
+                remCount = 0;
+            }
         }
 
-        // HTML에 이름과 잔여 횟수 표시
         if (nameElement) nameElement.innerText = `${userName} 님`;
         if (countElement) countElement.innerText = `${remCount} 회`;
 
@@ -95,7 +102,6 @@ window.setSelectedDate = function(date) {
 
     const todayStr = getTodayString();
 
-    // 1. 주말 및 공휴일 체크
     if (isWeekendOrHoliday(selectedDate)) {
         alert("토요일, 일요일 및 공휴일은 휴무일이므로 예약이 불가능합니다.");
         clearTimeCounts();
@@ -103,7 +109,6 @@ window.setSelectedDate = function(date) {
         return;
     }
 
-    // 2. 지난 날짜 선택 체크
     if (selectedDate < todayStr) {
         alert("지난 날짜는 선택 또는 예약할 수 없습니다.");
         clearTimeCounts();
@@ -114,7 +119,6 @@ window.setSelectedDate = function(date) {
     loadReservation();
 };
 
-// 인원 카운트 뷰 초기화 헬퍼 함수
 function clearTimeCounts() {
     classTimes.forEach(time => {
         const id = "count" + time.replace(":", "");
@@ -132,34 +136,25 @@ function isWeekendOrHoliday(dateStr) {
     if (!dateStr) return false;
 
     const targetDate = new Date(`${dateStr}T00:00:00`);
-    const day = targetDate.getDay(); // 0: 일요일, 6: 토요일
+    const day = targetDate.getDay();
 
-    // 1. 주말(토요일, 일요일) 체크
-    if (day === 0 || day === 6) {
-        return true;
-    }
+    if (day === 0 || day === 6) return true;
 
-    // 2. 주요 양력 고정 공휴일 (MM-DD)
     const monthDay = dateStr.slice(5);
     const fixedHolidays = [
         "01-01", "03-01", "05-05", "06-06",
         "08-15", "10-03", "10-09", "12-25"
     ];
 
-    if (fixedHolidays.includes(monthDay)) {
-        return true;
-    }
+    if (fixedHolidays.includes(monthDay)) return true;
 
-    // 3. 주요 음력/대체 공휴일 지정
     const variableHolidays = [
         "2026-02-16", "2026-02-17", "2026-02-18",
         "2026-05-24",
         "2026-09-24", "2026-09-25", "2026-09-26"
     ];
 
-    if (variableHolidays.includes(dateStr)) {
-        return true;
-    }
+    if (variableHolidays.includes(dateStr)) return true;
 
     return false;
 }
@@ -172,10 +167,8 @@ function isWeekendOrHoliday(dateStr) {
 async function loadReservation() {
     if (!selectedDate) return;
 
-    // 1. 조회 전 화면 표시 인원 초기화
     clearTimeCounts();
 
-    // 2. 선택된 날짜의 예약 수량 조회 및 업데이트
     for (const time of classTimes) {
         const q = query(
             collection(db, "reservations"),
@@ -201,8 +194,6 @@ async function loadReservation() {
 */
 document.querySelectorAll(".time-btn").forEach(btn => {
     btn.addEventListener("click", () => {
-        console.log("선택 시간:", btn.dataset.time);
-
         document.querySelectorAll(".time-btn").forEach(b => {
             b.classList.remove("selected", "active");
         });
@@ -214,14 +205,14 @@ document.querySelectorAll(".time-btn").forEach(btn => {
 
 /*
 ================================
-예약하기 (단일 이벤트 정의)
+예약하기 (0회 예약 철저 차단 로직 적용)
 ================================
 */
 if (reserveBtn) {
     reserveBtn.addEventListener("click", async () => {
         const user = auth.currentUser;
         if (!user) {
-            alert("로그인 후 예약해주세요.");
+            alert("로그인 후 이용해 주세요.");
             location.href = "index.html";
             return;
         }
@@ -248,39 +239,39 @@ if (reserveBtn) {
         }
 
         try {
-            // 1. 잔여 횟수 및 정보 검증
+            // 🛑 [핵심 1] DB에서 현재 잔여 횟수를 실시간으로 다시 가져와 강력 검증
             const userDocRef = doc(db, "users", user.uid);
             const userSnap = await getDoc(userDocRef);
 
             if (!userSnap.exists()) {
-                alert("회원 정보를 찾을 수 없습니다.");
+                alert("회원 정보가 존재하지 않습니다.");
                 return;
             }
 
             const userData = userSnap.data();
             let userName = userData.name || user.displayName || "회원";
             
-            // ticketCount -> remCount -> remainingCount 호환성 지원
             let countFieldName = "ticketCount";
-            let remCount = 4;
+            let remCount = 0;
 
             if (userData.ticketCount !== undefined) {
-                remCount = userData.ticketCount;
+                remCount = Number(userData.ticketCount);
                 countFieldName = "ticketCount";
             } else if (userData.remCount !== undefined) {
-                remCount = userData.remCount;
+                remCount = Number(userData.remCount);
                 countFieldName = "remCount";
             } else if (userData.remainingCount !== undefined) {
-                remCount = userData.remainingCount;
+                remCount = Number(userData.remainingCount);
                 countFieldName = "remainingCount";
             }
 
+            // 🛑 [핵심 2] 횟수권 0 이하 차단 (경고창 후 즉시 중단)
             if (remCount <= 0) {
-                alert("남은 예약 횟수가 없습니다. 이용권을 충전해 주세요.");
-                return;
+                alert(`⚠️ 남은 이용권 횟수가 없습니다. (잔여: ${remCount}회)\n이용권을 충전 후 다시 시도해주세요.`);
+                return; // 여기서 로직 완전히 중단
             }
 
-            // 2. 동일 시간대 중복 예약 체크
+            // 3. 동일 시간대 중복 예약 체크
             const duplicateQuery = query(
                 collection(db, "reservations"),
                 where("uid", "==", user.uid),
@@ -290,11 +281,11 @@ if (reserveBtn) {
             const duplicateSnapshot = await getDocs(duplicateQuery);
 
             if (!duplicateSnapshot.empty) {
-                alert("이미 해당 시간대에 예약이 되어 있습니다.");
+                alert("이미 같은 시간대에 예약한 내역이 있습니다.");
                 return;
             }
 
-            // 3. 정원 체크 (최대 10명)
+            // 4. 정원 체크 (최대 10명)
             const countQuery = query(
                 collection(db, "reservations"),
                 where("date", "==", selectedDate),
@@ -307,7 +298,7 @@ if (reserveBtn) {
                 return;
             }
 
-            // 4. 예약 데이터 생성
+            // 5. 예약 데이터 생성
             await addDoc(collection(db, "reservations"), {
                 uid: user.uid,
                 name: userName,
@@ -316,7 +307,7 @@ if (reserveBtn) {
                 createdAt: serverTimestamp()
             });
 
-            // 5. 회원 문서 잔여 횟수 1회 차감 (-1)
+            // 6. 회원 문서 잔여 횟수 1회 차감 (-1)
             await updateDoc(userDocRef, {
                 [countFieldName]: increment(-1)
             });
@@ -354,7 +345,6 @@ window.cancelReservation = async function(id) {
             if (userSnap.exists()) {
                 const userData = userSnap.data();
                 
-                // 존재하는 필드로 1회 복구
                 let countFieldName = "ticketCount";
                 if (userData.ticketCount === undefined) {
                     if (userData.remCount !== undefined) countFieldName = "remCount";
@@ -381,7 +371,7 @@ window.cancelReservation = async function(id) {
 
 /*
 ================================
-내 예약 불러오기 (오늘 및 미래 예약만 표시)
+내 예약 불러오기
 ================================
 */
 async function loadMyReservation() {
@@ -431,12 +421,10 @@ async function loadMyReservation() {
 
 /*
 ================================
-로그인 상태 변경 감지 및 동기화
+로그인 상태 변경 감지
 ================================
 */
 onAuthStateChanged(auth, (user) => {
-    console.log("현재 로그인:", user);
-
     if (user) {
         loadMyReservation();
         loadUserProfile(user);
