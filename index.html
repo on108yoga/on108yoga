@@ -88,12 +88,12 @@
 
         h2 {
             display: flex;
-            justify-content: flex-end; 
-            width: 90%;               
+            justify-content: flex-end; /* 오른쪽 정렬 */
+            width: 90%;            /* 100% 대신 좌우 여백을 주어 더 예쁘게 조절 */   
             height: 50px;
-            margin: 20px auto 10px auto;           
+            margin: 20px auto 10px auto;      /* 상자 자체는 화면 중앙 유지 */     
             color: #29462d;
-            align-items: center;       
+            align-items: center;       /* 글자가 세로 중앙에 오도록 추가 */  
             letter-spacing: 10px;     
             padding-right: 20px;  
 
@@ -101,7 +101,6 @@
             border-style: dotted;
             border-color: #506e5c;
             border-radius: 20px 0px; 
-            box-shadow: 2px 2px 2px #fff, -2px -2px 2px #fff; /* 오타 수정: border-shadow -> box-shadow */
 
             font-family: 'Noto Sans KR', sans-serif;
             font-weight: 100; 
@@ -335,12 +334,7 @@
         <main>
             <div class="aside01"></div>
             
-            <section>
-                <div id="banner">
-                    <h2>system</h2>
-                    <p></p>
-                </div>
-
+            <section>               
                 <h2 id="notice">notice</h2><br>
                 <div class="notice">
                     <div id="slide">
