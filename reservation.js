@@ -86,14 +86,28 @@ async function loadUserProfile(user) {
 날짜 선택 (calendar.js에서 호출)
 ================================
 */
+/*
+================================
+날짜 선택 (calendar.js에서 호출)
+================================
+*/
 window.setSelectedDate = function(date) {
     selectedDate = date;
     console.log("선택 날짜:", selectedDate);
 
-    // 지난 날짜 선택 체크
     const todayStr = getTodayString();
+
+    // 지나간 날짜를 선택했을 때
     if (selectedDate < todayStr) {
         alert("지난 날짜는 선택 또는 예약할 수 없습니다.");
+        
+        // 지난 날짜일 경우 기존 표시된 인원 카운트를 모두 0으로 초기화
+        classTimes.forEach(time => {
+            const id = "count" + time.replace(":", "");
+            const element = document.getElementById(id);
+            if (element) element.innerText = "0";
+        });
+        return; // 예약 조회 함수 실행 안 함
     }
 
     loadReservation();
@@ -107,6 +121,14 @@ window.setSelectedDate = function(date) {
 async function loadReservation() {
     if (!selectedDate) return;
 
+    // 1. 조회 전 모든 시간대의 화면 인원 표시를 0으로 먼저 초기화
+    classTimes.forEach(time => {
+        const id = "count" + time.replace(":", "");
+        const element = document.getElementById(id);
+        if (element) element.innerText = "0";
+    });
+
+    // 2. 선택된 날짜의 예약 수량 조회 및 업데이트
     for (const time of classTimes) {
         const q = query(
             collection(db, "reservations"),
@@ -287,9 +309,12 @@ window.cancelReservation = async function(id) {
 내 예약 불러오기 (오늘 및 미래 예약만 표시)
 ================================
 */
+/*
+================================
+내 예약 불러오기 (지나간 시각까지 완전 자동 숨김)
+================================
+*/
 async function loadMyReservation() {
-    console.log("내 예약 조회 실행", auth.currentUser);
-
     if (!auth.currentUser) return;
 
     const box = document.getElementById("myReservations");
@@ -303,14 +328,23 @@ async function loadMyReservation() {
     );
 
     const snapshot = await getDocs(q);
+    
+    // 현재 날짜 및 시각 구하기
+    const now = new Date();
     const todayStr = getTodayString();
+    const currentHoursMinutes = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
     let count = 0;
 
     snapshot.forEach(item => {
         const data = item.data();
 
-        // 날짜가 지나지 않은(오늘 포함 미래) 예약만 목록에 표출
-        if (data.date >= todayStr) {
+        // 1. 미래 날짜이거나
+        // 2. 오늘 날짜이면서 수업 시간이 아직 지나지 않은 경우만 표시
+        const isFutureDate = data.date > todayStr;
+        const isTodayUpcoming = (data.date === todayStr && data.time >= currentHoursMinutes);
+
+        if (isFutureDate || isTodayUpcoming) {
             count++;
             box.innerHTML += `
                 <div class="my-reservation" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding:8px; border-bottom:1px solid #eee;">
