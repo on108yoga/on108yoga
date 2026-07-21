@@ -118,11 +118,13 @@ section {
     border: none !important;
     background: #405346 !important;
     color: white !important;
-    width: 40px !important;
-    height: 40px !important;
+    width: 32px !important;       /* 버튼 가로 크기 */
+    height: 32px !important;      /* 버튼 세로 크기 */
+    min-width: 32px !important;   /* 크기 유지를 위한 최소 너비 */
+    padding: 0 !important;        /* 내부 여백 제거 */
     border-radius: 50% !important;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 13px !important;   /* 화살표 아이콘 크기 축소 */
     display: flex;
     justify-content: center;
     align-items: center;
