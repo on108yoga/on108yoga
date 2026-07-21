@@ -95,18 +95,25 @@ function renderMyPageUI(data, docId = "") {
     // 🆔 2. 아이디 표시 (DB의 userId/email 필드 -> 문서 ID -> Auth 이메일/전화번호 순)
     const userIdElem = document.getElementById('user-id');
     if (userIdElem) {
+        // 1. Auth 전화번호 정형화 (8210... -> 010...)
         let authPhone = (user?.phoneNumber || "").replace(/[^0-9]/g, '');
         if (authPhone.startsWith("82")) authPhone = "0" + authPhone.substring(2);
 
-        const displayId = data.userId || 
-                          data.email || 
-                          data.id || 
-                          (docId && !docId.includes("http") ? docId : "") || 
-                          user?.email || 
-                          authPhone || 
-                          "-";
+        // 2. DB 전화번호 정형화
+        let dbPhone = (data.phone || data.phoneNumber || "").replace(/[^0-9]/g, '');
 
+       // 3. 우선순위에 따라 있는 값을 선택
+        const displayId = data.userId ||            // DB에 'userId' 필드가 있는 경우
+                          data.email ||             // DB에 'email' 필드가 있는 경우
+                          user?.email ||            // Auth 계정에 이메일이 있는 경우
+                          authPhone ||              // Auth 계정에 전화번호가 있는 경우
+                          dbPhone ||                // DB에 전화번호가 있는 경우
+                          data.id ||                // DB에 'id' 필드가 있는 경우
+                          user?.uid ||              // 최후의 수단: Auth UID
+                          "-";
+        console.log("🆔 최종 표시될 아이디:", displayId); // 콘솔에서 확인용
         userIdElem.innerText = displayId;
+        
     }
 
     // 1. 회원 이름
