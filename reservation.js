@@ -250,13 +250,13 @@ if (reserveBtn) {
             return;
         }
 
-        // 1. 지난 날짜 예약 방지
+        // 지난 날짜 예약 방지
         const todayStr = getTodayString();
         if (selectedDate < todayStr) {
             alert("지난 날짜에는 예약할 수 없습니다.");
             return;
         }
-
+        
         if (!selectedTime) {
             alert("시간을 선택해주세요.");
             return;
