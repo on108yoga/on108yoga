@@ -42,22 +42,24 @@
         }
 
          #logo{
-            font-family: 'Poppins', 'Montserrat', sans-serif;
-            font-size: 28px;
-            font-weight: 800;
+             padding-top: 10px;
+            display: flex;
+            justify-content: center;
+             
+            font-family: 'Playfair Display', 'Cinzel', 'Didot', serif; /* 고급스러운 세리프 폰트 */
+            font-size: 24px;
+            font-weight: 600;
+            color: #111111;
             text-decoration: none;
-            letter-spacing: -0.02em;
-        
-            /* 핵심: 텍스트에 그라데이션 입히기 */
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            
-            transition: filter 0.3s ease;
+            text-transform: uppercase; /* 대문자 변환 */
+            letter-spacing: 0.25em;    /* 글자 사이를 넓혀서 세련된 느낌 연출 */
+            transition: all 0.3s ease;
+            display: inline-block;
         }
         
         #logo:hover {
-            filter: brightness(1.2); /* 마우스 올리면 더 밝아짐 */
+            color: #e0a96d;
+            transform: translateY(-1px);
         }
 
         .menu {
