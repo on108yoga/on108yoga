@@ -94,7 +94,7 @@ section {
      max-width: 340px !important; /* ⭐️ 핵심: 화면이 넓어져도 캘린더가 과도하게 늘어나 정렬이 깨지는 것 방지 */
      margin: 0 auto;
      box-sizing: border-box !important;
-     background-color: #fcfbf7; /* 기존 캘린더 배경색 유지 */
+     background:#fffaf0; /* 기존 캘린더 배경색 유지 */
      padding: 20px;
      border-radius: 20px;
 }
@@ -115,9 +115,8 @@ section {
 
 /* 동글동글 화살표 버튼 복원 */
 .calendar-header button {
-    border: none !important;
-    background: #405346 !important;
-    color: white !important;
+   border:none;
+   background:#405346;  
     width: 32px !important;       /* 버튼 가로 크기 */
     height: 32px !important;      /* 버튼 세로 크기 */
     min-width: 32px !important;   /* 크기 유지를 위한 최소 너비 */
