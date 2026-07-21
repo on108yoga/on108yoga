@@ -224,10 +224,18 @@ window.applyTemplateToReg = () => {
 
 // 3. 회원의 결제/환불/취소 내역 불러오기
 // 1. 회원의 결제/환불 내역 불러오기 (삭제 버튼 및 ID 포함)
+// 선택된 내역 ID를 관리할 배열
+let selectedHistoryIds = [];
+
+// 1. 결제/환불 내역 불러오기 (체크박스 포함)
 async function loadPaymentHistory(userId) {
     const historyContainer = document.getElementById('payment-history-list');
+    const selectAllCheck = document.getElementById('check-all-history');
     if (!historyContainer) return;
 
+    // 초기화
+    selectedHistoryIds = [];
+    if (selectAllCheck) selectAllCheck.checked = false;
     historyContainer.innerHTML = '<tr><td colspan="6" style="padding: 15px; text-align:center;">조회 중...</td></tr>';
 
     try {
@@ -243,7 +251,7 @@ async function loadPaymentHistory(userId) {
         let html = '';
         querySnapshot.forEach((docSnap) => {
             const item = docSnap.data();
-            const historyId = docSnap.id; // 문서 ID
+            const historyId = docSnap.id;
             const type = item.type || '결제';
             
             const isNegative = type === '환불' || type === '취소';
@@ -261,18 +269,14 @@ async function loadPaymentHistory(userId) {
 
             html += `
                 <tr style="border-bottom: 1px solid #f3f4f6; text-align: center;">
+                    <td style="padding: 8px;">
+                        <input type="checkbox" class="history-checkbox" value="${historyId}" onchange="toggleHistorySelect('${historyId}')">
+                    </td>
                     <td style="padding: 8px; color: #6b7280;">${item.date || '-'}</td>
                     <td style="padding: 8px;">${typeBadge}</td>
                     <td style="padding: 8px;">${item.ticketType || '-'}</td>
                     <td style="padding: 8px;">${countText}</td>
                     <td style="padding: 8px; font-weight: bold;">${amountText}</td>
-                    <td style="padding: 8px;">
-                        <button type="button" 
-                                onclick="deletePaymentHistory('${userId}', '${historyId}')" 
-                                style="background: #fee2e2; color: #ef4444; border: none; padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">
-                            삭제
-                        </button>
-                    </td>
                 </tr>
             `;
         });
@@ -284,21 +288,66 @@ async function loadPaymentHistory(userId) {
     }
 }
 
-// 2. 단일 결제/환불 내역 선택 삭제 함수
-window.deletePaymentHistory = async (userId, historyId) => {
-    if (!confirm("선택한 내역을 삭제하시겠습니까?\n(이 작업은 취소할 수 없으며, 회원 잔여 횟수에는 영향을 주지 않습니다.)")) return;
+// 2. 전체 선택 / 해제 처리
+window.toggleAllHistorySelect = (masterCheckbox) => {
+    const checkboxes = document.querySelectorAll('.history-checkbox');
+    selectedHistoryIds = [];
 
-    try {
-        const historyDocRef = doc(db, 'users', userId, 'paymentHistory', historyId);
-        await deleteDoc(historyDocRef);
-        
-        alert("선택한 내역이 삭제되었습니다.");
-        loadPaymentHistory(userId); // 목록 새로고침
-    } catch (err) {
-        console.error("내역 삭제 오류:", err);
-        alert("내역 삭제 실패: " + err.message);
+    checkboxes.forEach((cb) => {
+        cb.checked = masterCheckbox.checked;
+        if (masterCheckbox.checked) {
+            selectedHistoryIds.push(cb.value);
+        }
+    });
+};
+
+// 3. 개별 체크박스 선택 처리
+window.toggleHistorySelect = (historyId) => {
+    const idx = selectedHistoryIds.indexOf(historyId);
+    if (idx > -1) {
+        selectedHistoryIds.splice(idx, 1);
+    } else {
+        selectedHistoryIds.push(historyId);
+    }
+
+    // 전체 선택 체크박스 상태 동기화
+    const checkboxes = document.querySelectorAll('.history-checkbox');
+    const selectAllCheck = document.getElementById('check-all-history');
+    if (selectAllCheck) {
+        selectAllCheck.checked = checkboxes.length > 0 && selectedHistoryIds.length === checkboxes.length;
     }
 };
+
+// 4. 선택한 내역 삭제 함수
+window.deleteSelectedPaymentHistory = async () => {
+    if (!activeUserId) {
+        alert("선택된 회원이 없습니다.");
+        return;
+    }
+
+    if (selectedHistoryIds.length === 0) {
+        alert("삭제할 내역을 선택해 주세요.");
+        return;
+    }
+
+    if (!confirm(`선택한 ${selectedHistoryIds.length}개의 내역을 삭제하시겠습니까?\n(회원 잔여 횟수에는 영향을 주지 않습니다.)`)) return;
+
+    try {
+        const deletePromises = selectedHistoryIds.map((id) => 
+            deleteDoc(doc(db, 'users', activeUserId, 'paymentHistory', id))
+        );
+
+        await Promise.all(deletePromises);
+
+        alert("선택한 내역이 삭제되었습니다.");
+        loadPaymentHistory(activeUserId); // 목록 새로고침
+    } catch (err) {
+        console.error("선택 내역 삭제 오류:", err);
+        alert("삭제 실패: " + err.message);
+    }
+};
+
+
 
 // 3. (선택) 전체 결제 내역 초기화 함수
 window.clearAllPaymentHistory = async () => {
