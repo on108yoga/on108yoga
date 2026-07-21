@@ -29,6 +29,16 @@ onAuthStateChanged(auth, async (user) => {
 async function initMyPageSync(user) {
     if (unsubscribeUser) unsubscribeUser();
 
+    // 🆔 1. Auth 기준 기본 아이디 우선 표시 (이메일 또는 전화번호)
+    const userIdElem = document.getElementById('user-id');
+    if (userIdElem) {
+        const rawPhone = user.phoneNumber || "";
+        let cleanPhone = rawPhone.replace(/[^0-9]/g, '');
+        if (cleanPhone.startsWith("82")) cleanPhone = "0" + cleanPhone.substring(2);
+
+        userIdElem.innerText = user.email || cleanPhone || user.phoneNumber || "소셜 로그인 계정";
+    }
+
     // 1단계: user.uid 기반 탐색
     const uidDocRef = doc(db, 'users', user.uid);
     try {
@@ -66,7 +76,8 @@ function bindRealtimeListener(docRef) {
     unsubscribeUser = onSnapshot(docRef, (docSnap) => {
         if (docSnap.exists()) {
             console.log("🎉 실시간 수신 데이터:", docSnap.data());
-            renderMyPageUI(docSnap.data());
+            // 문서 데이터와 함께 docSnap.id (문서 ID)도 넘겨줍니다.
+            renderMyPageUI(docSnap.data(), docSnap.id);
         } else {
             console.warn("⚠️ 문서를 찾을 수 없습니다:", docRef.id);
             const user = auth.currentUser;
@@ -77,38 +88,27 @@ function bindRealtimeListener(docRef) {
     });
 }
 
-// DB 내부 전화번호 필드 검색
-async function searchUserInFirestore(user) {
-    try {
-        const usersRef = collection(db, 'users');
-        const querySnapshot = await getDocs(usersRef);
-
-        let targetDocId = null;
-        const authPhoneClean = (user.phoneNumber || "").replace(/[^0-9]/g, '').replace(/^82/, '0');
-
-        querySnapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            const dbPhoneClean = (data.phone || "").replace(/[^0-9]/g, '');
-
-            if ((authPhoneClean && dbPhoneClean && authPhoneClean === dbPhoneClean) || 
-                (authPhoneClean && docSnap.id === authPhoneClean)) {
-                targetDocId = docSnap.id;
-            }
-        });
-
-        if (targetDocId) {
-            console.log("✅ [3단계 성공] DB 내부 전화번호 매칭 Doc ID:", targetDocId);
-            bindRealtimeListener(doc(db, 'users', targetDocId));
-        } else {
-            console.error("❌ DB에서 해당 회원 정보를 찾을 수 없습니다.");
-        }
-    } catch (err) {
-        console.error("검색 프로세스 에러:", err);
-    }
-}
-
 // 화면 UI 랜더링 함수
-function renderMyPageUI(data) {
+function renderMyPageUI(data, docId = "") {
+    const user = auth.currentUser;
+
+    // 🆔 2. 아이디 표시 (DB의 userId/email 필드 -> 문서 ID -> Auth 이메일/전화번호 순)
+    const userIdElem = document.getElementById('user-id');
+    if (userIdElem) {
+        let authPhone = (user?.phoneNumber || "").replace(/[^0-9]/g, '');
+        if (authPhone.startsWith("82")) authPhone = "0" + authPhone.substring(2);
+
+        const displayId = data.userId || 
+                          data.email || 
+                          data.id || 
+                          (docId && !docId.includes("http") ? docId : "") || 
+                          user?.email || 
+                          authPhone || 
+                          "-";
+
+        userIdElem.innerText = displayId;
+    }
+
     // 1. 회원 이름
     const userNameElem = document.getElementById('user-name');
     if (userNameElem) userNameElem.innerText = data.name || "회원";
