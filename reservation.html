@@ -89,30 +89,65 @@
         /* 캘린더 디자인 */
         .custom-calendar {
              min-height: 180px;
+             width: 100%;
         }
         .calendar-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
-        .calendar-header button {
-            background: none;
-            border: none;
-            font-size: 16px;
+        
+        /* 1. 화살표 버튼 색상 확실하게 고정 */
+        #prevWeek, #nextWeek {
+            background: none !important;
+            border: none !important;
+            font-size: 18px !important;
+            color: #3b82f6 !important; /* 원하시는 화살표 색상 */
             cursor: pointer;
+            padding: 4px 8px;
+            transition: color 0.2s;
         }
+        #prevWeek:hover, #nextWeek:hover {
+            color: #1d4ed8 !important;
+        }
+
+        /* 2. 요일(Header) 영역 - 7등분 정렬 */
         .week-name {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             font-size: 13px;
+            text-align: center;
+            align-items: center;
         }
+        .week-name div {
+            padding: 4px 0;
+        }
+
+        /* 3. 날짜(Body) 영역 - 요일 영역과 완전 동일한 7등분 Grid 적용 */
         #weekCalendar {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
+            text-align: center;
+            align-items: center;
+            justify-items: center;
+            width: 100%;
+            gap: 4px 0;
+        }
+
+        /* calendar.js에서 생성되는 날짜 셀 스타일 맞춤 */
+        #weekCalendar div, .date-cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 32px;
+            height: 32px;
+            margin: 0 auto;
+            font-size: 14px;
+            border-radius: 50%;
+            cursor: pointer;
         }
 
         #selectedDate {          
@@ -120,23 +155,6 @@
             padding: 4px 12px;
             border-radius: 4px;
             font-size: 16px;
-        }
-
-        /* 화살표 버튼 색상 */
-        .calendar-prev, 
-        .calendar-next,
-        .fc-prev-button, 
-        .fc-next-button {
-            color: #10b981 !important;
-            fill: #10b981 !important;
-        }
-            
-        .calendar-prev:hover, 
-        .calendar-next:hover,
-        .fc-prev-button:hover, 
-        .fc-next-button:hover {
-            color: #059669 !important;
-            fill: #059669 !important;
         }
 
         /* 버튼 공통 */
