@@ -113,50 +113,45 @@
         }
 
         /* 2. 요일(Header) 영역 - 7등분 정렬 */
-        .week-name {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            font-weight: bold;
-            margin-bottom: 10px;
-            font-size: 13px;
+        .week-name, #weekCalendar {
+            display: grid !important;
+            grid-template-columns: repeat(7, 1fr) !important;
             text-align: center;
-            align-items: center;
+            width: 100%;
         }
         .week-name div {
             padding: 4px 0;
         }
 
         /* 1. 요일 헤더 레이아웃 (일 월 화 수 목 금 토) */
-            .week-header {
-                display: grid !important;
-                grid-template-columns: repeat(7, 1fr) !important; /* ✨ 정확히 7등분 */
-                text-align: center;
-                font-weight: bold;
-                margin-bottom: 8px;
-                width: 100%;
-            }
+         
 
         /* 3. 날짜(Body) 영역 - 요일 영역과 완전 동일한 7등분 Grid 적용 */
-        #weekCalendar {
-            display: grid !important;
-            grid-template-columns: repeat(7, 1fr) !important; /* ✨ 정확히 7등분 */
-            text-align: center;
-            width: 100%;
-        }
+
+        
         /* 날짜 선택 시 강조 효과 */
-        .day-box {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                aspect-ratio: 1 / 1; /* ✨ 동그라미 모양 유지를 위해 정사각형 고정 */
-                cursor: pointer;
-            }
+        .day-box {                
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 36px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    border-radius: 50%; /* 동그라미 */
+                    margin: 0 auto;
+                    width: 36px;
+                }
             .day-box.selected {
+                background-color: #3b82f6 !important;
+                color: white !important;
+                font-weight: bold;
+            }
+            /*.day-box.selected {
                 background-color: #517e73 !important;
                 color: #ffffff !important;
                 font-weight: bold;
                 border-radius: 50%;
-            }
+            }*/
             
             /* 주말 및 공휴일 색상 */
             .day-box.sunday, .day-box.holiday {
@@ -167,7 +162,7 @@
             }
 
         /* calendar.js에서 생성되는 날짜 셀 스타일 맞춤 */
-        #weekCalendar div, .date-cell {
+        # div, .date-cell {
             display: flex;
             justify-content: center;
             align-items: center;
@@ -311,29 +306,33 @@
 </header>
 
 <main>    
-    <!-- 1. 캘린더 영역 -->
-    <section class="calendar-area">
-        <h3>Calendar</h3>
-        <div class="custom-calendar">    
-            <div class="calendar-header">
-                <button id="prevWeek" type="button">◀</button>
-                <h2 id="monthTitle" style="font-size: 16px; margin: 0;">2026년 7월</h2>
-                <button id="nextWeek" type="button">▶</button>
+      <!-- 1. 캘린더 영역 -->
+        <section class="calendar-area">
+            <h3>Calendar</h3>
+            <div class="custom-calendar">    
+                <div class="calendar-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <button id="prevWeek" type="button" style="border:none; background:none; cursor:pointer; color:#3b82f6; font-size:16px;">◀</button>
+                    <h2 id="monthTitle" style="font-size: 16px; margin: 0; font-weight: bold;">2026년 7월</h2>
+                    <button id="nextWeek" type="button" style="border:none; background:none; cursor:pointer; color:#3b82f6; font-size:16px;">▶</button>
+                </div>
+        
+                <!-- ✨ 요일 헤더 (정확히 7등분) -->
+                <div class="week-name" style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: bold; font-size: 14px; margin-bottom: 8px;">
+                    <div style="color: red;">일</div>
+                    <div>월</div>
+                    <div>화</div>
+                    <div>수</div>
+                    <div>목</div>
+                    <div>금</div>
+                    <div style="color: blue;">토</div>
+                </div>
+        
+                <!-- ✨ 날짜 생성 영역 (정확히 7등분) -->
+                <div id="weekCalendar" style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; gap: 2px;">
+                    <!-- JS(calendar.js)에서 동적으로 생성 -->
+                </div>
             </div>
-            <div class="week-name">
-                <div style="color: red;">일</div>
-                <div>월</div>
-                <div>화</div>
-                <div>수</div>
-                <div>목</div>
-                <div>금</div>
-                <div style="color: blue;">토</div>
-            </div>
-            <div id="weekCalendar">
-                <!-- JS(calendar.js)에서 동적으로 생성 -->
-            </div>
-        </div>
-    </section>
+        </section>
 
     <!-- 2. 예약 패널 영역 -->
     <section class="reservation-panel">
