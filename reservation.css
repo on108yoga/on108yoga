@@ -52,23 +52,6 @@ cursor:pointer;
 
 }
 
-/* 화살표 버튼 색상 및 호버 시 색상 변경 */
-.calendar-prev, 
-.calendar-next,
-.fc-prev-button, 
-.fc-next-button {
-    color: #10b981 !important; /* 초록색 계열 (기본) */
-    fill: #10b981 !important;  /* SVG 아이콘일 경우 */
-}
-
-/* 마우스 올렸을 때 조금 더 짙은 초록색 */
-.calendar-prev:hover, 
-.calendar-next:hover,
-.fc-prev-button:hover, 
-.fc-next-button:hover {
-    color: #059669 !important;
-    fill: #059669 !important;
-}
 
 
 .week-name{
