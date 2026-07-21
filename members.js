@@ -75,6 +75,7 @@ function renderMemberList(docs) {
     });
 }
 
+/* showMemberDetail 수정 코드 */
 function selectMember(id, userData) {
     activeUserId = id;
     document.querySelectorAll('.member-item').forEach(item => item.classList.remove('active'));
@@ -85,42 +86,61 @@ function showMemberDetail(id, user) {
     detailPlaceholder.style.display = 'none';
     detailContent.style.display = 'block';
 
+    // 1. 기본 인적사항
     document.getElementById('det-name').innerText = `${user.name} 회원님`;
     document.getElementById('det-phone').innerText = formatPhone(user.phone);
 
-    document.getElementById('cur-ticket').innerText = user.ticketType || "없음(이용권 미등록)";
-    document.getElementById('cur-count').innerText = user.ticketType ? `${user.remainingCount}회 / ${user.totalCount}회` : "-";
-    document.getElementById('cur-period').innerText = user.startDate ? `${user.startDate} ~ ${user.endDate}` : "이용 기간 정보 없음";
-    
-    // [추가] 남은 취소 횟수 화면 표시
-    document.getElementById('cur-cancel-count').innerText = user.ticketType ? `${user.remainingCancelCount || 0}회 / ${user.totalCancelLimit || 0}회` : "-";
+    // 2. 현재 이용권 상단 요약 정보 (화면 표시용)
+    const hasTicket = Boolean(user.ticketType);
 
+    document.getElementById('cur-ticket').innerText = user.ticketType || "없음(이용권 미등록)";
+    document.getElementById('cur-count').innerText = hasTicket 
+        ? `${user.remainingCount ?? 0}회 / ${user.totalCount ?? 0}회` 
+        : "-";
+    document.getElementById('cur-period').innerText = user.startDate 
+        ? `${user.startDate} ~ ${user.endDate}` 
+        : "이용 기간 정보 없음";
+
+    // [일반 취소] 화면 표시
+    document.getElementById('cur-cancel-count').innerText = hasTicket 
+        ? `${user.remainingCancelCount ?? 0}회 / ${user.totalCancelLimit ?? 0}회` 
+        : "-";
+
+    // [당일 취소] 화면 표시
+    const curTodayCancelElem = document.getElementById('cur-today-cancel-count');
+    if (curTodayCancelElem) {
+        curTodayCancelElem.innerText = hasTicket 
+            ? `${user.remainingTodayCancelCount ?? 0}회 / ${user.totalTodayCancelLimit ?? 0}회` 
+            : "-";
+    }
+
+    // 3. 하단 수정 폼 Input 값 바인딩
     document.getElementById('edit-ticket-type').value = user.ticketType || '';
-    document.getElementById('edit-total-count').value = user.totalCount || 0;
-    document.getElementById('edit-remaining-count').value = user.remainingCount || 0;
+    document.getElementById('edit-total-count').value = user.totalCount ?? 0;
+    document.getElementById('edit-remaining-count').value = user.remainingCount ?? 0;
     document.getElementById('edit-start-date').value = user.startDate || '';
     document.getElementById('edit-end-date').value = user.endDate || '';
-    
-    // [추가] 수정 input 값 바인딩
-    document.getElementById('edit-total-cancel').value = user.totalCancelLimit || 0;
-    document.getElementById('edit-remaining-cancel').value = user.remainingCancelCount || 0;
-    
-    document.getElementById('edit-template-select').value = '';
 
-    /* 당일취소 */
-    // 1. 화면 표시 데이터 매핑 (총 취소 vs 당일 취소)
-    document.getElementById('cur-cancel-count').innerText = user.ticketType ? `${user.remainingCancelCount || 0}회 / ${user.totalCancelLimit || 0}회` : "-";
-    document.getElementById('cur-today-cancel-count').innerText = user.ticketType ? `${user.remainingTodayCancelCount || 0}회 / ${user.totalTodayCancelLimit || 0}회` : "-";
+    // [일반 취소] 수정 Input
+    document.getElementById('edit-total-cancel').value = user.totalCancelLimit ?? 0;
+    document.getElementById('edit-remaining-cancel').value = user.remainingCancelCount ?? 0;
 
-    // 2. 수정 폼 input 값 매핑 (기존 취소 횟수 아래에 배치)
-    document.getElementById('edit-total-cancel').value = user.totalCancelLimit || 0;
-    document.getElementById('edit-remaining-cancel').value = user.remainingCancelCount || 0;
-    
-    // [추가] 당일 취소 수정 데이터 바인딩
-    document.getElementById('edit-total-today-cancel').value = user.totalTodayCancelLimit || 0;
-    document.getElementById('edit-remaining-today-cancel').value = user.remainingTodayCancelCount || 0;
-    
+    // [당일 취소] 수정 Input (안전하게 엘리먼트 존재 여부 확인 후 입력)
+    const editTotalToday = document.getElementById('edit-total-today-cancel');
+    const editRemainingToday = document.getElementById('edit-remaining-today-cancel');
+
+    if (editTotalToday) {
+        editTotalToday.value = user.totalTodayCancelLimit ?? 0;
+    }
+    if (editRemainingToday) {
+        editRemainingToday.value = user.remainingTodayCancelCount ?? 0;
+    }
+
+    // 템플릿 셀렉트박스 초기화
+    const templateSelect = document.getElementById('edit-template-select');
+    if (templateSelect) templateSelect.value = '';
 }
+/* 여기까지 */
 
 function closeDetailView() {
     activeUserId = null;
