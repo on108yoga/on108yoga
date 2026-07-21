@@ -156,24 +156,50 @@ function addDays(dateStr, days) {
 }
 
 // 이용권 템플릿 변경 자동화 - 수정용
+// 이용권 템플릿 선택 시 (누적 합산 로직 추가)
 window.applyTemplateToEdit = () => {
     const select = document.getElementById('edit-template-select');
     if (!select.value) return;
 
-    const [count, days] = select.value.split(',');
-    const startDate = document.getElementById('edit-start-date').value || new Date().toISOString().split('T')[0];
+    // 선택된 템플릿의 [추가할 횟수, 연장할 일수]
+    const [addCountStr, addDaysStr] = select.value.split(',');
+    const addCount = parseInt(addCountStr, 10) || 0;
+    const addDays = parseInt(addDaysStr, 10) || 0;
+
+    // 1. 기존 입력창에 있던 횟수 가져오기
+    const currentTotal = parseInt(document.getElementById('edit-total-count').value, 10) || 0;
+    const currentRemaining = parseInt(document.getElementById('edit-remaining-count').value, 10) || 0;
+
+    // 2. 횟수 누적 계산 (기존 남은 횟수 + 새로 추가한 횟수)
+    const newTotal = currentTotal + addCount;
+    const newRemaining = currentRemaining + addCount; // 👈 남은 횟수 + 추가 이용권!
+
+    // 3. 화면 입력창에 합산된 값 세팅
+    document.getElementById('edit-total-count').value = newTotal;
+    document.getElementById('edit-remaining-count').value = newRemaining;
+    document.getElementById('edit-ticket-type').value = `${addCount}회권 추가 (${newTotal}회)`;
+
+    // 4. 날짜 연장 처리 (기존 만료일이 있으면 만료일 기준으로 연장, 없으면 오늘 기준)
+    const existingEndDate = document.getElementById('edit-end-date').value;
+    const baseDate = existingEndDate ? existingEndDate : (document.getElementById('edit-start-date').value || new Date().toISOString().split('T')[0]);
+
+    if (!document.getElementById('edit-start-date').value) {
+        document.getElementById('edit-start-date').value = new Date().toISOString().split('T')[0];
+    }
     
-    document.getElementById('edit-start-date').value = startDate;
-    document.getElementById('edit-ticket-type').value = `${count}회권 (${days}일)`;
-    document.getElementById('edit-total-count').value = count;
-    
-    // 💡 핵심: 템플릿 선택 시 잔여 횟수도 총 횟수와 동일하게 설정합니다.
-    document.getElementById('edit-remaining-count').value = count; 
-    
-    document.getElementById('edit-end-date').value = addDays(startDate, days);
+    // 만료일 연장
+    document.getElementById('edit-end-date').value = addDaysToDate(baseDate, addDays);
 };
 
+// 날짜에 일수를 더해주는 유틸리티 함수
+function addDaysToDate(dateString, days) {
+    const date = new Date(dateString);
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split('T')[0];
+}
 
+
+//이건 뭐지
 window.calculateEditEndDate = () => {
     const select = document.getElementById('edit-template-select');
     if(select.value) {
@@ -206,8 +232,9 @@ window.calculateRegEndDate = () => {
     }
 };
 
+
 // 3. 이용권 수정 저장
-// 3. 이용권 수정 저장
+// 이용권 저장 및 횟수 추가/수정
 window.updateUserTicket = async () => {
     if (!activeUserId) {
         alert("선택된 회원이 없습니다. 왼쪽 목록에서 회원을 먼저 선택해주세요.");
@@ -216,7 +243,6 @@ window.updateUserTicket = async () => {
 
     const ticketType = document.getElementById('edit-ticket-type')?.value.trim() || "";
     
-    // 입력된 숫자를 안전하게 변환하는 함수
     const parseNum = (id) => {
         const elem = document.getElementById(id);
         if (!elem) return 0;
@@ -224,25 +250,29 @@ window.updateUserTicket = async () => {
         return isNaN(val) ? 0 : val;
     };
 
-    const totalCount = parseNum('edit-total-count');
-    const remainingCount = parseNum('edit-remaining-count'); // 👈 여기서 input의 값을 정상 수집합니다.
+    // 입력창에서 입력된 값
+    const inputTotalCount = parseNum('edit-total-count');
+    const inputRemainingCount = parseNum('edit-remaining-count');
     const startDate = document.getElementById('edit-start-date')?.value || "";
     const endDate = document.getElementById('edit-end-date')?.value || "";
     
-    // 취소 관련 제한 횟수
+    // 취소 횟수 관련
     const totalCancelLimit = parseNum('edit-total-cancel');
     const remainingCancelCount = parseNum('edit-remaining-cancel');
-    
-    // 당일 취소 제한 횟수
     const totalTodayCancelLimit = parseNum('edit-total-today-cancel');
     const remainingTodayCancelCount = parseNum('edit-remaining-today-cancel');
 
     try {
         const userDocRef = doc(db, 'users', activeUserId);
+        
+        // 💡 핵심: 기존에 입력창에 지정된 횟수 그대로 저장
+        // 만약 '기존 잔여 횟수 + 추가 이용권'을 실시간으로 입력창에 반영하려면 
+        // 템플릿 선택(applyTemplateToEdit) 시 기존 값에 더해지도록 구성합니다.
+        
         await updateDoc(userDocRef, {
             ticketType,
-            totalCount,
-            remainingCount, // Firestore에 잔여 횟수 정확히 반영
+            totalCount: inputTotalCount,
+            remainingCount: inputRemainingCount, // 입력된 잔여 횟수 반영
             startDate,
             endDate,
             totalCancelLimit,
@@ -250,7 +280,8 @@ window.updateUserTicket = async () => {
             totalTodayCancelLimit,
             remainingTodayCancelCount
         });
-        alert("이용권 및 잔여 횟수 정보가 성공적으로 수정되었습니다.");
+
+        alert("이용권 정보가 성공적으로 반영되었습니다.");
     } catch (err) {
         console.error("수정 오류:", err);
         alert("수정 실패: " + err.message);
