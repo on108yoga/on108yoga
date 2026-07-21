@@ -27,11 +27,10 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // 📌 [1] 내 예약 목록 불러오기 함수
-async function loadMyReservations(userUid) {
+// mypage.js
+async function loadMyReservations(userOrUid) {
     const listContainer = document.getElementById('reservation-list');
     const loadingElem = document.getElementById('reservation-loading');
-
-    console.log("🔍 [예약 내역 조회 시작] UID:", userUid);
 
     if (!listContainer) {
         console.warn("⚠️ 'reservation-list' 아이디를 가진 HTML 요소를 찾을 수 없습니다.");
@@ -39,51 +38,77 @@ async function loadMyReservations(userUid) {
     }
 
     try {
-        // 색인 에러 방지를 위해 orderBy를 지우고 단순 조회로 테스트
-        const q = query(
-            collection(db, "reservations"),
-            where("userId", "==", userUid)
-        );
+        // 1. 유저 정보 추출 (문자열이 들어오든 객체가 들어오든 대응)
+        const currentUser = auth.currentUser;
+        const uid = typeof userOrUid === 'string' ? userOrUid : (userOrUid?.uid || currentUser?.uid || "");
+        
+        // 전화번호 정형화 (01012345678)
+        let phone = (currentUser?.phoneNumber || "").replace(/[^0-9]/g, '');
+        if (phone.startsWith("82")) phone = "0" + phone.substring(2);
 
-        const querySnapshot = await getDocs(q);
-        console.log("✅ [예약 내역 조회 완료] 총 개수:", querySnapshot.size);
+        const email = currentUser?.email || "";
 
-        // 로딩 텍스트 숨기기
+        console.log(`🔍 [예약 내역 조회] 검색 조건 - UID: "${uid}", Phone: "${phone}", Email: "${email}"`);
+
+        // 2. 전체 예약 목록을 불러온 후 내 데이터만 필터링 (필드명 mismatch 완벽 방지)
+        const querySnapshot = await getDocs(collection(db, "reservations"));
+        console.log("✅ [DB 전체 예약 문서 개수]:", querySnapshot.size);
+
+        let myReservations = [];
+
+        querySnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            
+            // userId, uid, phone, email 중 하나라도 내 정보와 일치하는지 체크
+            const isMyBooking = 
+                (uid && (data.userId === uid || data.uid === uid)) ||
+                (phone && (data.userId === phone || data.phone === phone || (data.phone && data.phone.replace(/[^0-9]/g, '') === phone))) ||
+                (email && (data.userId === email || data.email === email));
+
+            if (isMyBooking) {
+                myReservations.push({ id: docSnap.id, ...data });
+            }
+        });
+
+        console.log("🎉 [내 예약 매칭 결과]:", myReservations);
+
+        // 3. UI 처리
         if (loadingElem) loadingElem.style.display = 'none';
         listContainer.innerHTML = '';
 
-        if (querySnapshot.empty) {
+        if (myReservations.length === 0) {
             listContainer.innerHTML = `
-                <div style="padding: 20px; text-align: center; color: #999;">
+                <div style="padding: 24px; text-align: center; color: #888; background: #f9f9f9; border-radius: 8px;">
                     아직 예약된 내역이 없습니다.
                 </div>
             `;
             return;
         }
 
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            const docId = doc.id;
+        // 날짜순 내림차순 정렬 (최신 예약을 위로)
+        myReservations.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
+        // 카드 생성
+        myReservations.forEach((res) => {
             const itemCard = document.createElement('div');
             itemCard.className = 'reservation-card';
             itemCard.innerHTML = `
                 <div class="res-info">
-                    <span class="res-date">📅 ${data.date || '날짜 없음'}</span>
-                    <span class="res-time">⏰ ${data.time || '시간 없음'}</span>
+                    <span class="res-date">📅 ${res.date || '날짜 없음'}</span>
+                    <span class="res-time">⏰ ${res.time || '시간 없음'}</span>
+                    ${res.className ? `<span class="res-class">🧘 ${res.className}</span>` : ''}
                 </div>
                 <div class="res-status">
-                    <span class="badge ${data.status === 'canceled' ? 'badge-canceled' : 'badge-active'}">
-                        ${data.status === 'canceled' ? '취소됨' : '예약완료'}
+                    <span class="badge ${res.status === 'canceled' ? 'badge-canceled' : 'badge-active'}">
+                        ${res.status === 'canceled' ? '취소됨' : '예약완료'}
                     </span>
                 </div>
             `;
-
             listContainer.appendChild(itemCard);
         });
 
     } catch (error) {
-        console.error("🚨 예약 내역 조회 중 실제 에러 발생:", error);
+        console.error("🚨 예약 내역 조회 중 에러 발생:", error);
         if (loadingElem) {
             loadingElem.innerText = `오류 발생: ${error.message}`;
         }
@@ -112,6 +137,8 @@ async function initMyPageSync(user) {
         if (!uidSnap.empty) {
             console.log("✅ [1단계 성공] Auth UID 매칭:", user.uid);
             bindRealtimeListener(uidDocRef);
+            // 👇 예약 내역 불러오기 함수 호출 추가
+            loadMyReservations(user);
             return;
         }
     } catch (e) {
