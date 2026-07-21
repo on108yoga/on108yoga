@@ -247,13 +247,16 @@
        /* 모바일 화면 여백 설정 */
         @media (max-width: 768px) {
             body {
-                padding: 0 16px; /* 전체 화면 좌우 여백 16px */
+                padding: 0; /* 전체 화면 좌우 여백 16px */
                 box-sizing: border-box;
             }
-
+            main{
+                padding: 0 16px;
+            }
+            
             /* 표를 감싸는 영역이나 table 태그 */
             table {
-                padding: 0 16px;
+                padding: 0;
                 width: 100% !important;
                 margin: 0 auto;
             }
@@ -326,7 +329,7 @@
             <!-- 예약 목록이 들어갈 컨테이너 -->
             <div id="reservation-list" class="reservation-list"></div>
         </div>
-
+    <br>
     <!-- 2. 취소 제한 규정 카드 -->
     <div class="info-card">
         <div class="card-title">Cancel Policy</div>
@@ -353,6 +356,7 @@
                     <span id="remaining-today-cancel" class="badge danger">0회</span> / <span id="total-today-cancel">0회</span>
                 </span>
             </li>
+            <p> *예약취소는 예약페이지에서 취소 가능합니다. </p>
         </ul>
     </div>
 </div>
