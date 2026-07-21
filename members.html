@@ -210,6 +210,29 @@
                     <button class="btn btn-danger" onclick="deleteCurrentMember()">회원 삭제</button>
                 </div> 
 
+                <!-- 이용권 설정 및 변경 폼 밑에 추가 -->
+                    <div style="margin-top: 30px;">
+                        <h3>결제 및 환불 내역</h3>
+                        <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px;">
+                            <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 13px;">
+                                <thead style="background: #f9fafb; position: sticky; top: 0; border-bottom: 1px solid var(--border);">
+                                    <tr>
+                                        <th style="padding: 8px;">일시</th>
+                                        <th style="padding: 8px;">구분</th>
+                                        <th style="padding: 8px;">이용권 명</th>
+                                        <th style="padding: 8px;">횟수</th>
+                                        <th style="padding: 8px;">금액</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="payment-history-list">
+                                    <tr>
+                                        <td colspan="5" style="padding: 15px; color: #9ca3af;">내역이 없습니다.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
             </div>
         </div>
     </div>
