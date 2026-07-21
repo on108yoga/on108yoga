@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>마이페이지 - 이용권 현황</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
         :root {
             --primary-color: #4f46e5;
             --bg-color: #f9fafb;
@@ -144,7 +147,20 @@
             font-size: 12px;
             color: #777;
         }
-        
+        @media all and (max-width: 768px) {
+            main {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+            }
+            section {
+                width: 100%;
+                max-width: 100%;
+            }
+            .calendar-area { order: 1; }
+            .reservation-panel { order: 2; }
+            .notice { order: 3; }
+        }
     </style>
 </head>
 <body>
