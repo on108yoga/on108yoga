@@ -1,3 +1,29 @@
+/* 달력 날짜 그리드 스타일 */
+#calendarDates {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr); /* ✨ 정확히 7개 열 배치 */
+    gap: 4px;
+    text-align: center;
+}
+
+.date-item {
+    padding: 8px 0;
+    cursor: pointer;
+    border-radius: 50%;
+    font-size: 14px;
+}
+
+.date-item.sun { color: #ef4444; } /* 일요일 */
+.date-item.sat { color: #3b82f6; } /* 토요일 */
+.date-item.selected {
+    background-color: #3b82f6;
+    color: white !important;
+}
+.date-item.empty {
+    cursor: default;
+}
+
+
 .custom-calendar{
 
 background:#fffaf0;
