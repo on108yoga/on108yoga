@@ -157,47 +157,86 @@ function addDays(dateStr, days) {
 
 // 이용권 템플릿 변경 자동화 - 수정용
 // 이용권 템플릿 선택 시 (누적 합산 로직 추가)
+// 1. 기존 회원의 이용권 추가/수정 시 템플릿 적용
 window.applyTemplateToEdit = () => {
     const select = document.getElementById('edit-template-select');
     if (!select.value) return;
 
-    // 선택된 템플릿의 [추가할 횟수, 연장할 일수]
-    const [addCountStr, addDaysStr] = select.value.split(',');
+    // value 값 분할: [추가 횟수, 연장 일수, 취소 횟수, 당일취소 횟수]
+    const [addCountStr, addDaysStr, cancelLimitStr, todayCancelLimitStr] = select.value.split(',');
+    
     const addCount = parseInt(addCountStr, 10) || 0;
     const addDays = parseInt(addDaysStr, 10) || 0;
+    const addCancel = parseInt(cancelLimitStr, 10) || 0;
+    const addTodayCancel = parseInt(todayCancelLimitStr, 10) || 0;
 
-    // 1. 기존 입력창에 있던 횟수 가져오기
-    const currentTotal = parseInt(document.getElementById('edit-total-count').value, 10) || 0;
-    const currentRemaining = parseInt(document.getElementById('edit-remaining-count').value, 10) || 0;
+    // 1) 기존 입력창의 횟수 읽어오기
+    const curTotalCount = parseInt(document.getElementById('edit-total-count').value, 10) || 0;
+    const curRemainingCount = parseInt(document.getElementById('edit-remaining-count').value, 10) || 0;
+    
+    const curTotalCancel = parseInt(document.getElementById('edit-total-cancel').value, 10) || 0;
+    const curRemainingCancel = parseInt(document.getElementById('edit-remaining-cancel').value, 10) || 0;
+    
+    const curTotalTodayCancel = parseInt(document.getElementById('edit-total-today-cancel').value, 10) || 0;
+    const curRemainingTodayCancel = parseInt(document.getElementById('edit-remaining-today-cancel').value, 10) || 0;
 
-    // 2. 횟수 누적 계산 (기존 남은 횟수 + 새로 추가한 횟수)
-    const newTotal = currentTotal + addCount;
-    const newRemaining = currentRemaining + addCount; // 👈 남은 횟수 + 추가 이용권!
+    // 2) 횟수 누적 합산 (기존 잔여/한도 + 추가분)
+    const newTotalCount = curTotalCount + addCount;
+    const newRemainingCount = curRemainingCount + addCount;
 
-    // 3. 화면 입력창에 합산된 값 세팅
-    document.getElementById('edit-total-count').value = newTotal;
-    document.getElementById('edit-remaining-count').value = newRemaining;
-    document.getElementById('edit-ticket-type').value = `${addCount}회권 추가 (${newTotal}회)`;
+    const newTotalCancel = curTotalCancel + addCancel;
+    const newRemainingCancel = curRemainingCancel + addCancel;
 
-    // 4. 날짜 연장 처리 (기존 만료일이 있으면 만료일 기준으로 연장, 없으면 오늘 기준)
+    const newTotalTodayCancel = curTotalTodayCancel + addTodayCancel;
+    const newRemainingTodayCancel = curRemainingTodayCancel + addTodayCancel;
+
+    // 3) 화면에 값 세팅
+    document.getElementById('edit-total-count').value = newTotalCount;
+    document.getElementById('edit-remaining-count').value = newRemainingCount;
+    
+    document.getElementById('edit-total-cancel').value = newTotalCancel;
+    document.getElementById('edit-remaining-cancel').value = newRemainingCancel;
+
+    document.getElementById('edit-total-today-cancel').value = newTotalTodayCancel;
+    document.getElementById('edit-remaining-today-cancel').value = newRemainingTodayCancel;
+
+    document.getElementById('edit-ticket-type').value = `${addCount}회권 추가 (${newTotalCount}회)`;
+
+    // 4) 만료일 연장 처리
     const existingEndDate = document.getElementById('edit-end-date').value;
-    const baseDate = existingEndDate ? existingEndDate : (document.getElementById('edit-start-date').value || new Date().toISOString().split('T')[0]);
-
-    if (!document.getElementById('edit-start-date').value) {
-        document.getElementById('edit-start-date').value = new Date().toISOString().split('T')[0];
+    const startDateInput = document.getElementById('edit-start-date');
+    
+    if (!startDateInput.value) {
+        startDateInput.value = new Date().toISOString().split('T')[0];
     }
     
-    // 만료일 연장
+    const baseDate = existingEndDate ? existingEndDate : startDateInput.value;
     document.getElementById('edit-end-date').value = addDaysToDate(baseDate, addDays);
 };
 
-// 날짜에 일수를 더해주는 유틸리티 함수
+// 2. 신규 회원 등록 모달에서 템플릿 적용
+window.applyTemplateToReg = () => {
+    const select = document.getElementById('reg-template');
+    if (!select.value) return;
+
+    const [count, days, cancelLimit, todayCancelLimit] = select.value.split(',');
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    document.getElementById('reg-ticket').value = `${count}회권 (${days}일)`;
+    document.getElementById('reg-count').value = count;
+    document.getElementById('reg-cancel-count').value = cancelLimit;
+    document.getElementById('reg-today-cancel-count').value = todayCancelLimit;
+    
+    document.getElementById('reg-start').value = todayStr;
+    document.getElementById('reg-end').value = addDaysToDate(todayStr, parseInt(days, 10));
+};
+
+// 날짜 연장 유틸리티 함수
 function addDaysToDate(dateString, days) {
     const date = new Date(dateString);
     date.setDate(date.getDate() + days);
     return date.toISOString().split('T')[0];
 }
-
 
 //이건 뭐지
 window.calculateEditEndDate = () => {
