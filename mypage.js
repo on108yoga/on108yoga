@@ -1,4 +1,4 @@
-// mypage.js (중복 제거 및 완전체 버전)
+// mypage.js (중복 제거 및 완전체 버전 - 페이지네이션 & 만료처리 포함)
 import { db, auth } from './firebase.js';
 import { 
     doc, 
@@ -15,6 +15,11 @@ import {
 
 let unsubscribeUser = null;
 
+// 📌 페이지네이션 전역 상태 변수
+let allMyReservations = []; // 내 전체 예약 목록 데이터
+let currentPage = 1;
+const itemsPerPage = 10;   // 한 페이지당 10개씩 표시
+
 // 로그인 상태 감지
 onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -27,11 +32,10 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // 📌 [1] 내 예약 목록 불러오기 함수
-// mypage.js
-// mypage.js
 async function loadMyReservations(userOrUid) {
     const listContainer = document.getElementById('reservation-list');
     const loadingElem = document.getElementById('reservation-loading');
+    const paginationContainer = document.getElementById('reservation-pagination');
 
     if (!listContainer) return;
 
@@ -52,9 +56,9 @@ async function loadMyReservations(userOrUid) {
         const querySnapshot = await getDocs(collection(db, "reservations"));
         console.log("📦 전체 예약 건수:", querySnapshot.size);
 
-        let myReservations = [];
+        allMyReservations = [];
 
-        // 3. 다양한 필드명/값 형태를 모두 비교
+        // 3. 다양한 필드명/값 형태를 모두 비교하여 내 예약 필터링
         querySnapshot.forEach((docSnap) => {
             const data = docSnap.data();
             
@@ -70,45 +74,30 @@ async function loadMyReservations(userOrUid) {
                 (cleanPhone && cleanPhone.length >= 8 && targetPhone === cleanPhone);
 
             if (isMatch) {
-                myReservations.push({ id: docSnap.id, ...data });
+                allMyReservations.push({ id: docSnap.id, ...data });
             }
         });
 
-        console.log("🎉 [회원 예약 내역 매칭 성공]:", myReservations);
+        console.log("🎉 [회원 예약 내역 매칭 성공]:", allMyReservations);
 
-        // 4. UI 출력
         if (loadingElem) loadingElem.style.display = 'none';
-        listContainer.innerHTML = '';
 
-        if (myReservations.length === 0) {
+        if (allMyReservations.length === 0) {
             listContainer.innerHTML = `
                 <div style="padding: 20px; text-align: center; color: #888;">
                     아직 예약된 내역이 없습니다.
                 </div>
             `;
+            if (paginationContainer) paginationContainer.innerHTML = '';
             return;
         }
 
-        // 날짜 내림차순 정렬
-        myReservations.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+        // 날짜 내림차순 정렬 (최신 날짜 우선)
+        allMyReservations.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
-        myReservations.forEach((res) => {
-            const itemCard = document.createElement('div');
-            itemCard.className = 'reservation-card';
-            itemCard.innerHTML = `
-                <div class="res-info">
-                    <span class="res-date">📅 ${res.date || '날짜 없음'}</span>
-                    <span class="res-time">⏰ ${res.time || '시간 없음'}</span>
-                    ${res.className ? `<span class="res-class">🧘 ${res.className}</span>` : ''}
-                </div>
-                <div class="res-status">
-                    <span class="badge ${res.status === 'canceled' ? 'badge-canceled' : 'badge-active'}">
-                        ${res.status === 'canceled' ? '취소됨' : '예약완료'}
-                    </span>
-                </div>
-            `;
-            listContainer.appendChild(itemCard);
-        });
+        // 4. 첫 페이지 렌더링 호출
+        currentPage = 1;
+        renderReservationPage(currentPage);
 
     } catch (error) {
         console.error("🚨 예약 내역 조회 오류:", error);
@@ -118,6 +107,86 @@ async function loadMyReservations(userOrUid) {
     }
 }
 
+// 📌 [1-1] 특정 페이지의 예약 목록(10개씩)을 화면에 출력하는 함수
+function renderReservationPage(page) {
+    const listContainer = document.getElementById('reservation-list');
+    if (!listContainer) return;
+
+    listContainer.innerHTML = '';
+
+    // 오늘 날짜 계산 (YYYY-MM-DD 형식)
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${year}-${month}-${day}`;
+
+    // 페이지에 맞는 10개 데이터만 슬라이싱
+    const startIndex = (page - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageData = allMyReservations.slice(startIndex, endIndex);
+
+    pageData.forEach((res) => {
+        const itemCard = document.createElement('div');
+        itemCard.className = 'reservation-card';
+
+        // 💡 지난 날짜 판별 조건 (오늘 날짜보다 이전인 경우)
+        const isPastDate = res.date && res.date < todayStr;
+        const isCanceled = res.status === 'canceled';
+
+        // 상태 배지 생성
+        let statusBadge = '';
+        if (isCanceled) {
+            statusBadge = `<span class="badge badge-canceled">취소됨</span>`;
+        } else if (isPastDate) {
+            // 지난 날짜일 경우 붉은색 예약만료 표시!
+            statusBadge = `<span class="badge badge-expired-red">예약만료</span>`;
+        } else {
+            statusBadge = `<span class="badge badge-active">예약완료</span>`;
+        }
+
+        itemCard.innerHTML = `
+            <div class="res-info">
+                <span class="res-date">📅 ${res.date || '날짜 없음'}</span>
+                <span class="res-time">⏰ ${res.time || '시간 없음'}</span>
+                ${res.className ? `<span class="res-class">🧘 ${res.className}</span>` : ''}
+            </div>
+            <div class="res-status">
+                ${statusBadge}
+            </div>
+        `;
+        listContainer.appendChild(itemCard);
+    });
+
+    // 페이지 이동 후 카드 영역 맨 위로 스크롤
+    listContainer.scrollTop = 0;
+
+    // 하단 페이지네이션 번호 버튼 생성
+    renderPaginationControls(allMyReservations.length, page);
+}
+
+// 📌 [1-2] 하단 페이지 번호 버튼 (1, 2, 3...) 생성 함수
+function renderPaginationControls(totalItems, activePage) {
+    const paginationContainer = document.getElementById('reservation-pagination');
+    if (!paginationContainer) return;
+
+    paginationContainer.innerHTML = '';
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+    // 총 페이지가 1 이하일 때는 버튼을 표시하지 않음
+    if (totalPages <= 1) return;
+
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.className = `page-btn ${i === activePage ? 'active' : ''}`;
+        btn.innerText = i;
+        btn.onclick = () => {
+            currentPage = i;
+            renderReservationPage(i);
+        };
+        paginationContainer.appendChild(btn);
+    }
+}
 
 // [2] 회원 데이터 동기화 시작
 async function initMyPageSync(user) {
@@ -140,7 +209,7 @@ async function initMyPageSync(user) {
         if (!uidSnap.empty) {
             console.log("✅ [1단계 성공] Auth UID 매칭:", user.uid);
             bindRealtimeListener(uidDocRef);
-            // 👇 예약 내역 불러오기 함수 호출 추가
+            // 예약 내역 불러오기 함수 호출
             loadMyReservations(user);
             return;
         }
@@ -157,14 +226,15 @@ async function initMyPageSync(user) {
     }
 
     if (cleanPhone) {
-        const phoneDocRef = doc(db, 'users', cleanPhone);
+        const phoneDocRef = doc(doc(db, 'users', cleanPhone));
         console.log("🔍 [2단계 시도] 전화번호 문서 ID 탐색:", cleanPhone);
         bindRealtimeListener(phoneDocRef);
+        loadMyReservations(user);
         return;
     }
 
-    // 3단계: DB 전체 검색 (휴대폰 번호 조건 검색)
-    await searchUserInFirestore(user);
+    // 3단계: 기타 방식 대비 예약 내역 직접 로드
+    loadMyReservations(user);
 }
 
 // 실시간 감시 스냅샷 연결
@@ -172,12 +242,9 @@ function bindRealtimeListener(docRef) {
     unsubscribeUser = onSnapshot(docRef, (docSnap) => {
         if (docSnap.exists()) {
             console.log("🎉 실시간 수신 데이터:", docSnap.data());
-            // 문서 데이터와 함께 docSnap.id (문서 ID)도 넘겨줍니다.
             renderMyPageUI(docSnap.data(), docSnap.id);
         } else {
             console.warn("⚠️ 문서를 찾을 수 없습니다:", docRef.id);
-            const user = auth.currentUser;
-            if (user) searchUserInFirestore(user);
         }
     }, (error) => {
         console.error("🚨 실시간 구독 오류:", error);
@@ -191,25 +258,21 @@ function renderMyPageUI(data, docId = "") {
     // 🆔 2. 아이디 표시 (DB의 userId/email 필드 -> 문서 ID -> Auth 이메일/전화번호 순)
     const userIdElem = document.getElementById('user-id');
     if (userIdElem) {
-        // 1. Auth 전화번호 정형화 (8210... -> 010...)
         let authPhone = (user?.phoneNumber || "").replace(/[^0-9]/g, '');
         if (authPhone.startsWith("82")) authPhone = "0" + authPhone.substring(2);
 
-        // 2. DB 전화번호 정형화
         let dbPhone = (data.phone || data.phoneNumber || "").replace(/[^0-9]/g, '');
 
-       // 3. 우선순위에 따라 있는 값을 선택
-        const displayId = data.userId ||            // DB에 'userId' 필드가 있는 경우
-                          data.email ||             // DB에 'email' 필드가 있는 경우
-                          user?.email ||            // Auth 계정에 이메일이 있는 경우
-                          authPhone ||              // Auth 계정에 전화번호가 있는 경우
-                          dbPhone ||                // DB에 전화번호가 있는 경우
-                          data.id ||                // DB에 'id' 필드가 있는 경우
-                          user?.uid ||              // 최후의 수단: Auth UID
+        const displayId = data.userId ||            
+                          data.email ||             
+                          user?.email ||            
+                          authPhone ||              
+                          dbPhone ||                
+                          data.id ||                
+                          user?.uid ||              
                           "-";
-        console.log("🆔 최종 표시될 아이디:", displayId); // 콘솔에서 확인용
+        console.log("🆔 최종 표시될 아이디:", displayId);
         userIdElem.innerText = displayId;
-        
     }
 
     // 1. 회원 이름
