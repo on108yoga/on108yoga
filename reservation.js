@@ -26,12 +26,17 @@ let selectedDate = "";
 let selectedTime = "";
 let unsubscribeUser = null; // 실시간 감시 해제용
 
-const classTimes = [
-    "09:30",
-    "11:00",
-    "18:30",
-    "20:00"
-];
+
+// 🗓️ 요일별 예약 가능 시간표 정의
+const weeklySchedule = {
+    0: [], // 일요일: 휴무 (빈 배열)
+    1: ["09:30", "11:00", "18:00", "19:30"], // 월요일
+    2: ["14:00", "15:30", "18:00", "19:30"], // 화요일
+    3: ["09:30", "11:00", "18:00", "19:30"], // 수요일
+    4: ["14:00", "15:30", "18:00", "19:30"], // 목요일
+    5: ["09:30", "11:00", "18:00", "19:30"], // 금요일
+    6: [] // 토요일: 휴무 (빈 배열)
+};
 
 const MAX_PEOPLE = 10;
 
@@ -123,11 +128,48 @@ window.setSelectedDate = function(date) {
     loadReservation();
 };
 
-function clearTimeCounts() {
-    classTimes.forEach(time => {
-        const id = "count" + time.replace(":", "");
-        const element = document.getElementById(id);
-        if (element) element.innerText = "0";
+/* 🗓️ 요일별 예약 가능 시간표 정의 2 */
+function updateTimeOptions(selectedDateStr) {
+    const timeSelect = document.getElementById('res-time');
+    if (!timeSelect || !selectedDateStr) return;
+
+    // 1. 선택된 날짜로 Date 객체 생성
+    const selectedDate = new Date(selectedDateStr);
+    
+    // 2. 요일 숫자 추출 (0: 일요일, 1: 월요일, ... 6: 토요일)
+    const dayOfWeek = selectedDate.getDay();
+
+    // 3. 해당 요일의 시간표 가져오기
+    const availableTimes = weeklySchedule[dayOfWeek] || [];
+
+    // 4. 시간 Select 박스 초기화
+    timeSelect.innerHTML = '';
+
+    // 5. 예약 가능 시간이 없는 날짜(예: 휴무일) 처리
+    if (availableTimes.length === 0) {
+        const option = document.createElement('option');
+        option.value = "";
+        option.innerText = "해당 요일은 수업/예약이 없습니다.";
+        timeSelect.appendChild(option);
+        timeSelect.disabled = true; // 선택 불가 처리
+        return;
+    }
+
+    // 6. 정상 시간 목록 추가
+    timeSelect.disabled = false;
+    
+    // 기본 안내 옵션
+    const defaultOption = document.createElement('option');
+    defaultOption.value = "";
+    defaultOption.innerText = "시간을 선택해주세요";
+    timeSelect.appendChild(defaultOption);
+
+    // 요일별 시간 옵션 생성
+    availableTimes.forEach(time => {
+        const option = document.createElement('option');
+        option.value = time;
+        option.innerText = time;
+        timeSelect.appendChild(option);
     });
 }
 
@@ -178,7 +220,7 @@ async function loadReservation() {
 
     console.log(`🔍 [예약 현황 조회 시작] 날짜: "${selectedDate}"`);
 
-    for (const time of classTimes) {
+    for (const time of weeklySchedule) {
         try {
             const q = query(
                 collection(db, "reservations"),
