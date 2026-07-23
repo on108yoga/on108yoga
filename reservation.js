@@ -446,50 +446,89 @@ window.cancelReservation = async function(id) {
 ================================
 */
 async function loadMyReservation() {
-    if (!auth.currentUser) return;
+    const user = auth.currentUser;
+    if (!user) {
+        console.warn("로그인된 사용자가 없어 내 예약을 불러오지 않습니다.");
+        return;
+    }
 
     const box = document.getElementById("myReservations");
-    if (!box) return;
+    if (!box) {
+        console.warn("⚠️ 'myReservations' ID를 가진 요소를 찾을 수 없습니다.");
+        return;
+    }
 
-    box.innerHTML = "<h3 style='margin-top:20px;'>내 예약 목록</h3>";
+    // 초기화 및 타이틀 생성
+    box.innerHTML = "<h3 style='margin-top:20px; font-size:16px; font-weight:bold;'>내 예약 목록</h3>";
 
-    const q = query(
-        collection(db, "reservations"),
-        where("uid", "==", auth.currentUser.uid)
-    );
+    try {
+        const q = query(
+            collection(db, "reservations"),
+            where("uid", "==", user.uid)
+        );
 
-    const snapshot = await getDocs(q);
-    
-    const now = new Date();
-    const todayStr = getTodayString();
-    const currentHoursMinutes = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        const snapshot = await getDocs(q);
+        
+        const now = new Date();
+        const todayStr = getTodayString();
+        const currentHoursMinutes = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-    let count = 0;
+        let validReservations = [];
 
-    snapshot.forEach(item => {
-        const data = item.data();
+        // 1. 유효한 예약 내역 필터링
+        snapshot.forEach(item => {
+            const data = item.data();
+            const isFutureDate = data.date > todayStr;
+            const isTodayUpcoming = (data.date === todayStr && data.time >= currentHoursMinutes);
 
-        const isFutureDate = data.date > todayStr;
-        const isTodayUpcoming = (data.date === todayStr && data.time >= currentHoursMinutes);
+            if (isFutureDate || isTodayUpcoming) {
+                validReservations.push({ id: item.id, ...data });
+            }
+        });
 
-        if (isFutureDate || isTodayUpcoming) {
-            count++;
-            box.innerHTML += `
-                <div class="my-reservation" style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding:8px 12px; background:#ffffff; border:1px solid #e5e7eb; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
-                    <span style="font-size:14px; color:#374151;">🗓️ ${data.date} (${data.time})</span>
-                    <button type="button" onclick="cancelReservation('${item.id}')" style="background:#fee2e2; color:#ef4444; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:12px;">
-                        취소
-                    </button>
-                </div>
-            `;
+        // 2. 날짜 및 시간순 정렬 (최신 순)
+        validReservations.sort((a, b) => {
+            if (a.date === b.date) return a.time.localeCompare(b.time);
+            return a.date.localeCompare(b.date);
+        });
+
+        // 3. 목록 표시
+        if (validReservations.length === 0) {
+            box.innerHTML += "<p style='color:#9ca3af; font-size:13px; margin-top:8px;'>예약된 내역이 없습니다.</p>";
+            return;
         }
-    });
 
-    if (count === 0) {
-        box.innerHTML += "<p style='color:#9ca3af; font-size:13px; margin-top:8px;'>예약된 내역이 없습니다.</p>";
+        const listContainer = document.createElement("div");
+        listContainer.style.marginTop = "10px";
+
+        validReservations.forEach(res => {
+            const itemDiv = document.createElement("div");
+            itemDiv.className = "my-reservation";
+            itemDiv.style.cssText = "display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding:10px 12px; background:#ffffff; border:1px solid #e5e7eb; border-radius:6px; box-shadow:0 1px 3px rgba(0,0,0,0.05);";
+
+            itemDiv.innerHTML = `
+                <span style="font-size:14px; color:#374151; font-weight:500;">🗓️ ${res.date} (${res.time})</span>
+                <button type="button" class="cancel-btn" data-id="${res.id}" style="background:#fee2e2; color:#ef4444; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">
+                    예약 취소
+                </button>
+            `;
+
+            // 버튼 클릭 이벤트 바인딩
+            const cancelBtn = itemDiv.querySelector(".cancel-btn");
+            cancelBtn.addEventListener("click", () => {
+                cancelReservation(res.id);
+            });
+
+            listContainer.appendChild(itemDiv);
+        });
+
+        box.appendChild(listContainer);
+
+    } catch (error) {
+        console.error("내 예약 불러오기 오류:", error);
+        box.innerHTML += "<p style='color:#ef4444; font-size:13px; margin-top:8px;'>예약 내역을 불러오는 중 오류가 발생했습니다.</p>";
     }
 }
-
 /*
 ================================
 로그인 상태 변경 감지
