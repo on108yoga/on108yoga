@@ -206,11 +206,72 @@
                 padding: 0 16px; /* 모바일 좌우 여백 */
             }
             
+            /* 📌 1. 카드 5개 기준 높이 제한 & 내부 스크롤 (약 380px) */
             .reservation-list {
                 display: flex;
                 flex-direction: column;
                 gap: 12px;
                 margin-top: 12px;
+                max-height: 380px;      /* 카드 약 5개 분량의 높이 */
+                overflow-y: auto;       /* 5개 초과 시 Y축 스크롤 생성 */
+                padding-right: 4px;     /* 스크롤바 여백 */
+            }
+            
+            /* 스크롤바 예쁘게 꾸미기 */
+            .reservation-list::-webkit-scrollbar {
+                width: 6px;
+            }
+            .reservation-list::-webkit-scrollbar-thumb {
+                background-color: #ccc;
+                border-radius: 3px;
+            }
+            
+            /* 📌 2. 예약 상태 태그 스타일 */
+            .badge {
+                padding: 4px 10px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: bold;
+            }
+            .badge-active { background-color: #e0f2fe; color: #0284c7; }   /* 진행중: 파란색 */
+            .badge-expired { background-color: #ffeccc; color: #d97706; }  /* 만료됨: 붉은색/주황색 계열 */
+            .badge-canceled { background-color: #f3f4f6; color: #9ca3af; } /* 취소됨: 회색 */
+            
+            /* 만료 태그 (붉은색 강조) */
+            .badge-expired-red {
+                background-color: #fee2e2;
+                color: #dc2626;
+            }
+            
+            /* 📌 3. 페이지네이션 버튼 스타일 */
+            .pagination-container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 8px;
+                margin-top: 16px;
+            }
+            
+            .page-btn {
+                padding: 6px 12px;
+                border: 1px solid #e5e7eb;
+                background-color: #fff;
+                color: #374151;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 13px;
+                transition: all 0.2s ease;
+            }
+            
+            .page-btn.active {
+                background-color: #ff512f; /* 로고와 맞춘 오렌지 포인트 컬러 */
+                color: #fff;
+                border-color: #ff512f;
+                font-weight: bold;
+            }
+            
+            .page-btn:hover:not(.active) {
+                background-color: #f3f4f6;
             }
             
             /* 개별 예약 카드 */
@@ -332,15 +393,17 @@
         <div class="my-reservations-section">
             <h3>🗓️ 내 예약 현황</h3>
             
-            <!-- 로딩 중 또는 데이터가 없을 때 메시지 -->
             <div id="reservation-loading" style="text-align: center; color: #888;">
                 예약 내역을 불러오는 중...
             </div>
         
-            <!-- 예약 목록이 들어갈 컨테이너 -->
+            <!-- 📌 5개 이상 시 스크롤이 생길 목록 영역 -->
             <div id="reservation-list" class="reservation-list"></div>
+        
+            <!-- 📌 10개 단위 페이지네이션 버튼 영역 -->
+            <div id="reservation-pagination" class="pagination-container"></div>
         </div>
-    <br>
+        
     <!-- 2. 취소 제한 규정 카드 -->
     <div class="info-card">
         <div class="card-title">Cancel Policy</div>
