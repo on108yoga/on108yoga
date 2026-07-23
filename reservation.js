@@ -29,13 +29,13 @@ let unsubscribeUser = null; // 실시간 감시 해제용
 
 // 🗓️ 요일별 예약 가능 시간표 정의
 const weeklySchedule = {
-    0: [], // 일요일: 휴무 (빈 배열)
+    0: [], // 일요일: 휴무
     1: ["09:30", "11:00", "18:00", "19:30"], // 월요일
     2: ["14:00", "15:30", "18:00", "19:30"], // 화요일
     3: ["09:30", "11:00", "18:00", "19:30"], // 수요일
     4: ["14:00", "15:30", "18:00", "19:30"], // 목요일
     5: ["09:30", "11:00", "18:00", "19:30"], // 금요일
-    6: [] // 토요일: 휴무 (빈 배열)
+    6: []  // 토요일: 휴무
 };
 
 const MAX_PEOPLE = 10;
@@ -157,25 +157,25 @@ function renderTimeButtons(selectedDateStr) {
     const container = document.getElementById('timeButtons');
     if (!container || !selectedDateStr) return;
 
-    // 1. 선택된 날짜의 요일 구하기
+    // 1. 선택된 날짜의 요일 구하기 (KST 시차 문제 방지)
     const [year, month, day] = selectedDateStr.split('-').map(Number);
     const selectedDateObj = new Date(year, month - 1, day);
-    const dayOfWeek = selectedDateObj.getDay();
+    const dayOfWeek = selectedDateObj.getDay(); // 0: 일, 1: 월, ... 6: 토
 
-    // 2. 해당 요일의 예약 가능 시간 배열 가져오기
+    // 2. 해당 요일의 시간표 배열
     const availableTimes = weeklySchedule[dayOfWeek] || [];
 
     // 3. 기존 버튼 초기화
     container.innerHTML = '';
-    selectedTime = ""; // 선택 시간 초기화
+    selectedTime = ""; // 선택된 시간 초기화
 
     // 4. 휴무일 또는 수업이 없는 요일 처리
     if (availableTimes.length === 0) {
-        container.innerHTML = `<p class="no-class-text">해당 요일은 휴무/수업이 없습니다.</p>`;
+        container.innerHTML = `<p class="no-class-text" style="color:#9ca3af; font-size:14px; margin-top:10px;">해당 요일은 수업/예약이 없습니다.</p>`;
         return;
     }
 
-    // 5. 요일별 시간 버튼 생성
+    // 5. 시간대별 버튼 생성
     availableTimes.forEach(time => {
         const timeId = time.replace(":", ""); // 예: "09:30" -> "0930"
 
@@ -185,11 +185,9 @@ function renderTimeButtons(selectedDateStr) {
         button.dataset.time = time;
         button.innerHTML = `${time} (예약 <span id="count${timeId}">0</span> / ${MAX_PEOPLE}명)`;
 
-        // 버튼 클릭 이벤트 바인딩
+        // 버튼 클릭 시 활성화 이벤트
         button.addEventListener('click', () => {
-            // 기존 선택 클래스 제거
             document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected', 'active'));
-            // 현재 클릭된 버튼 활성화
             button.classList.add('selected', 'active');
             selectedTime = time;
             console.log("선택된 시간:", selectedTime);
