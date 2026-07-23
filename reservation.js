@@ -57,7 +57,18 @@ function getTodayString() {
 
 /*
 ================================
-사용자 프로필(성명 + 잔여 횟수) 실시간 불러오기 (수정됨 🔥)
+인원 표시 초기화 유틸리티
+================================
+*/
+function clearTimeCounts() {
+    document.querySelectorAll("[id^='count']").forEach(el => {
+        el.innerText = "0";
+    });
+}
+
+/*
+================================
+사용자 프로필(성명 + 잔여 횟수) 실시간 불러오기
 ================================
 */
 function listenUserProfile(user) {
@@ -65,12 +76,10 @@ function listenUserProfile(user) {
     const countElement = document.getElementById("myTicketCount");
     if (!user) return;
 
-    // 이전 감시자가 있다면 중단
     if (unsubscribeUser) unsubscribeUser();
 
     const userDocRef = doc(db, "users", user.uid);
 
-    // 💡 onSnapshot으로 변경하여 관리자가 members.html에서 수정하면 예약 화면에서도 '즉시' 업데이트됨
     unsubscribeUser = onSnapshot(userDocRef, (userSnap) => {
         let userName = user.displayName || "회원";
         let remCount = 0;
@@ -79,7 +88,6 @@ function listenUserProfile(user) {
             const userData = userSnap.data();
             if (userData.name) userName = userData.name;
 
-            // 🛑 [핵심 수정] members.js에서 사용 중인 remainingCount를 1순위로 조회!
             if (userData.remainingCount !== undefined) {
                 remCount = Number(userData.remainingCount);
             } else if (userData.ticketCount !== undefined) {
@@ -107,6 +115,7 @@ function listenUserProfile(user) {
 */
 window.setSelectedDate = function(date) {
     selectedDate = date;
+    selectedTime = ""; // 날짜 변경 시 선택된 시간 초기화
     console.log("선택 날짜:", selectedDate);
 
     const todayStr = getTodayString();
@@ -125,46 +134,42 @@ window.setSelectedDate = function(date) {
         return;
     }
 
+    // select 태그가 있다면 옵션 업데이트
+    updateTimeOptions(selectedDate);
+    
+    // 선택된 날짜의 시간대별 예약 현황 조회
     loadReservation();
 };
 
-/* 🗓️ 요일별 예약 가능 시간표 정의 2 */
+/* 🗓️ 요일별 예약 가능 시간표 select 옵션 업데이트 (Select 사용 시) */
 function updateTimeOptions(selectedDateStr) {
     const timeSelect = document.getElementById('res-time');
     if (!timeSelect || !selectedDateStr) return;
 
-    // 1. 선택된 날짜로 Date 객체 생성
-    const selectedDate = new Date(selectedDateStr);
-    
-    // 2. 요일 숫자 추출 (0: 일요일, 1: 월요일, ... 6: 토요일)
-    const dayOfWeek = selectedDate.getDay();
+    const [year, month, day] = selectedDateStr.split('-').map(Number);
+    const selectedDateObj = new Date(year, month - 1, day);
+    const dayOfWeek = selectedDateObj.getDay();
 
-    // 3. 해당 요일의 시간표 가져오기
     const availableTimes = weeklySchedule[dayOfWeek] || [];
 
-    // 4. 시간 Select 박스 초기화
     timeSelect.innerHTML = '';
 
-    // 5. 예약 가능 시간이 없는 날짜(예: 휴무일) 처리
     if (availableTimes.length === 0) {
         const option = document.createElement('option');
         option.value = "";
         option.innerText = "해당 요일은 수업/예약이 없습니다.";
         timeSelect.appendChild(option);
-        timeSelect.disabled = true; // 선택 불가 처리
+        timeSelect.disabled = true;
         return;
     }
 
-    // 6. 정상 시간 목록 추가
     timeSelect.disabled = false;
     
-    // 기본 안내 옵션
     const defaultOption = document.createElement('option');
     defaultOption.value = "";
     defaultOption.innerText = "시간을 선택해주세요";
     timeSelect.appendChild(defaultOption);
 
-    // 요일별 시간 옵션 생성
     availableTimes.forEach(time => {
         const option = document.createElement('option');
         option.value = time;
@@ -181,10 +186,11 @@ function updateTimeOptions(selectedDateStr) {
 function isWeekendOrHoliday(dateStr) {
     if (!dateStr) return false;
 
-    const targetDate = new Date(`${dateStr}T00:00:00`);
-    const day = targetDate.getDay();
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const targetDate = new Date(year, month - 1, day);
+    const dayOfWeek = targetDate.getDay();
 
-    if (day === 0 || day === 6) return true;
+    if (dayOfWeek === 0 || dayOfWeek === 6) return true;
 
     const monthDay = dateStr.slice(5);
     const fixedHolidays = [
@@ -207,7 +213,7 @@ function isWeekendOrHoliday(dateStr) {
 
 /*
 ================================
-예약 인원 불러오기
+예약 인원 불러오기 (수정됨 🔥)
 ================================
 */
 async function loadReservation() {
@@ -218,9 +224,17 @@ async function loadReservation() {
 
     clearTimeCounts();
 
-    console.log(`🔍 [예약 현황 조회 시작] 날짜: "${selectedDate}"`);
+    // 선택된 날짜의 요일(0~6) 계산 (Timezone 버그 방지)
+    const [year, month, day] = selectedDate.split('-').map(Number);
+    const dateObj = new Date(year, month - 1, day);
+    const dayOfWeek = dateObj.getDay();
 
-    for (const time of weeklySchedule) {
+    // 해당 요일에 예약 가능한 시간 배열 가져오기
+    const targetSchedule = weeklySchedule[dayOfWeek] || [];
+
+    console.log(`🔍 [예약 현황 조회 시작] 날짜: "${selectedDate}" (요일: ${dayOfWeek})`);
+
+    for (const time of targetSchedule) {
         try {
             const q = query(
                 collection(db, "reservations"),
@@ -231,7 +245,6 @@ async function loadReservation() {
             const snapshot = await getDocs(q);
             const count = snapshot.size;
 
-            // 🧪 디버깅용 콘솔 로그 (0명으로 뜨는 이유를 찾아줍니다)
             if (count > 0) {
                 console.log(`✅ [매칭 성공] 시간: ${time} -> ${count}명 예약됨`);
             } else {
@@ -254,9 +267,10 @@ async function loadReservation() {
 
 /*
 ================================
-시간 선택 버튼 이벤트
+시간 선택 버튼 / Select 이벤트
 ================================
 */
+// 1) 버튼 클릭 방식인 경우
 document.querySelectorAll(".time-btn").forEach(btn => {
     btn.addEventListener("click", () => {
         document.querySelectorAll(".time-btn").forEach(b => {
@@ -268,9 +282,17 @@ document.querySelectorAll(".time-btn").forEach(btn => {
     });
 });
 
+// 2) Select Dropdown 방식인 경우
+const timeSelectEl = document.getElementById("res-time");
+if (timeSelectEl) {
+    timeSelectEl.addEventListener("change", (e) => {
+        selectedTime = e.target.value;
+    });
+}
+
 /*
 ================================
-예약하기 (수정됨 🔥)
+예약하기
 ================================
 */
 if (reserveBtn) {
@@ -315,7 +337,6 @@ if (reserveBtn) {
             const userData = userSnap.data();
             let userName = userData.name || user.displayName || "회원";
             
-            // 🛑 [핵심 수정] 차감할 필드명을 members.js와 동일하게 remainingCount로 고정
             let countFieldName = "remainingCount";
             let remCount = 0;
 
@@ -330,13 +351,11 @@ if (reserveBtn) {
                 countFieldName = "remCount";
             }
 
-            // 횟수권 0 이하 차단
             if (remCount <= 0) {
                 alert(`⚠️ 남은 이용권 횟수가 없습니다. (잔여: ${remCount}회)\n이용권을 충전 후 다시 시도해주세요.`);
                 return;
             }
 
-            // 동일 시간대 중복 예약 체크
             const duplicateQuery = query(
                 collection(db, "reservations"),
                 where("uid", "==", user.uid),
@@ -350,7 +369,6 @@ if (reserveBtn) {
                 return;
             }
 
-            // 정원 체크 (최대 10명)
             const countQuery = query(
                 collection(db, "reservations"),
                 where("date", "==", selectedDate),
@@ -363,7 +381,6 @@ if (reserveBtn) {
                 return;
             }
 
-            // 예약 데이터 생성
             await addDoc(collection(db, "reservations"), {
                 uid: user.uid,
                 name: userName,
@@ -372,14 +389,12 @@ if (reserveBtn) {
                 createdAt: serverTimestamp()
             });
 
-            // 회원 문서 잔여 횟수 1회 차감 (-1)
             await updateDoc(userDocRef, {
                 [countFieldName]: increment(-1)
             });
 
             alert(`🎉 예약이 완료되었습니다!`);
 
-            // 화면 상태 동기화
             loadReservation();
             loadMyReservation();
 
@@ -392,7 +407,7 @@ if (reserveBtn) {
 
 /*
 ================================
-예약 취소 (수정됨 🔥)
+예약 취소
 ================================
 */
 window.cancelReservation = async function(id) {
@@ -409,7 +424,6 @@ window.cancelReservation = async function(id) {
             if (userSnap.exists()) {
                 const userData = userSnap.data();
                 
-                // 🛑 [핵심 수정] 취소 복구 시에도 remainingCount 필드를 최우선으로 차감 복구 (+1)
                 let countFieldName = "remainingCount";
                 if (userData.remainingCount === undefined) {
                     if (userData.ticketCount !== undefined) countFieldName = "ticketCount";
@@ -485,13 +499,13 @@ async function loadMyReservation() {
 
 /*
 ================================
-로그인 상태 변경 감지 (수정됨 🔥)
+로그인 상태 변경 감지
 ================================
 */
 onAuthStateChanged(auth, (user) => {
     if (user) {
         loadMyReservation();
-        listenUserProfile(user); // 실시간 리스너 실행
+        listenUserProfile(user);
     } else {
         if (unsubscribeUser) unsubscribeUser();
     }
