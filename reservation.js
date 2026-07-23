@@ -61,6 +61,7 @@ function getTodayString() {
 ================================
 */
 function clearTimeCounts() {
+    // 모든 count 스판 태그 초기화
     document.querySelectorAll("[id^='count']").forEach(el => {
         el.innerText = "0";
     });
@@ -118,63 +119,83 @@ window.setSelectedDate = function(date) {
     selectedTime = ""; // 날짜 변경 시 선택된 시간 초기화
     console.log("선택 날짜:", selectedDate);
 
+    const timeContainer = document.getElementById("timeButtons");
     const todayStr = getTodayString();
 
+    // 🛑 주말 및 공휴일 체크
     if (isWeekendOrHoliday(selectedDate)) {
         alert("토요일, 일요일 및 공휴일은 휴무일이므로 예약이 불가능합니다.");
+        if (timeContainer) {
+            timeContainer.innerHTML = '<p class="no-class-text" style="color:#ef4444; font-size:14px; margin-top:10px;">휴무일입니다.</p>';
+        }
         clearTimeCounts();
         selectedDate = "";
         return;
     }
 
+    // 🛑 지난 날짜 체크
     if (selectedDate < todayStr) {
         alert("지난 날짜는 선택 또는 예약할 수 없습니다.");
+        if (timeContainer) {
+            timeContainer.innerHTML = '<p class="no-class-text" style="color:#9ca3af; font-size:14px; margin-top:10px;">지난 날짜는 예약할 수 없습니다.</p>';
+        }
         clearTimeCounts();
         selectedDate = "";
         return;
     }
 
-    // select 태그가 있다면 옵션 업데이트
-    updateTimeOptions(selectedDate);
+    // 💡 1. 선택한 날짜의 요일에 맞게 시간 버튼 동적 생성
+    renderTimeButtons(selectedDate);
     
-    // 선택된 날짜의 시간대별 예약 현황 조회
+    // 💡 2. 생성된 버튼들의 인원 수(span#count0930 등)를 Firestore에서 불러와 업데이트
     loadReservation();
 };
 
-/* 🗓️ 요일별 예약 가능 시간표 select 옵션 업데이트 (Select 사용 시) */
-function updateTimeOptions(selectedDateStr) {
-    const timeSelect = document.getElementById('res-time');
-    if (!timeSelect || !selectedDateStr) return;
 
+/* 🗓️ 요일별 예약 가능 시간표 select 옵션 업데이트 (Select 사용 시) */
+function renderTimeButtons(selectedDateStr) {
+    const container = document.getElementById('timeButtons');
+    if (!container || !selectedDateStr) return;
+
+    // 1. 선택된 날짜의 요일 구하기
     const [year, month, day] = selectedDateStr.split('-').map(Number);
     const selectedDateObj = new Date(year, month - 1, day);
     const dayOfWeek = selectedDateObj.getDay();
 
+    // 2. 해당 요일의 예약 가능 시간 배열 가져오기
     const availableTimes = weeklySchedule[dayOfWeek] || [];
 
-    timeSelect.innerHTML = '';
+    // 3. 기존 버튼 초기화
+    container.innerHTML = '';
+    selectedTime = ""; // 선택 시간 초기화
 
+    // 4. 휴무일 또는 수업이 없는 요일 처리
     if (availableTimes.length === 0) {
-        const option = document.createElement('option');
-        option.value = "";
-        option.innerText = "해당 요일은 수업/예약이 없습니다.";
-        timeSelect.appendChild(option);
-        timeSelect.disabled = true;
+        container.innerHTML = `<p class="no-class-text">해당 요일은 휴무/수업이 없습니다.</p>`;
         return;
     }
 
-    timeSelect.disabled = false;
-    
-    const defaultOption = document.createElement('option');
-    defaultOption.value = "";
-    defaultOption.innerText = "시간을 선택해주세요";
-    timeSelect.appendChild(defaultOption);
-
+    // 5. 요일별 시간 버튼 생성
     availableTimes.forEach(time => {
-        const option = document.createElement('option');
-        option.value = time;
-        option.innerText = time;
-        timeSelect.appendChild(option);
+        const timeId = time.replace(":", ""); // 예: "09:30" -> "0930"
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'time-btn';
+        button.dataset.time = time;
+        button.innerHTML = `${time} (예약 <span id="count${timeId}">0</span> / ${MAX_PEOPLE}명)`;
+
+        // 버튼 클릭 이벤트 바인딩
+        button.addEventListener('click', () => {
+            // 기존 선택 클래스 제거
+            document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected', 'active'));
+            // 현재 클릭된 버튼 활성화
+            button.classList.add('selected', 'active');
+            selectedTime = time;
+            console.log("선택된 시간:", selectedTime);
+        });
+
+        container.appendChild(button);
     });
 }
 
