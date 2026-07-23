@@ -27,7 +27,7 @@ function renderWeek() {
     let sunday = new Date(currentDate);
     sunday.setDate(currentDate.getDate() - currentDate.getDay());
 
-    // 주간의 중간 기준(수요일) 날짜로 월 타이틀 표시 (달이 넘어갈 때 더 정확함)
+    // 주간의 중간 기준(수요일) 날짜로 월 타이틀 표시
     let midWeek = new Date(sunday);
     midWeek.setDate(sunday.getDate() + 3);
     if (monthTitle) {
@@ -93,47 +93,12 @@ function renderWeek() {
                 selectedDateEl.innerText = dateString;
             }
 
-            // 외부(reservation.js) 함수 호출 연동
+            // 외부(reservation.js) 함수 호출 연동 (💡 바르게 실행하도록 수정함)
             if (typeof window.setSelectedDate === "function") {
-                
-               /*  날짜 선택 (calendar.js에서 호출)*/        
-                window.setSelectedDate = function(date) {
-                    selectedDate = date;
-                    selectedTime = ""; // 날짜 변경 시 시간 선택 초기화
-                    console.log("선택 날짜:", selectedDate);
-                
-                    const timeContainer = document.getElementById("timeButtons");
-                    const todayStr = getTodayString();
-                
-                    // 🛑 주말 및 공휴일 체크
-                    if (isWeekendOrHoliday(selectedDate)) {
-                        alert("토요일, 일요일 및 공휴일은 휴무일이므로 예약이 불가능합니다.");
-                        if (timeContainer) {
-                            timeContainer.innerHTML = '<p style="color:#ef4444; font-size:14px; margin-top:10px;">휴무일입니다.</p>';
-                        }
-                        clearTimeCounts();
-                        selectedDate = "";
-                        return;
-                    }
-                
-                    // 🛑 지난 날짜 체크
-                    if (selectedDate < todayStr) {
-                        alert("지난 날짜는 선택 또는 예약할 수 없습니다.");
-                        if (timeContainer) {
-                            timeContainer.innerHTML = '<p style="color:#9ca3af; font-size:14px; margin-top:10px;">지난 날짜는 예약할 수 없습니다.</p>';
-                        }
-                        clearTimeCounts();
-                        selectedDate = "";
-                        return;
-                    }
-                
-                    // 💡 1. 월/수/금 또는 화/목 요일별 시간 버튼 생성
-                    renderTimeButtons(selectedDate);
-                    
-                    // 💡 2. 생성된 버튼 내부 span(#count0930 등)에 DB 인원 수 불러오기
-                    loadReservation();
-                };
-         
+                window.setSelectedDate(dateString);
+            }
+        };
+
         // 6. 캘린더 그리드에 추가 (일~토 순서대로 7개)
         weekCalendar.appendChild(dateBox);
     }
