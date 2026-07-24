@@ -17,6 +17,69 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
 
+// ==========================================
+// ✨ 커스텀 토스트 알림 함수 (alert 대체)
+// ==========================================
+function showToast(message) {
+    // 1. 토스트 전용 스타일 추가 (최초 1회)
+    if (!document.getElementById("toast-style")) {
+        const style = document.createElement("style");
+        style.id = "toast-style";
+        style.innerHTML = `
+            .custom-toast {
+                position: fixed;
+                bottom: 40px;
+                left: 50%;
+                transform: translateX(-50%) translateY(20px);
+                background-color: #3f4e43; /* 온108요가 시그니처 딥그린 */
+                color: #ffffff;
+                padding: 14px 24px;
+                border-radius: 30px;
+                font-size: 14px;
+                font-weight: 500;
+                box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+                z-index: 9999;
+                opacity: 0;
+                transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+                pointer-events: none;
+                text-align: center;
+                min-width: 220px;
+                white-space: nowrap;
+            }
+            .custom-toast.show {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // 2. 기존 메시지가 띄워져 있다면 제거
+    const existingToast = document.querySelector(".custom-toast");
+    if (existingToast) {
+        existingToast.remove();
+    }
+
+    // 3. 토스트 요소 생성 및 출력
+    const toast = document.createElement("div");
+    toast.className = "custom-toast";
+    toast.innerText = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add("show");
+    }, 10);
+
+    // 4. 2초 후 부드럽게 사라짐
+    setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 2000);
+}
+
+
 // =================
 // 회원가입
 // =================
@@ -30,7 +93,7 @@ if (signupForm) {
         const phone = document.getElementById("phone").value.replace(/-/g, "").trim();
 
         if (!/^010\d{8}$/.test(phone)) {
-            alert("전화번호를 정확히 입력해주세요. (예: 01012345678)");
+            showToast("전화번호를 정확히 입력해주세요. (예: 01012345678)");
             return;
         }
 
@@ -58,23 +121,27 @@ if (signupForm) {
                 }
             );
 
-            alert("🎉 회원가입이 완료되었습니다.");
-            window.location.href = "index.html";
+            showToast("🎉 회원가입이 완료되었습니다.");
+            
+            // 토스트 메시지를 잠깐 보여준 뒤 이동
+            setTimeout(() => {
+                window.location.href = "index.html";
+            }, 1000);
 
         } catch (error) {
             switch (error.code) {
                 case "auth/email-already-in-use":
-                    alert("이미 가입된 전화번호입니다.");
+                    showToast("이미 가입된 전화번호입니다.");
                     break;
                 case "auth/weak-password":
-                    alert("비밀번호는 6자 이상이어야 합니다.");
+                    showToast("비밀번호는 6자 이상이어야 합니다.");
                     break;
                 case "auth/invalid-email":
-                    alert("전화번호 형식이 올바르지 않습니다.");
+                    showToast("전화번호 형식이 올바르지 않습니다.");
                     break;
                 default:
                     console.log(error);
-                    alert("회원가입에 실패했습니다.");
+                    showToast("회원가입에 실패했습니다.");
             }
         }
     });
@@ -96,14 +163,19 @@ if (loginForm) {
 
         try {
             await signInWithEmailAndPassword(auth, email, password);
-            alert("✅ 로그인 되었습니다.");
-            location.href = "index.html";
+            showToast("✅ 로그인 되었습니다.");
+            
+            // 토스트 메시지를 잠깐 보여준 뒤 이동
+            setTimeout(() => {
+                location.href = "index.html";
+            }, 1000);
+
         } catch (error) {
             if (error.code === "auth/invalid-credential") {
-                alert("전화번호 또는 비밀번호가 올바르지 않습니다.");
+                showToast("전화번호 또는 비밀번호가 올바르지 않습니다.");
             } else {
                 console.log(error);
-                alert("로그인에 실패했습니다.");
+                showToast("로그인에 실패했습니다.");
             }
         }
     });
@@ -118,8 +190,12 @@ const logoutBtn = document.getElementById("logoutBtn");
 if (logoutBtn) {
     logoutBtn.addEventListener("click", async () => {
         await signOut(auth);
-        alert("로그아웃 되었습니다.");
-        location.href = "index.html";
+        showToast("로그아웃 되었습니다.");
+        
+        // 토스트 메시지를 잠깐 보여준 뒤 이동
+        setTimeout(() => {
+            location.href = "index.html";
+        }, 1000);
     });
 }
 
