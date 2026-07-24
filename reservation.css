@@ -1,118 +1,370 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>예약</title>
-    <link rel="stylesheet" href="./reservation.css">
-</head>
+/* =========================================================
+   1. 기본 레이아웃 & 글로벌 스타일
+   ========================================================= */
+* {
+    box-sizing: border-box;
+}
 
-<body>
+body {
+    text-align: center;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #fcfcfc;
+}
 
-<header>    
-    <nav class="menu">
-        <a href="index.html">홈</a>
-        <a href="reservation.html">예약</a>
-        <a href="mypage.html">마이페이지</a>
-        <span id="userInfo"></span>
-        <button id="logoutBtn">로그아웃</button>
-    </nav>
-    <h1>LOGO</h1>
+/* 네비게이션 바 */
+.menu {
+    justify-content: center;
+    display: flex;
+    text-align: center;
+    align-items: center;
+    gap: 15px;
+    background-color: #517e73;
+    padding: 10px;
+    font-size: 14px;
+}
+.menu a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+}
+.menu a:hover {
+    text-decoration: underline;
+}
+#userInfo {
+    color: #fff;
+    font-weight: bold;
+}
 
-    <!-- 사용자 프로필 카드 -->
-    <div class="user-info-card-wrapper">
-        <div class="user-info-card">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <span style="font-size: 13px; color: #6b7280; display: block; margin-bottom: 2px;">회원 정보</span>
-                    <strong id="myUserName" style="font-size: 18px; color: #111827;">- 님</strong>
-                </div>
-                <div style="text-align: right;">
-                    <span style="font-size: 13px; color: #6b7280; display: block; margin-bottom: 2px;">남은 횟수</span>
-                    <strong id="myTicketCount" style="font-size: 20px; color: #4f46e5;">- 회</strong>
-                </div>
-            </div>
-        </div>
-    </div>
-</header>
+/* 구글 폰트에서 얇은 명조/산세리프 느낌의 서체 불러오기 */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Noto+Sans+KR:wght@200;300&display=swap');
 
-<main>    
-    <!-- 🔥 1, 2, 3번 영역을 나란히 가로로 묶어주는 영역 -->
-    <div class="top-reservation-container">
-
-        <!-- 1. 캘린더 영역 -->
-        <section class="calendar-area">
-            <h3>Calendar</h3>
-            <div class="custom-calendar">    
-                <div class="calendar-header">
-                    <button id="prevWeek" type="button">◀</button>
-                    <h2 id="monthTitle">2026년 7월</h2>
-                    <button id="nextWeek" type="button">▶</button>
-                </div>
-        
-                <div class="week-name">
-                    <div>일</div>
-                    <div>월</div>
-                    <div>화</div>
-                    <div>수</div>
-                    <div>목</div>
-                    <div>금</div>
-                    <div>토</div>
-                </div>
-        
-                <div id="weekCalendar">
-                    <!-- JS(calendar.js)에서 동적으로 생성 -->
-                </div>
-            </div>
-        </section>
-
-        <!-- 2. 예약 패널 영역 -->
-        <section class="reservation-panel">
-            <h3><span id="selectedDate">날짜를 선택하세요</span></h3>
-
-            <div class="reservation-section">
-                <h3 style="font-size: 15px; margin-top: 15px; margin-bottom: 10px;">수업 시간 선택</h3>
-                <div id="timeButtons" class="time-button-container">
-                    <p style="color:#9ca3af; font-size:14px;">달력에서 날짜를 선택해주세요.</p>
-                </div>
-            </div>
-
-            <button id="reserveBtn" type="button">예약하기</button>
-        </section>
-
-        <!-- 3. 내 예약 현황 영역 (독립된 3번 영역) -->
-        <section class="my-reservation-section">
-            <div id="myReservations">
-                <!-- reservation.js의 loadMyReservation()이 실행되면서 동적 생성 -->
-            </div>
-        </section>
-
-    </div> <!-- // .top-reservation-container 끝 -->
-
-    <!-- 4. 예약 안내 영역 (하단에 독립 배치) -->
-    <section class="notice">
-        <h3>예약 안내</h3>
-        <ul>
-            <li>월요일 ~ 금요일만 예약 가능합니다.</li>
-            <li>토요일 · 일요일은 예약이 불가능합니다.</li>
-            <li>공휴일은 예약이 불가능합니다.</li>
-            <li>지난 날짜는 예약할 수 없습니다.</li>
-            <li>타임별 최대 예약 인원은 10명입니다.</li>
-            <li>정원이 차면 자동으로 예약이 마감됩니다.</li>
-        </ul>
-    </section>
-</main>
+h1 {
+    background-color: #fff5de;
+    text-align: center;
+    letter-spacing: 0.35em; /* 글자 간격을 띄워 세련된 느낌 강조 */
+    margin: 0;
+    padding: 24px 0;
+    color: #2c3a31; /* 캘린더/버튼 톤과 어울리는 딥 그린 계열 */
     
-<!-- 5. 푸터 영역 -->
-<footer>
-    <p>© 2026 On108Yoga Reservation</p>
-</footer>
+    /* 얇은 서체 설정 */
+    font-family: 'Cormorant Garamond', 'Noto Sans KR', serif;
+    font-weight: 300; /* 숫자가 작을수록 얇아집니다 (100~300) */
+    font-size: 26px;
+    text-transform: uppercase; /* 영문일 경우 대문자 변환 */
+}
 
-<!-- 스크립트 모듈 연동 -->
-<script type="module" src="firebase.js"></script>
-<script type="module" src="auth.js"></script>
-<script type="module" src="calendar.js"></script>
-<script type="module" src="reservation.js"></script>
+/* 사용자 프로필 카드 */
+.user-info-card-wrapper {
+    max-width: 1100px;
+    margin: 20px auto 0;
+    padding: 0 20px;
+}
+.user-info-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* 메인 전체 레이아웃 (세로 정렬) */
+main {
+    margin: 20px auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 1100px;
+    padding: 0 20px;
+}        
+
+/* 🔥 1, 2, 3 영역을 나란히 가로 배치하는 컨테이너 */
+.top-reservation-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
+    margin-bottom: 25px;
+}
+
+/* 1, 2, 3 각각의 카드 섹션 공통 스타일 */
+.calendar-area,
+.reservation-panel,
+.my-reservation-section {
+    flex: 1;
+    min-width: 0; /* Flex 내 요소 줄어듦 방지 */
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border: 1px solid #f0f0f0;
+}
+
+/* =========================================================
+   2. 커스텀 캘린더 디자인
+   ========================================================= */
+.custom-calendar {
+    background: #fffaf0; /* 따뜻한 아이보리 톤 배경 */
+    padding: 20px 15px;
+    border-radius: 20px;
+    box-shadow: 0 5px 20px rgba(0,0,0,.05);
+}
+
+/* 헤더 영역 */
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.calendar-header h2 {
+    font-size: 18px;
+    color: #405346;
+    margin: 0;
+    font-weight: bold;
+}
+
+/* 동글동글 화살표 버튼 */
+.calendar-header button {
+    border: none !important;
+    background: #405346 !important;
+    color: white !important;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.calendar-header button:hover {
+    background: #2c3a31 !important;
+    transform: scale(1.05);
+}
+
+/* 요일 헤더 */
+.week-name {
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    text-align: center;
+    margin-top: 15px;
+    color: #777;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.week-name div:first-child { color: #d9534f; } /* 일요일 */
+.week-name div:last-child { color: #4a90e2; }  /* 토요일 */
+
+/* 날짜 그리드 */
+#weekCalendar,
+#calendarDates {
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.day-box {
+    height: 45px;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    cursor: pointer;
+}
+
+/* 날짜 숫자 동그라미 스타일 */
+.day-box span {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    font-size: 13px;
+    transition: background 0.2s, color 0.2s;
+}
+
+.day-box:hover span {
+    background: #f2dfc6;
+}
+
+.day-box.sunday span,
+.day-box.holiday span {
+    color: #d9534f;
+    font-weight: bold;
+}
+
+.day-box.saturday span {
+    color: #4a90e2;
+}
+
+.day-box.selected span {
+    background: #4a90e2 !important;
+    color: white !important;
+    font-weight: bold;
+}
+
+/* =========================================================
+   3. 시간 선택 & 내 예약 카드
+   ========================================================= */
+#selectedDate {         
+    background-color: rgb(190, 231, 221);
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    display: inline-block;
+    margin-bottom: 5px;
+    color: #111827;
+}
+
+#timeButtons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.time-btn {         
+    width: 100%;
+    padding: 10px;
+    font-size: 13px;
+    border-radius: 8px;
+    background: #fff;
+    border: 1px solid #ddd;
+    color: #333;
+    transition: 0.2s;
+    cursor: pointer;
+}
+
+.time-btn:hover {
+    background-color: #e8f0ea;
+}
+
+.time-btn.selected {
+    background: #4a90e2 !important;
+    border-color: #4a90e2 !important;
+    color: white !important;
+    font-weight: bold;
+}
+
+/* 예약하기 버튼 */
+#reserveBtn {
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+    font-weight: bold;
+    background: #517e73;
+    border: none;
+    color: #fff;
+    margin-top: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#reserveBtn:hover {
+    background-color: #405346;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* 내 예약 카드 & 취소 버튼 모션 */
+.my-reservation {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    margin: 8px 0;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+.my-reservation button,
+.cancel-btn {
+    border: 1px solid #c94c4c;
+    background: white;
+    color: #c94c4c;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.my-reservation button:hover,
+.cancel-btn:hover {
+    background-color: #c94c4c;
+    color: white;
+    transform: scale(1.05);
+}
+
+/* =========================================================
+   4. 예약 안내 & 푸터 (하단 넓게 배치)
+   ========================================================= */
+.notice {
+    width: 100%;
+    background: #ffffff;
+    padding: 20px 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border: 1px solid #f0f0f0;
+    text-align: left;
+}
+
+.notice h3 {
+    margin-top: 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.notice ul {
+    text-align: left;
+    padding-left: 20px;
+    line-height: 1.8;
+    margin-bottom: 0;
+}
+
+.notice li {
+    font-size: 13px;
+    color: #666;
+}
+
+#logoutBtn {
+    font-size: 12px;
+    padding: 4px 8px;
+    border: 1px solid #fff;
+    background: transparent;
+    color: white;
+    cursor: pointer;
+}
+#logoutBtn:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+footer {
+    margin-top: 40px;
+    padding: 20px;
+    background: #eee;
+    font-size: 12px;
+    color: #777;
+}
+
+/* =========================================================
+   5. 모바일 반응형
+   ========================================================= */
+@media all and (max-width: 900px) {
+    .top-reservation-container {
+        flex-direction: column;
+        gap: 20px;
+    }
     
-</body>
-</html>
+    .calendar-area,
+    .reservation-panel,
+    .my-reservation-section {
+        width: 100%;
+    }
+}
