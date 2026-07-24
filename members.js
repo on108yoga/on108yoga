@@ -61,7 +61,7 @@ onSnapshot(usersCol, (snapshot) => {
     }
 });
 
-// 2. 회원 목록 출력 (1페이지당 10명 제한 적용)
+// 2. 회원 목록 출력 (1페이지당 10명 제한 적용 & 만료 상태 표기 반영)
 function renderMemberList(docs, page = 1) {
     if (!memberListContainer) return;
     memberListContainer.innerHTML = '';
@@ -75,6 +75,8 @@ function renderMemberList(docs, page = 1) {
     const startIndex = (page - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
     const paginatedDocs = docs.slice(startIndex, endIndex);
+
+    const todayStr = new Date().toISOString().split('T')[0];
 
     paginatedDocs.forEach((docSnap) => {
         const user = docSnap.data();
@@ -90,12 +92,20 @@ function renderMemberList(docs, page = 1) {
             ? ' <span style="font-size:11px; color:#f59e0b; font-weight:normal;">(미가입)</span>' 
             : ' <span style="font-size:11px; color:#10b981; font-weight:normal;">(가입됨)</span>';
 
+        // 🚨 이용기간 만료 체크
+        const isExpired = user.endDate && user.endDate < todayStr;
+        let countBadge = `<span style="font-size:13px; color: var(--primary); font-weight:bold;">${user.remainingCount || 0}회 남음</span>`;
+
+        if (isExpired) {
+            countBadge = `<span style="font-size:12px; color: #ef4444; font-weight:bold;">[기간 만료]</span>`;
+        }
+
         li.innerHTML = `
             <div>
                 <span class="member-name">${user.name || '이름 없음'}${joinedBadge}</span><br>
                 <span class="member-phone">${formatPhone(user.phone)}</span>
             </div>
-            <span style="font-size:13px; color: var(--primary); font-weight:bold;">${user.remainingCount || 0}회 남음</span>
+            ${countBadge}
         `;
         memberListContainer.appendChild(li);
     });
@@ -151,7 +161,7 @@ function selectMember(id, userData) {
     showMemberDetail(id, userData);
 }
 
-// 우측 회원 상세 페이지 출력 함수
+// 우측 회원 상세 페이지 출력 함수 (만료 로직 강화)
 function showMemberDetail(id, user) {
     if (detailPlaceholder) detailPlaceholder.style.display = 'none';
     if (detailContent) detailContent.style.display = 'block';
@@ -160,16 +170,45 @@ function showMemberDetail(id, user) {
     document.getElementById('det-name').innerText = `선택회원: ${user.name || '미등록'} 회원님`;
     document.getElementById('det-phone').innerText = formatPhone(user.phone);
 
-    // 2. 현재 사용 중인 이용권 영역
+    // 2. 현재 사용 중인 이용권 및 만료 체크
+    const todayStr = new Date().toISOString().split('T')[0];
     const hasTicket = Boolean(user.ticketType);
+    const isExpired = user.endDate && user.endDate < todayStr; // 만료 여부 판별
 
-    document.getElementById('cur-ticket').innerText = user.ticketType || "없음 (이용권 미등록)";
-    document.getElementById('cur-count').innerText = hasTicket 
-        ? `${user.remainingCount ?? 0}회 / ${user.totalCount ?? 0}회` 
-        : "-";
-    document.getElementById('cur-period').innerText = user.startDate 
-        ? `${user.startDate} ~ ${user.endDate}` 
-        : "이용 기간 정보 없음";
+    // 이용권 이름 표시
+    const ticketElem = document.getElementById('cur-ticket');
+    if (hasTicket) {
+        ticketElem.innerText = isExpired ? `${user.ticketType} (기간 만료됨)` : user.ticketType;
+        ticketElem.style.color = isExpired ? "#ef4444" : "inherit";
+    } else {
+        ticketElem.innerText = "없음 (이용권 미등록)";
+        ticketElem.style.color = "inherit";
+    }
+
+    // 잔여 횟수 표시
+    const countElem = document.getElementById('cur-count');
+    if (hasTicket) {
+        if (isExpired) {
+            countElem.innerText = `0회 (만료됨 / 잔여 ${user.remainingCount ?? 0}회 사용 불가)`;
+            countElem.style.color = "#ef4444";
+            countElem.style.fontWeight = "bold";
+        } else {
+            countElem.innerText = `${user.remainingCount ?? 0}회 / ${user.totalCount ?? 0}회`;
+            countElem.style.color = "inherit";
+            countElem.style.fontWeight = "normal";
+        }
+    } else {
+        countElem.innerText = "-";
+        countElem.style.color = "inherit";
+    }
+
+    // 이용 기간 표시
+    const periodElem = document.getElementById('cur-period');
+    if (periodElem) {
+        periodElem.innerText = user.startDate ? `${user.startDate} ~ ${user.endDate}` : "이용 기간 정보 없음";
+        periodElem.style.color = isExpired ? "#ef4444" : "inherit";
+        periodElem.style.fontWeight = isExpired ? "bold" : "normal";
+    }
 
     // 일반 취소 / 당일 취소 남은 횟수
     document.getElementById('cur-cancel-count').innerText = hasTicket 
@@ -589,7 +628,7 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
 
         if (registeredUser) {
             targetUserId = registeredUser.id;
-            await updateDoc(doc(db, 'users', targetUserId), {
+            await updateDoc(doc(doc(db, 'users', targetUserId)), {
                 ticketType, 
                 totalCount, 
                 remainingCount: totalCount, 
