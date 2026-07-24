@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>예약</title>
-
     <link rel="stylesheet" href="./reservation.css">
 </head>
 
@@ -18,7 +17,7 @@
         <span id="userInfo"></span>
         <button id="logoutBtn">로그아웃</button>
     </nav>
-    <h1>ON108OGA</h1>
+    <h1>LOGO</h1>
 
     <!-- 사용자 프로필 및 잔여 횟수 정보 카드 -->
     <div class="user-info-card-wrapper">
@@ -38,57 +37,64 @@
 </header>
 
 <main>    
-    <!-- 1. 캘린더 영역 -->
-    <section class="calendar-area">
-        <h3>Calendar</h3>
-        <div class="custom-calendar">    
-            <div class="calendar-header">
-                <button id="prevWeek" type="button">◀</button>
-                <h2 id="monthTitle">2026년 7월</h2>
-                <button id="nextWeek" type="button">▶</button>
+    <!-- 1, 2, 3 영역을 나란히 모아두는 그리드 컨테이너 -->
+    <div class="top-reservation-container">
+        
+        <!-- 1. 캘린더 영역 -->
+        <section class="calendar-area">
+            <h3>1. Calendar</h3>
+            <div class="custom-calendar">    
+                <div class="calendar-header">
+                    <button id="prevWeek" type="button">◀</button>
+                    <h2 id="monthTitle">2026년 7월</h2>
+                    <button id="nextWeek" type="button">▶</button>
+                </div>
+        
+                <div class="week-name">
+                    <div>일</div>
+                    <div>월</div>
+                    <div>화</div>
+                    <div>수</div>
+                    <div>목</div>
+                    <div>금</div>
+                    <div>토</div>
+                </div>
+        
+                <div id="weekCalendar">
+                    <!-- JS(calendar.js)에서 동적으로 생성 -->
+                </div>
             </div>
-    
-            <div class="week-name">
-                <div>일</div>
-                <div>월</div>
-                <div>화</div>
-                <div>수</div>
-                <div>목</div>
-                <div>금</div>
-                <div>토</div>
+        </section>
+
+        <!-- 2. 예약 패널 영역 -->
+        <section class="reservation-panel">
+            <h3>2. 예약 시간 선택</h3>
+            <p style="margin-bottom: 12px; font-weight: bold; color: #4f46e5;"><span id="selectedDate">날짜를 선택하세요</span></p>
+
+            <!-- 시간별 스케줄 -->
+            <div class="reservation-section">
+                <div id="timeButtons" class="time-button-container">
+                    <p style="color:#9ca3af; font-size:14px;">달력에서 날짜를 선택해주세요.</p>
+                </div>
             </div>
-    
-            <div id="weekCalendar">
-                <!-- JS(calendar.js)에서 동적으로 생성 -->
+
+            <!-- 예약버튼 -->
+            <button id="reserveBtn" type="button">예약하기</button>
+        </section>
+
+        <!-- 3. 내 예약 현황 영역 -->
+        <section class="my-reservation-section">
+            <h3>3. 내 예약 현황</h3>
+            <div id="myReservations">
+                <!-- reservation.js의 loadMyReservation()이 생성 -->
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- 2. 예약 패널 영역 (시간 선택 + 예약 버튼 + 내 예약 현황) -->
-    <section class="reservation-panel">
-        <h3><span id="selectedDate">날짜를 선택하세요</span></h3>
+    </div> <!-- // .top-reservation-container 끝 -->
 
-        <!-- 시간별 스케줄 -->
-        <div class="reservation-section">
-            <h3>수업 시간 선택</h3>
-            <div id="timeButtons" class="time-button-container">
-                <p style="color:#9ca3af; font-size:14px;">달력에서 날짜를 선택해주세요.</p>
-            </div>
-        </div>
-
-        <!-- 예약 버튼 -->
-        <button id="reserveBtn" type="button">예약하기</button>
-    </section>
-    <section>
-        <!-- 내 예약 현황 및 취소 버튼 영역 -->
-        <div id="myReservations" style="margin-top: 24px;">
-            <!-- reservation.js의 loadMyReservation()이 내역을 생성합니다 -->
-        </div>
-    </section>
-
-    <!-- 3. 예약 안내 영역 (내 예약 현황 아래, 푸터 위쪽 위치) -->
+    <!-- 4. 예약 안내 영역 (하단에 넓게 위치) -->
     <section class="notice">
-        <h3>예약 안내</h3>
+        <h3>4. 예약 안내</h3>
         <ul>
             <li>월요일 ~ 금요일만 예약 가능합니다.</li>
             <li>토요일 · 일요일은 예약이 불가능합니다.</li>
@@ -100,6 +106,7 @@
     </section>
 </main>
     
+<!-- 5. 푸터 영역 -->
 <footer>
     <p>© 2026 On108Yoga Reservation</p>
 </footer>
