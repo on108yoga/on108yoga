@@ -400,9 +400,36 @@ footer {
     text-align: center;
 }
 
-/* 화면 폭이 모바일처럼 매우 좁을 때만 수직으로 전환 */
+/* =========================================================
+   6. 모바일 및 태블릿 반응형 (화면 폭 768px 이하)
+   ========================================================= */
 @media all and (max-width: 768px) {
     .top-reservation-container {
         flex-direction: column;
     }
+
+   /* 1, 2, 3 영역을 세로로 배치하면서 카드 간 간격을 넉넉히(28px) 확보 */
+    .top-reservation-container {
+        flex-direction: column;
+        gap: 28px; /* 카드와 카드 사이 좁아짐 방지 */
+        margin-bottom: 28px;
+    }
+    
+    .calendar-area,
+    .reservation-panel,
+    .my-reservation-section {
+        width: 100%;
+        padding: 24px 18px; /* 모바일 카드 내부 여백 보장 */
+    }
+
+    /* 예약패널 내부 버튼 간 여백 보장 */
+    #timeButtons {
+        margin-bottom: 30px; /* 모바일에서 시간 버튼 목록과 예약 버튼 사이 더 넓게 */
+    }
+
+    #reserveBtn {
+        margin-top: 15px; /* 예약 버튼 상단 최소 여백 설정 */
+    }
+}
+
 }
