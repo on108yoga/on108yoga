@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>온108요가 - 공지사항</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .notice-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .notice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .notice-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            border-top: 2px solid #3f4e43;
+        }
+        .notice-item {
+            padding: 16px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .notice-item:hover {
+            background-color: #f9fafb;
+        }
+        .notice-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+        }
+        .notice-date {
+            font-size: 13px;
+            color: #888;
+        }
+        .btn-write {
+            background-color: #3f4e43;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: none; /* JS에서 admin일 때만 inline-block으로 전환 */
+        }
+    </style>
+</head>
+<body>
+    <div class="notice-container">
+        <div class="notice-header">
+            <h2>📢 공지사항</h2>
+            <button id="writeBtn" class="btn-write">글쓰기</button>
+        </div>
+
+        <ul id="noticeList" class="notice-list">
+            <!-- 자바스크립트로 공지사항 항목이 렌더링됩니다 -->
+        </ul>
+    </div>
+
+    <!-- Firebase 및 Notice 스크립트 연결 -->
+    <script type="module" src="notice.js"></script>
+</body>
+</html>
