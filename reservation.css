@@ -277,11 +277,13 @@ main {
     color: #111827;
 }
 
+/* 시간 버튼 컨테이너 하단 여백 추가 */
 #timeButtons {
     display: flex;
     flex-direction: column;
     gap: 8px;
     margin-top: 10px;
+    margin-bottom: 25px; /* 🔥 시간 버튼군과 아래 예약버튼 사이 공간 확보 */
 }
 
 .time-btn {         
@@ -307,6 +309,7 @@ main {
     font-weight: bold;
 }
 
+/* 예약하기 버튼 상단 여백 및 여유 공간 넓히기 */
 #reserveBtn {
     width: 100%;
     padding: 12px;
@@ -315,7 +318,7 @@ main {
     background: #517e73;
     border: none;
     color: #fff;
-    margin-top: auto; /* 버튼을 카드 제일 하단으로 밀어 맞춤 */
+    margin-top: auto; /* 카드 바닥에 맞춤 유지 */
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s;
