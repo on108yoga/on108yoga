@@ -34,14 +34,18 @@ function renderWeek() {
         monthTitle.innerText = `${midWeek.getFullYear()}년 ${midWeek.getMonth() + 1}월`;
     }
 
-    // 오늘 날짜 문자열 (YYYY-MM-DD)
+    // 오늘 날짜 구하기 (시간 비교를 위해 00:00:00으로 설정)
     const today = new Date();
-    const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    today.setHours(0, 0, 0, 0);
 
     // 일요일(0)부터 토요일(6)까지 7일 반복 생성
     for (let i = 0; i < 7; i++) {
         let date = new Date(sunday);
         date.setDate(sunday.getDate() + i);
+
+        // 자정 기준 시간 비교용 객체 생성
+        let targetDate = new Date(date);
+        targetDate.setHours(0, 0, 0, 0);
 
         // 1. 날짜 셀 div 생성
         let dateBox = document.createElement("div");
@@ -57,7 +61,7 @@ function renderWeek() {
         let dateString = `${yyyy}-${mm}-${dd}`;
         let monthDay = `${mm}-${dd}`;
 
-        // 4. 주말 및 공휴일, 오늘 날짜 클래스 처리
+        // 4. 주말 및 공휴일 처리
         if (date.getDay() === 0) {
             dateBox.classList.add("sunday");
         } else if (date.getDay() === 6) {
@@ -68,9 +72,11 @@ function renderWeek() {
             dateBox.classList.add("holiday");
         }
 
-        // 오늘 날짜 클래스 추가
-        if (dateString === todayString) {
-            dateBox.classList.add("today");
+        // 5. 오늘 날짜 및 지난 날짜 처리
+        if (targetDate.getTime() === today.getTime()) {
+            dateBox.classList.add("today"); // 오늘 날짜
+        } else if (targetDate < today) {
+            dateBox.classList.add("past"); // 지난 날짜 (톤다운 & 클릭 안됨)
         }
 
         // 이전 선택된 날짜 유지 표시
@@ -78,28 +84,33 @@ function renderWeek() {
             dateBox.classList.add("selected");
         }
 
-        /* 5. 날짜 클릭 이벤트 */
-        dateBox.onclick = () => {
-            document.querySelectorAll(".day-box").forEach(el =>
-                el.classList.remove("selected")
-            );
+        /* 6. 날짜 클릭 이벤트 (지난 날짜는 클릭 불가) */
+        if (targetDate < today) {
+            // 지난 날짜는 클릭 이벤트 등록 안 함 & 커서 금지
+            dateBox.style.pointerEvents = "none";
+        } else {
+            dateBox.onclick = () => {
+                document.querySelectorAll(".day-box").forEach(el =>
+                    el.classList.remove("selected")
+                );
 
-            dateBox.classList.add("selected");
-            selectedDate = dateString;
+                dateBox.classList.add("selected");
+                selectedDate = dateString;
 
-            // 선택된 날짜 표시 영역 업데이트
-            const selectedDateEl = document.getElementById("selectedDate");
-            if (selectedDateEl) {
-                selectedDateEl.innerText = dateString;
-            }
+                // 선택된 날짜 표시 영역 업데이트
+                const selectedDateEl = document.getElementById("selectedDate");
+                if (selectedDateEl) {
+                    selectedDateEl.innerText = dateString;
+                }
 
-            // 외부(reservation.js) 함수 호출 연동 (💡 바르게 실행하도록 수정함)
-            if (typeof window.setSelectedDate === "function") {
-                window.setSelectedDate(dateString);
-            }
-        };
+                // 외부(reservation.js) 함수 연동
+                if (typeof window.setSelectedDate === "function") {
+                    window.setSelectedDate(dateString);
+                }
+            };
+        }
 
-        // 6. 캘린더 그리드에 추가 (일~토 순서대로 7개)
+        // 7. 캘린더 그리드에 추가
         weekCalendar.appendChild(dateBox);
     }
 }
