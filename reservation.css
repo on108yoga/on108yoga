@@ -239,6 +239,32 @@ main {
 }
 
 /* =========================================================
+   오늘 날짜 & 지난 날짜 스타일
+   ========================================================= */
+
+/* 1. 오늘 날짜 스타일 (테두리 강조) */
+.day-box.today span {
+    border: 2px solid #517e73; /* 브랜드 주요 컬러인 테두리로 강조 */
+    font-weight: bold;
+    color: #2c3a31;
+}
+
+/* 2. 지난 날짜 스타일 (톤다운 회색 처리) */
+.day-box.past {
+    cursor: not-allowed; /* 마우스 포인터 금지 표시 */
+}
+
+.day-box.past span {
+    color: #ccc !important; /* 옅은 회색으로 톤다운 */
+    background-color: transparent !important;
+}
+
+.day-box.past:hover span {
+    background-color: transparent !important; /* 지난 날짜는 마우스 호버 효과 제거 */
+}
+
+
+/* =========================================================
    4. 시간 선택 & 내 예약 현황 카드
    ========================================================= */
 #selectedDate {         
