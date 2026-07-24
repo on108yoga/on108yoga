@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>마이페이지 - 이용권 현황</title>
     <style>
+        /* =========================================================
+   1. 폰트 불러오기 (얇은 로고 & 기본 폰트)
+   ========================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Noto+Sans+KR:wght@200;300;400;500;700&display=swap');
+
+/* =========================================================
+   2. 기본 레이아웃 & 글로벌 스타일
+   ========================================================= */
         * {
             box-sizing: border-box;
         }
@@ -23,49 +31,67 @@
             color: var(--text-main);
             margin: 0;        
         }
-        /* 네비게이션 바 */
-            .menu {
-                justify-content: center;
-                display: flex;
-                text-align: center;
-                align-items: center;
-                gap: 15px;
-                background-color: #517e73;
-                padding: 10px;
-                font-size: 14px;
-            }
-            .menu a {
-                color: white;
-                text-decoration: none;
-                font-weight: 500;
-            }
-            .menu a:hover {
-                text-decoration: underline;
-            }
-            #userInfo {
-                color: #fff;
-                font-weight: bold;
-            }
-            #logoutBtn {
-                font-size: 12px;
-                padding: 4px 8px;
-                border: 1px solid #fff;
-                background: transparent;
-                color: white;
-                cursor: pointer;
-            }
-            #logoutBtn:hover {
-                background: rgba(255,255,255,0.2);
-            }
+/* 네비게이션 바 */
+.menu {
+    justify-content: center;
+    display: flex;
+    text-align: center;
+    align-items: center;
+    gap: 15px;
+    background-color: #517e73;
+    padding: 10px;
+    font-size: 14px;
+}
 
-            h1 {
-                background-color: #fff5de;
-                text-align: center;
-                letter-spacing: 0.3em;
-                margin: 0;
-                padding: 20px 0;
-                color: #333;
-            }
+.menu a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.menu a:hover {
+    text-decoration: underline;
+}
+
+#userInfo {
+    color: #fff;
+    font-weight: bold;
+}
+
+#userInfo {
+    color: #fff;
+    font-weight: bold;
+}
+
+#logoutBtn {
+    font-size: 12px;
+    padding: 4px 8px;
+    border: 1px solid #fff;
+    background: transparent;
+    color: white;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+#logoutBtn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* 얇은 서체 & 슬림한 슬레이트 그린 로고 헤더 */
+h1 {
+    background-color: #f4efe6; /* 따뜻하고 세련된 샌드 베이지 */
+    color: #3f4e43;            /* 딥 그린 폰트 컬러 */
+    text-align: center;
+    letter-spacing: 0.35em;
+    margin: 0;
+    padding: 12px 0;           /* 🔥 높이 축소 */
+    font-family: 'Cormorant Garamond', 'Noto Sans KR', serif;
+    font-weight: 300;
+    font-size: 20px;
+    text-transform: uppercase;
+}
+
         
         main{
             padding-bottom: 20px;
