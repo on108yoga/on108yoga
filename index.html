@@ -56,20 +56,7 @@
         border-bottom: 1px solid #e8decb;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
     }
-
-        /* 로고 */
-        h1 {
-            background-color: #517e73; /* 따뜻하고 세련된 샌드 베이지 */
-            color: #3f4e43;            /* 딥 그린 폰트 컬러 */
-            text-align: center;
-            letter-spacing: 0.35em;
-            margin: 0;
-            padding: 12px 0;           /* 🔥 높이 축소 */
-            font-family: 'Cormorant Garamond', 'Noto Sans KR', serif;
-            font-weight: 300;
-            font-size: 20px;
-            text-transform: uppercase;
-            }
+     
 
        /* =========================================================
        로그인/회원 메뉴 바 (.menu2)
@@ -128,7 +115,19 @@
         background: rgba(255, 255, 255, 0.2);
         border-color: #ffffff;
     }
-        
+
+           /* 로고 */
+        h1 {         
+            color: #3f4e43;            /* 딥 그린 폰트 컬러 */
+            text-align: center;
+            letter-spacing: 0.35em;
+            margin: 0;
+            padding: 12px 0;           /* 🔥 높이 축소 */
+            font-family: 'Cormorant Garamond', 'Noto Sans KR', serif;
+            font-weight: 300;
+            font-size: 20px;
+            text-transform: uppercase;
+            }
 
     /* 상단 주 메뉴 */
     .menu {
@@ -142,6 +141,7 @@
 
     .menu a {
         color: #3e5c4e; /* 세이지 내추럴 그린 */
+        text-decoration: none !important;
         font-weight: 500;
         font-size: 13px;
         text-transform: uppercase;
@@ -155,8 +155,22 @@
         border-radius: 12px;
         opacity: 1;
     }
+    /* menu 모바일 대응 (화면 폭 768px 이하) */
+    @media all and (max-width: 768px) {
+        .menu {
+            flex-wrap: wrap;          /* 항목이 넘치면 다음 줄로 자연스럽게 넘어가도록 지정 */
+            gap: 8px 10px;            /* 모바일에서 항목 간 간격 축소 (위아래 8px, 좌우 10px) */
+            letter-spacing: 0.1em;    /* 모바일에서 넓은 자간을 줄여서 폭 확보 */
+            padding: 10px;            /* 좌우 패딩 최소화 */
+        }
     
-  
+        .menu a {
+            font-size: 12px;          /* 글자 크기 살짝 축소 */
+            padding: 4px 6px;         /* 버튼 여백 조정 */
+            white-space: nowrap;      /* 메뉴 글자가 한 단어 내에서 어색하게 쪼개지지 않도록 설정 */
+        }
+    }
+      
 
         
     /* ─── [3] 메인 컨텐츠 영역 ─── */
