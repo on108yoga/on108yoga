@@ -22,30 +22,35 @@ const ITEMS_PER_PAGE = 10;
 let currentPage = 1;
 let currentDocsList = []; // 현재 필터링/조회된 전체 문서 리스트 저장용
 
-const memberListContainer = document.getElementById('member-list-container');
+// HTML DOM 요소 매핑
+const memberListContainer = document.getElementById('member-list');
+const paginationContainer = document.getElementById('pagination');
 const detailPlaceholder = document.getElementById('detail-placeholder');
 const detailContent = document.getElementById('detail-content');
 const searchInput = document.getElementById('search-input');
 const modal = document.getElementById('register-modal');
 
+// 모달 제어 함수
 window.openModal = () => {
     modal.style.display = 'flex';
     document.getElementById('reg-start').value = new Date().toISOString().split('T')[0];
 };
+
 window.closeModal = () => {
     modal.style.display = 'none';
     document.getElementById('register-form').reset();
 };
 
-// 1. 실시간 리스트 갱신 구동
+// 1. Firebase 실시간 회원 리스트 수신 및 갱신
 const usersCol = collection(db, 'users');
 onSnapshot(usersCol, (snapshot) => {
     currentDocsList = snapshot.docs;
     
-    // 데이터 변경 시 현재 페이지에 맞게 리스트 및 페이지네이션 렌더링
+    // 데이터 변경 시 현재 페이지 기준으로 회원 목록 및 페이지 버튼 UI 렌더링
     renderMemberList(currentDocsList, currentPage);
     renderPagination(currentDocsList.length);
     
+    // 현재 선택되어 보고 있던 회원이 있다면 해당 회원의 정보도 실시간 자동 갱신
     if (activeUserId) {
         const activeDoc = currentDocsList.find(doc => doc.id === activeUserId);
         if (activeDoc) {
@@ -56,112 +61,109 @@ onSnapshot(usersCol, (snapshot) => {
     }
 });
 
-// 2. 회원이 보이는 리스트 출력 (페이지네이션 적용)
+// 2. 회원 목록 출력 (1페이지당 10명 제한 적용)
 function renderMemberList(docs, page = 1) {
+    if (!memberListContainer) return;
     memberListContainer.innerHTML = '';
     
     if (docs.length === 0) {
-        memberListContainer.innerHTML = '<div style="padding:20px; color:#9ca3af; text-align:center;">등록된 회원이 없습니다.</div>';
+        memberListContainer.innerHTML = '<li style="padding:20px; color:#9ca3af; text-align:center;">등록된 회원이 없습니다.</li>';
         return;
     }
 
-    // 🎯 10개씩 슬라이싱
+    // 🎯 10개씩 배열 슬라이싱 (1페이지: 0~9, 2페이지: 10~19)
     const startIndex = (page - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
     const paginatedDocs = docs.slice(startIndex, endIndex);
 
-    paginatedDocs.forEach((doc) => {
-        const user = doc.data();
-        const id = doc.id; // UID 또는 연락처
-        const div = document.createElement('div');
-        div.className = `member-item ${activeUserId === id ? 'active' : ''}`;
+    paginatedDocs.forEach((docSnap) => {
+        const user = docSnap.data();
+        const id = docSnap.id; 
+        const li = document.createElement('li');
+        li.className = `member-item ${activeUserId === id ? 'active' : ''}`;
         
-        div.onclick = () => selectMember(id, user);
+        li.onclick = () => selectMember(id, user);
 
-        // id가 11자리 숫자(연락처) 형태라면 임시 등록 회원
+        // id가 11자리 숫자(연락처) 형태라면 임시 등록(미가입) 회원 구분
         const isTemporary = id.length === 11 && !isNaN(id);
-        const joinedBadge = isTemporary ? ' <span style="font-size:10px; color:#f59e0b;">(미가입)</span>' : ' <span style="font-size:10px; color:#10b981;">(가입됨)</span>';
+        const joinedBadge = isTemporary 
+            ? ' <span style="font-size:11px; color:#f59e0b; font-weight:normal;">(미가입)</span>' 
+            : ' <span style="font-size:11px; color:#10b981; font-weight:normal;">(가입됨)</span>';
 
-        div.innerHTML = `
+        li.innerHTML = `
             <div>
-                <span class="member-name">${user.name}${joinedBadge}</span><br>
+                <span class="member-name">${user.name || '이름 없음'}${joinedBadge}</span><br>
                 <span class="member-phone">${formatPhone(user.phone)}</span>
             </div>
-            <span style="font-size:13px; color: #4f46e5; font-weight:bold;">${user.remainingCount || 0}회 남음</span>
+            <span style="font-size:13px; color: var(--primary); font-weight:bold;">${user.remainingCount || 0}회 남음</span>
         `;
-        memberListContainer.appendChild(div);
+        memberListContainer.appendChild(li);
     });
 }
 
-// 🎯 페이지네이션 버튼 UI 생성 및 컨트롤
+// 3. 페이지네이션 버튼 UI 생성
 function renderPagination(totalItems) {
-    let paginationContainer = document.getElementById('pagination-container');
-    
-    // HTML에 pagination-container가 없으면 회원목록 바로 아래에 자동 생성
-    if (!paginationContainer) {
-        paginationContainer = document.createElement('div');
-        paginationContainer.id = 'pagination-container';
-        paginationContainer.style.cssText = 'display: flex; justify-content: center; gap: 5px; padding: 15px 0;';
-        memberListContainer.after(paginationContainer);
-    }
-
+    if (!paginationContainer) return;
     paginationContainer.innerHTML = '';
+
     const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
-    if (totalPages <= 1) return; // 1페이지 이하면 버튼 감춤
+    // 1페이지 이하이거나 회원이 없으면 버튼 표시 안 함
+    if (totalPages <= 1) return; 
 
     // [이전] 버튼
     const prevBtn = document.createElement('button');
+    prevBtn.className = 'page-btn';
     prevBtn.innerText = '‹';
-    prevBtn.style.cssText = 'padding: 5px 10px; cursor: pointer; border: 1px solid #ddd; background: #fff; border-radius: 4px;';
     prevBtn.disabled = currentPage === 1;
     prevBtn.onclick = () => changePage(currentPage - 1);
     paginationContainer.appendChild(prevBtn);
 
-    // [숫자] 버튼
+    // [숫자 페이지] 버튼
     for (let i = 1; i <= totalPages; i++) {
         const btn = document.createElement('button');
+        btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
         btn.innerText = i;
-        const isActive = i === currentPage;
-        btn.style.cssText = `padding: 5px 10px; cursor: pointer; border: 1px solid ${isActive ? '#4f46e5' : '#ddd'}; background: ${isActive ? '#4f46e5' : '#fff'}; color: ${isActive ? '#fff' : '#333'}; border-radius: 4px; font-weight: bold;`;
         btn.onclick = () => changePage(i);
         paginationContainer.appendChild(btn);
     }
 
     // [다음] 버튼
     const nextBtn = document.createElement('button');
+    nextBtn.className = 'page-btn';
     nextBtn.innerText = '›';
-    nextBtn.style.cssText = 'padding: 5px 10px; cursor: pointer; border: 1px solid #ddd; background: #fff; border-radius: 4px;';
     nextBtn.disabled = currentPage === totalPages;
     nextBtn.onclick = () => changePage(currentPage + 1);
     paginationContainer.appendChild(nextBtn);
 }
 
-// 🎯 페이지 이동 함수
+// 페이지 변경 처리
 function changePage(newPage) {
     currentPage = newPage;
     renderMemberList(currentDocsList, currentPage);
     renderPagination(currentDocsList.length);
 }
 
+// 회원 클릭 선택 시 이벤트
 function selectMember(id, userData) {
     activeUserId = id;
     document.querySelectorAll('.member-item').forEach(item => item.classList.remove('active'));
     showMemberDetail(id, userData);
 }
 
+// 우측 회원 상세 페이지 출력 함수
 function showMemberDetail(id, user) {
-    detailPlaceholder.style.display = 'none';
-    detailContent.style.display = 'block';
+    if (detailPlaceholder) detailPlaceholder.style.display = 'none';
+    if (detailContent) detailContent.style.display = 'block';
 
-    // 1. 기본 인적사항
-    document.getElementById('det-name').innerText = `${user.name} 회원님`;
+    // 1. 상단 기본 정보
+    document.getElementById('det-name').innerText = `선택회원: ${user.name || '미등록'} 회원님`;
     document.getElementById('det-phone').innerText = formatPhone(user.phone);
 
-    // 2. 현재 이용권 상단 요약 정보
+    // 2. 현재 사용 중인 이용권 영역
     const hasTicket = Boolean(user.ticketType);
 
-    document.getElementById('cur-ticket').innerText = user.ticketType || "없음(이용권 미등록)";
+    document.getElementById('cur-ticket').innerText = user.ticketType || "없음 (이용권 미등록)";
     document.getElementById('cur-count').innerText = hasTicket 
         ? `${user.remainingCount ?? 0}회 / ${user.totalCount ?? 0}회` 
         : "-";
@@ -169,12 +171,11 @@ function showMemberDetail(id, user) {
         ? `${user.startDate} ~ ${user.endDate}` 
         : "이용 기간 정보 없음";
 
-    // [일반 취소] 화면 표시
+    // 일반 취소 / 당일 취소 남은 횟수
     document.getElementById('cur-cancel-count').innerText = hasTicket 
         ? `${user.remainingCancelCount ?? 0}회 / ${user.totalCancelLimit ?? 0}회` 
         : "-";
 
-    // [당일 취소] 화면 표시
     const curTodayCancelElem = document.getElementById('cur-today-cancel-count');
     if (curTodayCancelElem) {
         curTodayCancelElem.innerText = hasTicket 
@@ -182,7 +183,7 @@ function showMemberDetail(id, user) {
             : "-";
     }
 
-    // 3. 하단 수정 폼 Input 값 바인딩
+    // 3. 하단 수정 Input 양식에 데이터 세팅
     document.getElementById('edit-ticket-type').value = user.ticketType || '';
     document.getElementById('edit-total-count').value = user.totalCount ?? 0;
     document.getElementById('edit-remaining-count').value = user.remainingCount ?? 0;
@@ -201,13 +202,14 @@ function showMemberDetail(id, user) {
     const templateSelect = document.getElementById('edit-template-select');
     if (templateSelect) templateSelect.value = '';
 
+    // 결제 내역 불러오기 실행
     loadPaymentHistory(id);
 }
 
 function closeDetailView() {
     activeUserId = null;
-    detailPlaceholder.style.display = 'flex';
-    detailContent.style.display = 'none';
+    if (detailPlaceholder) detailPlaceholder.style.display = 'block';
+    if (detailContent) detailContent.style.display = 'none';
 }
 
 function addDaysToDate(dateString, days) {
@@ -217,7 +219,26 @@ function addDaysToDate(dateString, days) {
     return date.toISOString().split('T')[0];
 }
 
-// 1. 기존 회원의 이용권 추가/수정 시 템플릿 적용 (누적 합산)
+// 템플릿 선택 시 날짜 자동 계산 (시작일 기준)
+window.calculateEditEndDate = () => {
+    const startDate = document.getElementById('edit-start-date').value;
+    const selectValue = document.getElementById('edit-template-select').value;
+    if (startDate && selectValue) {
+        const [_, days] = selectValue.split(',');
+        document.getElementById('edit-end-date').value = addDaysToDate(startDate, days);
+    }
+};
+
+window.calculateRegEndDate = () => {
+    const startDate = document.getElementById('reg-start').value;
+    const selectValue = document.getElementById('reg-template').value;
+    if (startDate && selectValue) {
+        const [_, days] = selectValue.split(',');
+        document.getElementById('reg-end').value = addDaysToDate(startDate, days);
+    }
+};
+
+// 4. [기존 회원] 이용권 설정 드롭다운 적용 (누적 합산 로직)
 window.applyTemplateToEdit = () => {
     const select = document.getElementById('edit-template-select');
     if (!select.value) return;
@@ -231,36 +252,24 @@ window.applyTemplateToEdit = () => {
 
     const curTotalCount = parseInt(document.getElementById('edit-total-count').value, 10) || 0;
     const curRemainingCount = parseInt(document.getElementById('edit-remaining-count').value, 10) || 0;
-    
     const curTotalCancel = parseInt(document.getElementById('edit-total-cancel').value, 10) || 0;
     const curRemainingCancel = parseInt(document.getElementById('edit-remaining-cancel').value, 10) || 0;
-    
     const curTotalTodayCancel = parseInt(document.getElementById('edit-total-today-cancel').value, 10) || 0;
     const curRemainingTodayCancel = parseInt(document.getElementById('edit-remaining-today-cancel').value, 10) || 0;
 
-    const newTotalCount = curTotalCount + addCount;
-    const newRemainingCount = curRemainingCount + addCount;
+    // 수량 및 취소 횟수 누적
+    document.getElementById('edit-total-count').value = curTotalCount + addCount;
+    document.getElementById('edit-remaining-count').value = curRemainingCount + addCount;
+    document.getElementById('edit-total-cancel').value = curTotalCancel + addCancel;
+    document.getElementById('edit-remaining-cancel').value = curRemainingCancel + addCancel;
+    document.getElementById('edit-total-today-cancel').value = curTotalTodayCancel + addTodayCancel;
+    document.getElementById('edit-remaining-today-cancel').value = curRemainingTodayCancel + addTodayCancel;
 
-    const newTotalCancel = curTotalCancel + addCancel;
-    const newRemainingCancel = curRemainingCancel + addCancel;
+    document.getElementById('edit-ticket-type').value = `${addCount}회권 추가 (${curTotalCount + addCount}회)`;
 
-    const newTotalTodayCancel = curTotalTodayCancel + addTodayCancel;
-    const newRemainingTodayCancel = curRemainingTodayCancel + addTodayCancel;
-
-    document.getElementById('edit-total-count').value = newTotalCount;
-    document.getElementById('edit-remaining-count').value = newRemainingCount;
-    
-    document.getElementById('edit-total-cancel').value = newTotalCancel;
-    document.getElementById('edit-remaining-cancel').value = newRemainingCancel;
-
-    document.getElementById('edit-total-today-cancel').value = newTotalTodayCancel;
-    document.getElementById('edit-remaining-today-cancel').value = newRemainingTodayCancel;
-
-    document.getElementById('edit-ticket-type').value = `${addCount}회권 추가 (${newTotalCount}회)`;
-
+    // 만료일 연장 계산
     const existingEndDate = document.getElementById('edit-end-date').value;
     const startDateInput = document.getElementById('edit-start-date');
-    
     if (!startDateInput.value) {
         startDateInput.value = new Date().toISOString().split('T')[0];
     }
@@ -269,7 +278,7 @@ window.applyTemplateToEdit = () => {
     document.getElementById('edit-end-date').value = addDaysToDate(baseDate, addDays);
 };
 
-// 2. 신규 회원 등록 모달에서 템플릿 적용
+// 5. [신규 회원 모달] 드롭다운 적용
 window.applyTemplateToReg = () => {
     const select = document.getElementById('reg-template');
     if (!select.value) return;
@@ -286,7 +295,7 @@ window.applyTemplateToReg = () => {
     document.getElementById('reg-end').value = addDaysToDate(todayStr, parseInt(days, 10));
 };
 
-// 3. 회원의 결제/환불/취소 내역 불러오기
+// 6. 결제/환불 내역 로드 및 관리
 let selectedHistoryIds = [];
 
 async function loadPaymentHistory(userId) {
@@ -376,15 +385,8 @@ window.toggleHistorySelect = (historyId) => {
 };
 
 window.deleteSelectedPaymentHistory = async () => {
-    if (!activeUserId) {
-        alert("선택된 회원이 없습니다.");
-        return;
-    }
-
-    if (selectedHistoryIds.length === 0) {
-        alert("삭제할 내역을 선택해 주세요.");
-        return;
-    }
+    if (!activeUserId) return alert("선택된 회원이 없습니다.");
+    if (selectedHistoryIds.length === 0) return alert("삭제할 내역을 선택해 주세요.");
 
     if (!confirm(`선택한 ${selectedHistoryIds.length}개의 내역을 삭제하시겠습니까?\n(회원 잔여 횟수에는 영향을 주지 않습니다.)`)) return;
 
@@ -392,33 +394,23 @@ window.deleteSelectedPaymentHistory = async () => {
         const deletePromises = selectedHistoryIds.map((id) => 
             deleteDoc(doc(db, 'users', activeUserId, 'paymentHistory', id))
         );
-
         await Promise.all(deletePromises);
-
         alert("선택한 내역이 삭제되었습니다.");
         loadPaymentHistory(activeUserId);
     } catch (err) {
-        console.error("선택 삭제 오류:", err);
         alert("삭제 실패: " + err.message);
     }
 };
 
 window.clearAllPaymentHistory = async () => {
-    if (!activeUserId) {
-        alert("선택된 회원이 없습니다.");
-        return;
-    }
-
-    if (!confirm("이 회원의 결제 및 환불 내역을 전부 초기화(삭제)하시겠습니까?\n(이 작업은 취소할 수 없습니다.)")) return;
+    if (!activeUserId) return alert("선택된 회원이 없습니다.");
+    if (!confirm("이 회원의 결제 및 환불 내역을 전부 초기화(삭제)하시겠습니까?")) return;
 
     try {
         const historyRef = collection(db, 'users', activeUserId, 'paymentHistory');
         const querySnapshot = await getDocs(historyRef);
 
-        if (querySnapshot.empty) {
-            alert("삭제할 내역이 없습니다.");
-            return;
-        }
+        if (querySnapshot.empty) return alert("삭제할 내역이 없습니다.");
 
         const deletePromises = [];
         querySnapshot.forEach((docSnap) => {
@@ -426,21 +418,16 @@ window.clearAllPaymentHistory = async () => {
         });
 
         await Promise.all(deletePromises);
-
         alert("전체 결제/환불 내역이 초기화되었습니다.");
         loadPaymentHistory(activeUserId);
     } catch (err) {
-        console.error("전체 초기화 오류:", err);
         alert("초기화 실패: " + err.message);
     }
 };
 
-// 4. 이용권 저장/수정 시 결제 내역 기록
+// 7. 이용권 정보 저장/수정
 window.updateUserTicket = async () => {
-    if (!activeUserId) {
-        alert("선택된 회원이 없습니다.");
-        return;
-    }
+    if (!activeUserId) return alert("선택된 회원이 없습니다.");
 
     const ticketType = document.getElementById('edit-ticket-type')?.value.trim() || "";
     const inputTotalCount = parseInt(document.getElementById('edit-total-count')?.value, 10) || 0;
@@ -493,12 +480,9 @@ window.updateUserTicket = async () => {
     }
 };
 
-// 이용권 환불/취소 전용 함수
+// 8. 이용권 환불/취소
 window.refundUserTicket = async () => {
-    if (!activeUserId) {
-        alert("선택된 회원이 없습니다.");
-        return;
-    }
+    if (!activeUserId) return alert("선택된 회원이 없습니다.");
 
     const refundAmountStr = prompt("환불/취소 금액을 입력하세요 (원):", "0");
     if (refundAmountStr === null) return;
@@ -531,17 +515,15 @@ window.refundUserTicket = async () => {
         });
 
         alert("환불 처리가 완료되었습니다.");
-        
         document.getElementById('edit-remaining-count').value = newRemaining;
         loadPaymentHistory(activeUserId);
 
     } catch (err) {
-        console.error("환불 처리 실패:", err);
         alert("환불 실패: " + err.message);
     }
 };
 
-// 이용권 제거(초기화)
+// 9. 이용권 제거(초기화)
 window.resetUserTicket = async () => {
     if(!activeUserId || !confirm("이 회원의 이용권을 만료/제거 상태로 리셋하시겠습니까?")) return;
 
@@ -558,13 +540,13 @@ window.resetUserTicket = async () => {
             totalTodayCancelLimit: 0,
             remainingTodayCancelCount: 0
         });
-        alert("이용권 및 모든 취소 권한 정보가 초기화(제거)되었습니다.");
+        alert("이용권 정보가 초기화되었습니다.");
     } catch (err) {
-        alert("초기화 실패: " + err);
+        alert("초기화 실패: " + err.message);
     }
 };
 
-// 회원 영구 삭제
+// 10. 회원 삭제
 window.deleteCurrentMember = async () => {
     if(!activeUserId || !confirm("정말로 이 회원을 데이터베이스에서 삭제하시겠습니까?")) return;
     
@@ -572,15 +554,14 @@ window.deleteCurrentMember = async () => {
     closeDetailView();
     
     try {
-        const userDocRef = doc(db, 'users', idToDelete);
-        await deleteDoc(userDocRef);
+        await deleteDoc(doc(db, 'users', idToDelete));
         alert("회원이 완전히 삭제되었습니다.");
     } catch (err) {
-        alert("삭제 실패: " + err);
+        alert("삭제 실패: " + err.message);
     }
 };
 
-// 신규 회원 등록 저장 프로세스
+// 11. 신규 회원 등록
 document.getElementById('register-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const phone = document.getElementById('reg-phone').value.replace(/[^0-9]/g, '');
@@ -608,8 +589,7 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
 
         if (registeredUser) {
             targetUserId = registeredUser.id;
-            const userDocRef = doc(db, 'users', targetUserId);
-            await updateDoc(userDocRef, {
+            await updateDoc(doc(db, 'users', targetUserId), {
                 ticketType, 
                 totalCount, 
                 remainingCount: totalCount, 
@@ -620,8 +600,7 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
             alert(`이미 가입된 ${name} 회원님의 계정에 이용권이 부여되었습니다.`);
         } else {
             targetUserId = phone;
-            const userDocRef = doc(db, 'users', targetUserId);
-            await setDoc(userDocRef, {
+            await setDoc(doc(db, 'users', targetUserId), {
                 name, 
                 phone, 
                 ticketType, 
@@ -638,8 +617,7 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
         const priceStr = prompt("등록 결제 금액을 입력해 주세요 (원):", "0");
         const payAmount = parseInt(priceStr, 10) || 0;
 
-        const historyRef = collection(db, 'users', targetUserId, 'paymentHistory');
-        await addDoc(historyRef, {
+        await addDoc(collection(db, 'users', targetUserId, 'paymentHistory'), {
             type: "결제",
             ticketType: ticketType,
             addedCount: totalCount,
@@ -650,12 +628,11 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
 
         closeModal();
     } catch (err) {
-        console.error("등록 중 발생한 상세 에러:", err);
         alert("등록 실패: " + err.message);
     }
 });
 
-// 전화번호 포맷터
+// 전화번호 하이픈(-) 포맷터
 function formatPhone(phone) {
     if (!phone) return '';
     const cleaned = ('' + phone).replace(/\D/g, '');
@@ -668,20 +645,20 @@ function formatPhone(phone) {
     return phone;
 }
 
-// 🎯 실시간 클라이언트 검색 기능 (페이지네이션 연동 수정)
+// 12. 실시간 이름/연락처 검색 연동
 searchInput.addEventListener('input', async (e) => {
-    const keyword = e.target.value.toLowerCase();
+    const keyword = e.target.value.toLowerCase().trim();
     try {
         const querySnapshot = await getDocs(usersCol);
         
-        currentDocsList = querySnapshot.docs.filter((doc) => {
-            const data = doc.data();
+        currentDocsList = querySnapshot.docs.filter((docSnap) => {
+            const data = docSnap.data();
             const name = data.name ? data.name.toLowerCase() : '';
             const phone = data.phone ? data.phone.toLowerCase() : '';
             return name.includes(keyword) || phone.includes(keyword);
         });
         
-        currentPage = 1; // 검색 시 첫 페이지로 이동
+        currentPage = 1; // 검색 시 항상 1페이지로 리셋
         renderMemberList(currentDocsList, currentPage);
         renderPagination(currentDocsList.length);
     } catch (err) {
