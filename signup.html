@@ -43,11 +43,16 @@
                 padding: 10px;
                 font-size: 14px;     
         }
-        .navbar a{
+        .navbar a {
+            text-decoration: none !important;
             color: white;
             text-decoration: none;
             font-weight: 500;
-        }
+            letter-spacing: 0.08em; /* 🔥 자간 조절 (기존보다 넓게 설정) */
+            padding: 2px 4px;       /* 🔥 글자 주변 미세 여백 추가로 답답함 해소 */
+            transition: opacity 0.2s ease;
+            }
+        
          .navbar a:hover {
             text-decoration: underline;
         }
