@@ -31,6 +31,17 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
+// 마이페이지 데이터 로딩 예시
+const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+
+if (userDoc.exists()) {
+  const data = userDoc.data();
+  // remainingCount가 없거나 undefined일 때 무조건 0이 아닌 기본값을 고려
+  document.getElementById("myCount").innerText = data.remainingCount ?? 1; 
+} else {
+  console.log("사용자 정보가 없습니다.");
+}
+
 // 📌 [1] 내 예약 목록 불러오기 함수
 async function loadMyReservations(userOrUid) {
     const listContainer = document.getElementById('reservation-list');
