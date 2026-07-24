@@ -66,26 +66,20 @@
         background-color: transparent;
     }
 
-    #logo {
-        font-family: 'Montserrat', sans-serif;
-        font-size: 26px;               
-        font-weight: 300;              
-        letter-spacing: 0.35em;        
-        text-indent: 0.35em;          
-        text-transform: uppercase;     
-        text-decoration: none;
-        display: inline-block;
-        background: linear-gradient(135deg, #ff512f 0%, #f09819 100%);
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
-        transition: transform 0.3s ease, filter 0.3s ease;
-    }
+        h1 {
+            background-color: #f4efe6; /* 따뜻하고 세련된 샌드 베이지 */
+            color: #3f4e43;            /* 딥 그린 폰트 컬러 */
+            text-align: center;
+            letter-spacing: 0.35em;
+            margin: 0;
+            padding: 12px 0;           /* 🔥 높이 축소 */
+            font-family: 'Cormorant Garamond', 'Noto Sans KR', serif;
+            font-weight: 300;
+            font-size: 20px;
+            text-transform: uppercase;
+        }
+
     
-    #logo:hover {
-        filter: brightness(1.15);
-        transform: translateY(-1px);
-    }
 
     /* 상단 주 메뉴 */
     .menu {
@@ -112,64 +106,60 @@
         border-radius: 12px;
         opacity: 1;
     }
-
-    /* 로그인/회원 메뉴 바 */
+    
+     /* =========================================================
+       로그인/회원 메뉴 바 (.menu2)
+       ========================================================= */
     .menu2 {
-        justify-content: center;
         display: flex;
-        text-align: center;
+        justify-content: center;
         align-items: center;
-        gap: 15px;
+        gap: 12px;
         background-color: #517e73;
-        padding: 10px;
-        font-size: 14px;
+        padding: 10px 15px;
     }
+    
+    /* 메뉴 바 안의 일반 링크(a) 스타일 */
     .menu2 a {
-    color: white;
-    text-decoration: none;
-    font-weight: 500;
-    }
-    .menu2 a:hover {
-    text-decoration: underline;
-    }
-    #userInfo{
-         color: #fff;
-        font-weight: bold;
-    }
-    #guestMenu, #memberMenu {
-        font-size: 12px;
-        padding: 4px 8px;
-        border: 1px solid #fff;
-        background: transparent;
-        color: white;
-        cursor: pointer;
-        border-radius: 4px;
-        transition: background 0.2s;
-    }
-
-    a {
-        font-size: 13px; 
+        font-size: 13px;
         color: #ffffff;
         text-decoration: none;
-        transition: color 0.2s;
+        font-weight: 500;
+        transition: opacity 0.2s;
     }
-
-     /* 로그아웃 버튼 */
-    #logoutBtn{
+    
+    .menu2 a:hover {
+        opacity: 0.8;
+        text-decoration: underline;
+    }
+    
+    /* 사용자 정보 텍스트 */
+    #userInfo {
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 600;
+    }
+    
+    /* 메뉴 바 내부의 버튼들 (로그아웃, 로그인 등 버튼 형태 요소) */
+    .menu2 button,
+    #logoutBtn {
         font-size: 12px;
-        padding: 4px 8px;
-        border: 1px solid #fff;
+        padding: 4px 10px;
+        border: 1px solid rgba(255, 255, 255, 0.7);
         background: transparent;
-        color: white;
+        color: #ffffff;
         cursor: pointer;
         border-radius: 4px;
-        transition: background 0.2s;
-        }
+        transition: all 0.2s ease;
+    }
+    
+    .menu2 button:hover,
     #logoutBtn:hover {
         background: rgba(255, 255, 255, 0.2);
-        }
-            
+        border-color: #ffffff;
+    }
 
+        
     /* ─── [3] 메인 컨텐츠 영역 ─── */
     main {
         padding-top: 180px; 
@@ -351,6 +341,7 @@
         width: 100%;
         padding: 50px 20px;
         color: #e2e8f0; 
+        box-sizing: border-box;
 
         background: linear-gradient(
             135deg, 
@@ -366,8 +357,8 @@
     }
 
     .footer {
-        max-width: 1200px;
-        margin: 0 auto;
+        width: 100%;
+        margin: 0;
         text-align: center;
         font-size: 14px;
         line-height: 1.6;
@@ -377,7 +368,7 @@
 
     .footer dl {
         text-align: center;
-        padding: 0; 
+        padding: 10px 0; 
         color: #cbd5e1;
         margin: 0;
     }
