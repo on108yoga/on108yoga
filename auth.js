@@ -53,7 +53,8 @@ if (signupForm) {
                     phone: phone,
                     email: email,
                     role: "member",
-                    ticketCount: 4 // ✨ [추가] 회원가입 시 기본 잔여 횟수 4회 부여
+                    ticketCount: 1, // ✨ [추가] 회원가입 시 기본 잔여 횟수 4회 부여
+                    createdAt: new Date()
                 }
             );
 
