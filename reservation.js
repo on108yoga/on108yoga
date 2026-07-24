@@ -1,8 +1,5 @@
 // reservation.js
-console.log("reservation.js 실행 (v12.15.0 - Fixed)");
-
 import { auth, db } from "./firebase.js";
-
 import {
     collection,
     query,
@@ -18,32 +15,24 @@ import {
     onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
-import {
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
 let selectedDate = "";
 let selectedTime = "";
-let unsubscribeUser = null; // 실시간 감시 해제용
-
-// 🗓️ 요일별 예약 가능 시간표 정의
-const weeklySchedule = {
-    0: [], // 일요일: 휴무
-    1: ["09:30", "11:00", "18:00", "19:30"], // 월요일
-    2: ["14:00", "15:30", "18:00", "19:30"], // 화요일
-    3: ["09:30", "11:00", "18:00", "19:30"], // 수요일
-    4: ["14:00", "15:30", "18:00", "19:30"], // 목요일
-    5: ["09:30", "11:00", "18:00", "19:30"], // 금요일
-    6: []  // 토요일: 휴무
-};
+let unsubscribeUser = null;
 
 const MAX_PEOPLE = 10;
+const weeklySchedule = {
+    0: [],
+    1: ["09:30", "11:00", "18:00", "19:30"],
+    2: ["14:00", "15:30", "18:00", "19:30"],
+    3: ["09:30", "11:00", "18:00", "19:30"],
+    4: ["14:00", "15:30", "18:00", "19:30"],
+    5: ["09:30", "11:00", "18:00", "19:30"],
+    6: []
+};
 
-/*
-================================
-오늘 날짜 확인 유틸리티 (YYYY-MM-DD)
-================================
-*/
+// 1.오늘 날짜 구하기 (YYYY-MM-DD)
 function getTodayString() {
     const today = new Date();
     const year = today.getFullYear();
@@ -52,31 +41,23 @@ function getTodayString() {
     return `${year}-${month}-${day}`;
 }
 
-/*
-================================
-인원 표시 초기화 유틸리티
-================================
-*/
-function clearTimeCounts() {
-    document.querySelectorAll("[id^='count']").forEach(el => {
-        el.innerText = "0";
-    });
+// 2. 현재 시간 구하기 (HH:MM)
+function getCurrentTimeString() {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
 }
 
-/*
-================================
-사용자 프로필(성명 + 잔여 횟수) 실시간 불러오기
-================================
-*/
+// 3. 사용자 프로필 & 잔여 횟수 실시간 바인딩
 function listenUserProfile(user) {
-    const nameElement = document.getElementById("myUserName");
-    const countElement = document.getElementById("myTicketCount");
     if (!user) return;
-
     if (unsubscribeUser) unsubscribeUser();
 
-    const userDocRef = doc(db, "users", user.uid);
+    const nameElement = document.getElementById("myUserName");
+    const countElement = document.getElementById("myTicketCount");
 
+    const userDocRef = doc(db, "users", user.uid);
     unsubscribeUser = onSnapshot(userDocRef, (userSnap) => {
         let userName = user.displayName || "회원";
         let remCount = 0;
@@ -85,155 +66,70 @@ function listenUserProfile(user) {
             const userData = userSnap.data();
             if (userData.name) userName = userData.name;
 
-            if (userData.remainingCount !== undefined) {
-                remCount = Number(userData.remainingCount);
-            } else if (userData.ticketCount !== undefined) {
-                remCount = Number(userData.ticketCount);
-            } else if (userData.remCount !== undefined) {
-                remCount = Number(userData.remCount);
-            } else {
-                remCount = 0;
-            }
+            if (userData.remainingCount !== undefined) remCount = Number(userData.remainingCount);
+            else if (userData.ticketCount !== undefined) remCount = Number(userData.ticketCount);
+            else if (userData.remCount !== undefined) remCount = Number(userData.remCount);
         }
 
         if (nameElement) nameElement.innerText = `${userName} 님`;
         if (countElement) countElement.innerText = `${remCount} 회`;
     }, (err) => {
-        console.error("사용자 정보 로드 실패:", err);
-        if (nameElement) nameElement.innerText = `${user.displayName || '회원'} 님`;
-        if (countElement) countElement.innerText = "0 회";
+        console.error("사용자 정보 수신 실패:", err);
     });
 }
 
-/*
-================================
-날짜 선택 (calendar.js에서 호출함)
-================================
-*/
+// 4. 날짜 선택 (calendar.js에서 호출)
 window.setSelectedDate = function(date) {
     selectedDate = date;
-    selectedTime = ""; // 날짜 변경 시 시간 선택 초기화
-    console.log("선택 날짜:", selectedDate);
-
-    const timeContainer = document.getElementById("timeButtons");
-    const todayStr = getTodayString();
-
-    // 🛑 주말 및 공휴일 체크
-    if (isWeekendOrHoliday(selectedDate)) {
-        alert("토요일, 일요일 및 공휴일은 휴무일이므로 예약이 불가능합니다.");
-        if (timeContainer) {
-            timeContainer.innerHTML = '<p style="color:#ef4444; font-size:14px; margin-top:10px;">휴무일입니다.</p>';
-        }
-        clearTimeCounts();
-        selectedDate = "";
-        return;
-    }
-
-    // 🛑 지난 날짜 체크
-    if (selectedDate < todayStr) {
-        alert("지난 날짜는 선택 또는 예약할 수 없습니다.");
-        if (timeContainer) {
-            timeContainer.innerHTML = '<p style="color:#9ca3af; font-size:14px; margin-top:10px;">지난 날짜는 예약할 수 없습니다.</p>';
-        }
-        clearTimeCounts();
-        selectedDate = "";
-        return;
-    }
-
-    // 💡 1. 요일별 시간 버튼 생성
-    renderTimeButtons(selectedDate);
+    selectedTime = "";
     
-    // 💡 2. 생성된 버튼 내부 span에 DB 인원 수 불러오기
-    loadReservation();
+    const dateDisplay = document.getElementById("selectedDate");
+    if (dateDisplay) dateDisplay.innerText = date;
+
+    renderTimeButtons(selectedDate);
+    loadReservationCounts();
 };
 
-/* 🗓️ 요일별 예약 가능 시간표 버튼 생성 */
+// 5. 시간 버튼 랜더링
 function renderTimeButtons(selectedDateStr) {
     const container = document.getElementById('timeButtons');
     if (!container || !selectedDateStr) return;
 
     const [year, month, day] = selectedDateStr.split('-').map(Number);
-    const selectedDateObj = new Date(year, month - 1, day);
-    const dayOfWeek = selectedDateObj.getDay();
-
+    const dayOfWeek = new Date(year, month - 1, day).getDay();
     const availableTimes = weeklySchedule[dayOfWeek] || [];
 
     container.innerHTML = '';
-    selectedTime = ""; 
 
     if (availableTimes.length === 0) {
-        container.innerHTML = `<p class="no-class-text" style="color:#9ca3af; font-size:14px; margin-top:10px;">해당 요일은 수업/예약이 없습니다.</p>`;
+        container.innerHTML = `<p style="color:#9ca3af; font-size:14px;">해당 요일은 수업이 없습니다.</p>`;
         return;
     }
 
     availableTimes.forEach(time => {
         const timeId = time.replace(":", "");
-
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'time-btn';
         button.dataset.time = time;
         button.innerHTML = `${time} (예약 <span id="count${timeId}">0</span> / ${MAX_PEOPLE}명)`;
 
-        // 🔥 동적 버튼 클릭 이벤트 처리
         button.addEventListener('click', () => {
             document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected', 'active'));
             button.classList.add('selected', 'active');
             selectedTime = time;
-            console.log("선택된 시간:", selectedTime);
         });
 
         container.appendChild(button);
     });
 }
 
-/*
-================================
-주말 및 공휴일 체크 유틸리티
-================================
-*/
-function isWeekendOrHoliday(dateStr) {
-    if (!dateStr) return false;
-
-    const [year, month, day] = dateStr.split('-').map(Number);
-    const targetDate = new Date(year, month - 1, day);
-    const dayOfWeek = targetDate.getDay();
-
-    if (dayOfWeek === 0 || dayOfWeek === 6) return true;
-
-    const monthDay = dateStr.slice(5);
-    const fixedHolidays = [
-        "01-01", "03-01", "05-05", "06-06",
-        "08-15", "10-03", "10-09", "12-25"
-    ];
-
-    if (fixedHolidays.includes(monthDay)) return true;
-
-    const variableHolidays = [
-        "2026-02-16", "2026-02-17", "2026-02-18",
-        "2026-05-24",
-        "2026-09-24", "2026-09-25", "2026-09-26"
-    ];
-
-    if (variableHolidays.includes(dateStr)) return true;
-
-    return false;
-}
-
-/*
-================================
-예약 인원 불러오기
-================================
-*/
-async function loadReservation() {
+// 6. 타임별 인원 수 표시
+async function loadReservationCounts() {
     if (!selectedDate) return;
 
-    clearTimeCounts();
-
     const [year, month, day] = selectedDate.split('-').map(Number);
-    const dateObj = new Date(year, month - 1, day);
-    const dayOfWeek = dateObj.getDay();
-
+    const dayOfWeek = new Date(year, month - 1, day).getDay();
     const targetSchedule = weeklySchedule[dayOfWeek] || [];
 
     for (const time of targetSchedule) {
@@ -243,60 +139,102 @@ async function loadReservation() {
                 where("date", "==", selectedDate),
                 where("time", "==", time)
             );
-
             const snapshot = await getDocs(q);
-            const count = snapshot.size;
-
-            const id = "count" + time.replace(":", "");
-            const element = document.getElementById(id);
-
-            if (element) {
-                element.innerText = count;
-            }
-        } catch (error) {
-            console.error(`🚨 [${time}] 예약 조회 중 오류:`, error);
+            const element = document.getElementById("count" + time.replace(":", ""));
+            if (element) element.innerText = snapshot.size;
+        } catch (e) {
+            console.error(e);
         }
     }
 }
 
-/*
-================================
-Dropdown Select 바인딩 (Select 사용 시)
-================================
-*/
-const timeSelectEl = document.getElementById("res-time");
-if (timeSelectEl) {
-    timeSelectEl.addEventListener("change", (e) => {
-        selectedTime = e.target.value;
-    });
+// 7. 🔥 내 예약 목록 불러오기 (수정완료)
+async function loadMyReservation() {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const box = document.getElementById("myReservations");
+    if (!box) return;
+
+    box.innerHTML = `<h3 style="font-size:16px; font-weight:bold; margin-bottom:10px; color:#111827;">🗓️ 내 예약 현황</h3>`;
+
+    try {
+        const q = query(
+            collection(db, "reservations"),
+            where("uid", "==", user.uid)
+        );
+
+        const snapshot = await getDocs(q);
+        const todayStr = getTodayString();
+        const currentTimeStr = getCurrentTimeString();
+
+        let validReservations = [];
+
+        snapshot.forEach(item => {
+            const data = item.data();
+            // 두 자릿수 시:분 보장
+            const formattedTime = data.time.length === 4 ? `0${data.time}` : data.time;
+
+            const isFutureDate = data.date > todayStr;
+            const isTodayUpcoming = (data.date === todayStr && formattedTime >= currentTimeStr);
+
+            if (isFutureDate || isTodayUpcoming) {
+                validReservations.push({ id: item.id, ...data });
+            }
+        });
+
+        validReservations.sort((a, b) => {
+            if (a.date === b.date) return a.time.localeCompare(b.time);
+            return a.date.localeCompare(b.date);
+        });
+
+        if (validReservations.length === 0) {
+            box.innerHTML += `<p style="color:#9ca3af; font-size:14px; margin-top:6px;">예약된 내역이 없습니다.</p>`;
+            return;
+        }
+
+        const listContainer = document.createElement("div");
+        listContainer.style.cssText = "display:flex; flex-direction:column; gap:8px;";
+
+        validReservations.forEach(res => {
+            const itemDiv = document.createElement("div");
+            itemDiv.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:12px; background:#ffffff; border:1px solid #e5e7eb; border-radius:8px; box-shadow:0 1px 2px rgba(0,0,0,0.05);";
+
+            itemDiv.innerHTML = `
+                <div>
+                    <span style="font-size:14px; font-weight:600; color:#111827;">${res.date}</span>
+                    <span style="font-size:14px; font-weight:bold; color:#4f46e5; margin-left:6px;">(${res.time})</span>
+                </div>
+                <button type="button" class="cancel-btn" style="background:#fee2e2; color:#ef4444; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:bold;">
+                    예약 취소
+                </button>
+            `;
+
+            const cancelBtn = itemDiv.querySelector(".cancel-btn");
+            cancelBtn.addEventListener("click", () => {
+                cancelReservation(res.id);
+            });
+
+            listContainer.appendChild(itemDiv);
+        });
+
+        box.appendChild(listContainer);
+
+    } catch (error) {
+        console.error("내 예약 불러오기 오류:", error);
+    }
 }
 
-/*
-================================
-예약 처리 메인 함수
-================================
-*/
+// 8. 🔥 예약 처리 함수
 async function handleReservation() {
     const user = auth.currentUser;
     if (!user) {
         alert("로그인 후 이용해 주세요.");
-        location.href = "index.html";
         return;
     }
 
     if (!selectedDate) {
         alert("날짜를 선택해 주세요.");
-        return;
-    }
-
-    if (isWeekendOrHoliday(selectedDate)) {
-        alert("토요일, 일요일 및 공휴일은 예약이 불가능합니다.");
-        return;
-    }
-
-    const todayStr = getTodayString();
-    if (selectedDate < todayStr) {
-        alert("지난 날짜에는 예약할 수 없습니다.");
         return;
     }
 
@@ -310,7 +248,7 @@ async function handleReservation() {
         const userSnap = await getDoc(userDocRef);
 
         if (!userSnap.exists()) {
-            alert("회원 정보가 존재하지 않습니다.");
+            alert("회원 정보가 없습니다.");
             return;
         }
 
@@ -332,35 +270,24 @@ async function handleReservation() {
         }
 
         if (remCount <= 0) {
-            alert(`⚠️ 남은 이용권 횟수가 없습니다. (잔여: ${remCount}회)\n이용권을 충전 후 다시 시도해주세요.`);
+            alert(`⚠️ 남은 이용권 횟수가 없습니다. (잔여: ${remCount}회)`);
             return;
         }
 
-        const duplicateQuery = query(
+        // 중복 예약 체크
+        const dupQuery = query(
             collection(db, "reservations"),
             where("uid", "==", user.uid),
             where("date", "==", selectedDate),
             where("time", "==", selectedTime)
         );
-        const duplicateSnapshot = await getDocs(duplicateQuery);
-
-        if (!duplicateSnapshot.empty) {
-            alert("이미 같은 시간대에 예약한 내역이 있습니다.");
+        const dupSnap = await getDocs(dupQuery);
+        if (!dupSnap.empty) {
+            alert("이미 해당 시간대에 예약 신청하셨습니다.");
             return;
         }
 
-        const countQuery = query(
-            collection(db, "reservations"),
-            where("date", "==", selectedDate),
-            where("time", "==", selectedTime)
-        );
-        const countSnapshot = await getDocs(countQuery);
-
-        if (countSnapshot.size >= MAX_PEOPLE) {
-            alert("해당 시간대의 예약이 마감되었습니다.");
-            return;
-        }
-
+        // 1) 예약 DB 등록
         await addDoc(collection(db, "reservations"), {
             uid: user.uid,
             name: userName,
@@ -369,46 +296,29 @@ async function handleReservation() {
             createdAt: serverTimestamp()
         });
 
+        // 2) 잔여 횟수 차감
         await updateDoc(userDocRef, {
             [countFieldName]: increment(-1)
         });
 
-        alert(`🎉 예약이 완료되었습니다!`);
+        alert("🎉 예약이 완벽하게 완료되었습니다!");
 
-        loadReservation();
+        // 3) UI 실시간 업데이트
+        loadReservationCounts();
         loadMyReservation();
 
     } catch (err) {
         console.error("예약 오류:", err);
-        alert("예약 처리 중 오류가 발생했습니다.");
+        alert("예약 중 오류가 발생했습니다.");
     }
 }
 
-/*
-================================
-이벤트 리스너 바인딩 (DOM 로드 후 안전하게 바인딩)
-================================
-*/
-document.addEventListener("DOMContentLoaded", () => {
-    const reserveBtn = document.getElementById("reserveBtn");
-    if (reserveBtn) {
-        reserveBtn.addEventListener("click", handleReservation);
-    } else {
-        console.warn("⚠️ 'reserveBtn' ID를 가진 버튼을 찾을 수 없습니다. HTML을 확인해 주세요.");
-    }
-});
-
-/*
-================================
-예약 취소
-================================
-*/
-window.cancelReservation = async function(id) {
-    const ok = confirm("예약을 취소하시겠습니까?");
-    if (!ok) return;
+// 9. 🔥 예약 취소 함수
+async function cancelReservation(resId) {
+    if (!confirm("정말 예약을 취소하시겠습니까?")) return;
 
     try {
-        await deleteDoc(doc(db, "reservations", id));
+        await deleteDoc(doc(db, "reservations", resId));
 
         if (auth.currentUser) {
             const userDocRef = doc(db, "users", auth.currentUser.uid);
@@ -416,13 +326,13 @@ window.cancelReservation = async function(id) {
 
             if (userSnap.exists()) {
                 const userData = userSnap.data();
-                
                 let countFieldName = "remainingCount";
                 if (userData.remainingCount === undefined) {
                     if (userData.ticketCount !== undefined) countFieldName = "ticketCount";
                     else if (userData.remCount !== undefined) countFieldName = "remCount";
                 }
 
+                // 횟수 복구 (+1)
                 await updateDoc(userDocRef, {
                     [countFieldName]: increment(1)
                 });
@@ -431,113 +341,27 @@ window.cancelReservation = async function(id) {
 
         alert("예약이 취소되었습니다.");
 
-        loadReservation();
+        loadReservationCounts();
         loadMyReservation();
 
     } catch (err) {
-        console.error("취소 오류:", err);
-        alert("예약 취소 중 오류가 발생했습니다.");
-    }
-};
-
-/*
-================================
-내 예약 불러오기
-================================
-*/
-async function loadMyReservation() {
-    const user = auth.currentUser;
-    if (!user) {
-        console.warn("로그인된 사용자가 없어 내 예약을 불러오지 않습니다.");
-        return;
-    }
-
-    const box = document.getElementById("myReservations");
-    if (!box) {
-        console.warn("⚠️ 'myReservations' ID를 가진 요소를 찾을 수 없습니다.");
-        return;
-    }
-
-    // 초기화 및 타이틀 생성
-    box.innerHTML = "<h3 style='margin-top:20px; font-size:16px; font-weight:bold;'>내 예약 목록</h3>";
-
-    try {
-        const q = query(
-            collection(db, "reservations"),
-            where("uid", "==", user.uid)
-        );
-
-        const snapshot = await getDocs(q);
-        
-        const now = new Date();
-        const todayStr = getTodayString();
-        const currentHoursMinutes = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-
-        let validReservations = [];
-
-        // 1. 유효한 예약 내역 필터링
-        snapshot.forEach(item => {
-            const data = item.data();
-            const isFutureDate = data.date > todayStr;
-            const isTodayUpcoming = (data.date === todayStr && data.time >= currentHoursMinutes);
-
-            if (isFutureDate || isTodayUpcoming) {
-                validReservations.push({ id: item.id, ...data });
-            }
-        });
-
-        // 2. 날짜 및 시간순 정렬 (최신 순)
-        validReservations.sort((a, b) => {
-            if (a.date === b.date) return a.time.localeCompare(b.time);
-            return a.date.localeCompare(b.date);
-        });
-
-        // 3. 목록 표시
-        if (validReservations.length === 0) {
-            box.innerHTML += "<p style='color:#9ca3af; font-size:13px; margin-top:8px;'>예약된 내역이 없습니다.</p>";
-            return;
-        }
-
-        const listContainer = document.createElement("div");
-        listContainer.style.marginTop = "10px";
-
-        validReservations.forEach(res => {
-            const itemDiv = document.createElement("div");
-            itemDiv.className = "my-reservation";
-            itemDiv.style.cssText = "display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding:10px 12px; background:#ffffff; border:1px solid #e5e7eb; border-radius:6px; box-shadow:0 1px 3px rgba(0,0,0,0.05);";
-
-            itemDiv.innerHTML = `
-                <span style="font-size:14px; color:#374151; font-weight:500;">🗓️ ${res.date} (${res.time})</span>
-                <button type="button" class="cancel-btn" data-id="${res.id}" style="background:#fee2e2; color:#ef4444; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">
-                    예약 취소
-                </button>
-            `;
-
-            // 버튼 클릭 이벤트 바인딩
-            const cancelBtn = itemDiv.querySelector(".cancel-btn");
-            cancelBtn.addEventListener("click", () => {
-                cancelReservation(res.id);
-            });
-
-            listContainer.appendChild(itemDiv);
-        });
-
-        box.appendChild(listContainer);
-
-    } catch (error) {
-        console.error("내 예약 불러오기 오류:", error);
-        box.innerHTML += "<p style='color:#ef4444; font-size:13px; margin-top:8px;'>예약 내역을 불러오는 중 오류가 발생했습니다.</p>";
+        console.error("취소 실패:", err);
+        alert("취소 처리 중 오류가 발생했습니다.");
     }
 }
-/*
-================================
-로그인 상태 변경 감지
-================================
-*/
+
+// 10. 이벤트 바인딩 및 상태 감시
+document.addEventListener("DOMContentLoaded", () => {
+    const reserveBtn = document.getElementById("reserveBtn");
+    if (reserveBtn) {
+        reserveBtn.addEventListener("click", handleReservation);
+    }
+});
+
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        loadMyReservation();
         listenUserProfile(user);
+        loadMyReservation();
     } else {
         if (unsubscribeUser) unsubscribeUser();
     }
