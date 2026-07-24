@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>온108요가 - 공지사항</title>
+    <title>ON108YOGA - NOTICE </title>
     <link rel="stylesheet" href="style.css">
     <style>
         .notice-container {
@@ -24,6 +24,9 @@
             border-top: 2px solid #3f4e43;
         }
         .notice-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             padding: 16px 12px;
             border-bottom: 1px solid #e5e7eb;
             cursor: pointer;
@@ -33,14 +36,13 @@
             background-color: #f9fafb;
         }
         .notice-title {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
-            color: #333;
-            margin-bottom: 6px;
+            color: #111827;
         }
         .notice-date {
             font-size: 13px;
-            color: #888;
+            color: #9ca3af;
         }
         .btn-write {
             background-color: #3f4e43;
@@ -49,23 +51,48 @@
             padding: 8px 16px;
             border-radius: 6px;
             cursor: pointer;
-            display: none; /* JS에서 admin일 때만 inline-block으로 전환 */
+            font-size: 13px;
+            display: none; /* 관리자일 때만 노출 */
+        }
+        /* 페이지네이션 버튼 스타일 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 24px;
+        }
+        .page-btn {
+            border: 1px solid #d1d5db;
+            background: #ffffff;
+            color: #374151;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .page-btn.active {
+            background: #3f4e43;
+            color: #ffffff;
+            border-color: #3f4e43;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="notice-container">
         <div class="notice-header">
-            <h2>📢 공지사항</h2>
+            <h2>NOTICE</h2>
             <button id="writeBtn" class="btn-write">글쓰기</button>
         </div>
 
         <ul id="noticeList" class="notice-list">
-            <!-- 자바스크립트로 공지사항 항목이 렌더링됩니다 -->
+            <!-- 자바스크립트로 10개씩 목록 렌더링 -->
         </ul>
+
+        <!-- 페이지네이션 번호 버튼 영역 -->
+        <div id="pagination" class="pagination"></div>
     </div>
 
-    <!-- Firebase 및 Notice 스크립트 연결 -->
     <script type="module" src="notice.js"></script>
 </body>
 </html>
