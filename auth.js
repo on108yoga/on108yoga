@@ -45,7 +45,7 @@ if (signupForm) {
                 password
             );
 
-            // Firestore에 기본 정보 저장 (ticketCount: 4회 기본 제공)
+            // Firestore에 기본 정보 저장 (ticketCount: 0회 기본 제공)
             await setDoc(
                 doc(db, "users", userCredential.user.uid),
                 {
@@ -53,7 +53,7 @@ if (signupForm) {
                     phone: phone,
                     email: email,
                     role: "member",
-                    ticketCount: 1, // ✨ [추가] 회원가입 시 기본 잔여 횟수 4회 부여
+                    ticketCount: 0, // ✨ [추가] 회원가입 시 기본 잔여 횟수 0회 부여
                     createdAt: new Date()
                 }
             );
