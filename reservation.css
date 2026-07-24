@@ -60,7 +60,7 @@ body {
     background: rgba(255, 255, 255, 0.2);
 }
 
-/* 얇은 로고 (LOGO) 영역 */
+/* 얇은 서체 LOGO 영역 */
 h1 {
     background-color: #fff5de;
     text-align: center;
@@ -69,7 +69,7 @@ h1 {
     padding: 24px 0;
     color: #2c3a31;
     font-family: 'Cormorant Garamond', 'Noto Sans KR', serif;
-    font-weight: 300; /* 얇고 감성적인 서체 */
+    font-weight: 300;
     font-size: 26px;
     text-transform: uppercase;
 }
@@ -89,7 +89,7 @@ h1 {
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
-/* 메인 컨테이너 구조 */
+/* 메인 레이아웃 */
 main {
     margin: 20px auto;
     display: flex;
@@ -99,21 +99,25 @@ main {
     padding: 0 20px;
 }        
 
-/* 🔥 1, 2, 3 영역을 나란히 가로 배치하는 컨테이너 */
+/* 🔥 1, 2, 3 영역: 세로형 형태를 유지하면서 나란히 배치 */
 .top-reservation-container {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
+    align-items: stretch; /* 모든 카드의 높이를 일정하게 늘림 */
     gap: 20px;
     width: 100%;
     margin-bottom: 25px;
 }
 
-/* 1, 2, 3 영역 공통 카드 카드 스타일 */
+/* 1, 2, 3 각각의 카드 (세로형 직사각형 형태) */
 .calendar-area,
 .reservation-panel,
 .my-reservation-section {
-    flex: 1;
-    min-width: 0; /* Flexbox 너비 줄어듦 방지 */
+    flex: 1; /* 1:1:1 비율로 정렬 */
+    min-width: 0;
+    display: flex;
+    flex-direction: column; /* 세로형 정렬 */
+    justify-content: flex-start;
     background: #ffffff;
     padding: 20px;
     border-radius: 12px;
@@ -135,13 +139,12 @@ main {
    3. 커스텀 캘린더 디자인
    ========================================================= */
 .custom-calendar {
-    background: #fffaf0; /* 따뜻한 아이보리 톤 배경 */
-    padding: 20px 15px;
+    background: #fffaf0;
+    padding: 15px;
     border-radius: 20px;
     box-shadow: 0 5px 20px rgba(0,0,0,.05);
 }
 
-/* 헤더 영역 */
 .calendar-header {
     display: flex;
     justify-content: space-between;
@@ -149,22 +152,21 @@ main {
 }
 
 .calendar-header h2 {
-    font-size: 18px;
+    font-size: 16px;
     color: #405346;
     margin: 0;
     font-weight: bold;
 }
 
-/* 동글동글 화살표 버튼 */
 .calendar-header button {
     border: none !important;
     background: #405346 !important;
     color: white !important;
-    width: 32px !important;
-    height: 32px !important;
+    width: 30px !important;
+    height: 30px !important;
     border-radius: 50% !important;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 12px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -176,46 +178,43 @@ main {
     transform: scale(1.05);
 }
 
-/* 요일 헤더 */
 .week-name {
     display: grid !important;
     grid-template-columns: repeat(7, 1fr) !important;
     text-align: center;
-    margin-top: 15px;
+    margin-top: 12px;
     color: #777;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: bold;
 }
 
-.week-name div:first-child { color: #d9534f; } /* 일요일 */
-.week-name div:last-child { color: #4a90e2; }  /* 토요일 */
+.week-name div:first-child { color: #d9534f; }
+.week-name div:last-child { color: #4a90e2; }
 
-/* 날짜 그리드 */
 #weekCalendar,
 #calendarDates {
     display: grid !important;
     grid-template-columns: repeat(7, 1fr) !important;
-    margin-top: 10px;
+    margin-top: 8px;
     width: 100%;
 }
 
 .day-box {
-    height: 45px;
+    height: 40px;
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
     cursor: pointer;
 }
 
-/* 날짜 숫자 동그라미 스타일 */
 .day-box span {
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
     display: flex;
     justify-content: center;
     align-items: center;
     border-radius: 50%;
-    font-size: 13px;
+    font-size: 12px;
     transition: background 0.2s, color 0.2s;
 }
 
@@ -246,7 +245,7 @@ main {
     background-color: rgb(190, 231, 221);
     padding: 4px 12px;
     border-radius: 4px;
-    font-size: 14px;
+    font-size: 13px;
     display: inline-block;
     margin-bottom: 5px;
     color: #111827;
@@ -282,16 +281,15 @@ main {
     font-weight: bold;
 }
 
-/* 예약하기 버튼 */
 #reserveBtn {
     width: 100%;
     padding: 12px;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: bold;
     background: #517e73;
     border: none;
     color: #fff;
-    margin-top: 15px;
+    margin-top: auto; /* 버튼을 카드 제일 하단으로 밀어 맞춤 */
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s;
@@ -303,7 +301,6 @@ main {
     transform: translateY(-2px);
 }
 
-/* 내 예약 목록 아이템 & 취소 버튼 모션 */
 .my-reservation {
     display: flex;
     align-items: center;
@@ -334,7 +331,7 @@ main {
 }
 
 /* =========================================================
-   5. 예약 안내 & 푸터 (하단 전체폭 배치)
+   5. 예약 안내 & 푸터
    ========================================================= */
 .notice {
     width: 100%;
@@ -374,18 +371,9 @@ footer {
     text-align: center;
 }
 
-/* =========================================================
-   6. 모바일 및 태블릿 반응형
-   ========================================================= */
-@media all and (max-width: 900px) {
+/* 화면 폭이 모바일처럼 매우 좁을 때만 수직으로 전환 */
+@media all and (max-width: 768px) {
     .top-reservation-container {
         flex-direction: column;
-        gap: 20px;
-    }
-    
-    .calendar-area,
-    .reservation-panel,
-    .my-reservation-section {
-        width: 100%;
     }
 }
