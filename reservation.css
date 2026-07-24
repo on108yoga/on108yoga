@@ -62,15 +62,15 @@ body {
 
 /* 얇은 서체 & 슬림한 슬레이트 그린 로고 헤더 */
 h1 {
-    background-color: #1e2621; /* 진한 미드나잇 그린/차콜 */
-    color: #ffffff;            /* 화이트 폰트 */
+    background-color: #f4efe6; /* 따뜻하고 세련된 샌드 베이지 */
+    color: #3f4e43;            /* 딥 그린 폰트 컬러 */
     text-align: center;
     letter-spacing: 0.35em;
     margin: 0;
-    padding: 10px 0;           /* 🔥 더욱 슬림하게 조절 */
+    padding: 12px 0;           /* 🔥 높이 축소 */
     font-family: 'Cormorant Garamond', 'Noto Sans KR', serif;
     font-weight: 300;
-    font-size: 19px;
+    font-size: 20px;
     text-transform: uppercase;
 }
 
