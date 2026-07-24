@@ -60,17 +60,17 @@ body {
     background: rgba(255, 255, 255, 0.2);
 }
 
-/* 얇은 서체 LOGO 영역 */
+/* 얇은 서체 & 슬림한 슬레이트 그린 로고 헤더 */
 h1 {
-    background-color: #fff5de;
+    background-color: #2c3a31; /* 고급스럽고 톤다운된 딥 세이지 그린 */
+    color: #f2ebd9;            /* 부드러운 아이보리 폰트 컬러 */
     text-align: center;
     letter-spacing: 0.35em;
     margin: 0;
-    padding: 24px 0;
-    color: #2c3a31;
+    padding: 12px 0;           /* 🔥 높이 축소 (기존 24px -> 12px) */
     font-family: 'Cormorant Garamond', 'Noto Sans KR', serif;
     font-weight: 300;
-    font-size: 26px;
+    font-size: 20px;           /* 🔥 슬림한 높이에 맞춰 폰트 크기 조절 (기존 26px -> 20px) */
     text-transform: uppercase;
 }
 
