@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>스튜디오 회원 및 이용권 관리</title>
+    <title>[운영자]스튜디오 회원 및 이용권 관리 대시보드</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Noto+Sans+KR:wght@200;300;400;500;700&display=swap');
+
         :root {
             --primary: #4f46e5;
             --primary-hover: #4338ca;
@@ -13,6 +15,27 @@
             --border: #e5e7eb;
             --text: #1f2937;
         }
+        .menu {
+            justify-content: center;
+            display: flex;
+            text-align: center;
+            align-items: center;
+            gap: 15px;
+            background-color: #517e73;
+            padding: 10px;
+            font-size: 14px;
+        }
+        
+        .menu a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .menu a:hover {
+            text-decoration: underline;
+        }
+        
         .navbar{
             justify-content: center;
             text-align: center;
@@ -25,11 +48,16 @@
             width: 50px;
         }
         h1 {
-            background-color: #fff5de;
-            text-align: center;
-            letter-spacing: 0.3em;
-            margin: 0;
-            padding: 20px 0;
+                background-color: #f4efe6; /* 따뜻하고 세련된 샌드 베이지 */
+                color: #3f4e43;            /* 딥 그린 폰트 컬러 */
+                text-align: center;
+                letter-spacing: 0.35em;
+                margin: 0;
+                padding: 12px 0;           /* 🔥 높이 축소 */
+                font-family: 'Cormorant Garamond', 'Noto Sans KR', serif;
+                font-weight: 300;
+                font-size: 20px;
+                text-transform: uppercase;
         }
         body { font-family: 'Pretendard', sans-serif; margin: 0; padding: 20px; background-color: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; }
         header {justify-content: space-between; align-items: center; margin-bottom: 20px; }
@@ -76,18 +104,115 @@
         /* 등록 팝업 모달 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 100; }
         .modal-content { background: white; padding: 25px; border-radius: 8px; width: 380px; }
+
+        /* ===================================================
+   📱 모바일 디바이스 전용 반응형 스타일 (768px 이하)
+   =================================================== */
+@media (max-width: 768px) {
+        body {
+            padding: 10px;
+            height: auto; /* 고정 높이 제거하여 자연스러운 스크롤 생성 */
+        }
+    
+        /* 헤더 및 검색창 터치 최적화 */
+        header div {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+    
+        .search-box {
+            width: 100%; /* 검색창 전체 너비 확충 */
+            box-sizing: border-box;
+            padding: 12px;
+            font-size: 15px;
+        }
+    
+        header .btn-primary {
+            width: 100% !important;
+            padding: 12px 0 !important;
+            font-size: 15px;
+        }
+    
+        /* 🔥 핵심: 좌우 분할 flex 해제 -> 세로 일렬(block) 상태로 변경 */
+        .main-container {
+            display: block; 
+        }
+    
+        .member-list-section {
+            margin-bottom: 20px;
+            max-height: 350px; /* 리스트 영역 높이 제한 후 스크롤 적용 */
+        }
+    
+        .member-item {
+            padding: 16px; /* 모바일 터치 영역 확장 */
+        }
+    
+        .member-detail-section {
+            padding: 15px;
+        }
+    
+        /* 정보 영역 2열 레이아웃을 모바일에서는 1열 세로 스택으로 변경 */
+        .info-grid {
+            grid-template-columns: 1fr; 
+            gap: 12px;
+        }
+    
+        .info-grid > div[style*="span 2"] {
+            grid-column: span 1 !important;
+        }
+    
+        /* 모바일 버튼 군 배치 (세로 모드) */
+        .btn-group {
+            flex-direction: column;
+            gap: 8px;
+        }
+    
+        .btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 15px;
+        }
+    
+        /* 등록 팝업 모달 크기 맞춤 */
+        .modal-content {
+            width: 90%;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+    
+        /* 테이블 가로 스크롤 터치 대응 */
+        .ticket-management div[style*="overflow-y"] {
+            overflow-x: auto;
+        }
+    
+        table {
+            min-width: 480px; /* 최소 너비를 확보해 모바일에서 표가 깨지지 않고 스크롤되도록 설정 */
+        }
+    }
+        
     </style>
 </head>
 <body>
 
 <header>
-    <nav class="navbar">
-        <h1>LOGO</h1>
-        <a href="index.html">home</a>
-    </nav>    
+      <nav class="menu">
+        <a href="index.html">홈</a>
+        <a href="reservation.html">예약</a>
+        <a href="mypage.html">마이페이지</a>
+        <span id="userInfo"></span>
+        <button id="logoutBtn">로그아웃</button>
+    </nav>
+    <h1>
+    ON108 YOGA
+    <span style="display: block; font-size: 11px; font-weight: 200; letter-spacing: 0.2em; margin-top: 4px; color: #777;">
+        온108요가
+    </span>
+    </h1>
+    
     <hr><br>
     
-    <h2>스튜디오 회원 관리 대시보드</h2>
+    <h2>[운영자]스튜디오 회원 관리 대시보드</h2>
     <div>
         <input type="text" id="search-input" class="search-box" placeholder="이름 또는 연락처 검색...">
         <button class="btn btn-primary" onclick="openModal()" style="display:inline-block; width:auto; padding: 8px 15px;">+ 신규 회원 추가</button>
