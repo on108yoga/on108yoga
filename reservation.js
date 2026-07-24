@@ -22,6 +22,8 @@ let selectedTime = "";
 let unsubscribeUser = null;
 
 const MAX_PEOPLE = 10;
+const DEFAULT_INITIAL_TICKETS = 4; // 👈 신규 회원 기본 부여 횟수 (필요에 따라 변경 가능)
+
 const weeklySchedule = {
     0: [],
     1: ["09:30", "11:00", "18:00", "19:30"],
@@ -32,7 +34,7 @@ const weeklySchedule = {
     6: []
 };
 
-// 1.오늘 날짜 구하기 (YYYY-MM-DD)
+// 1. 오늘 날짜 구하기 (YYYY-MM-DD)
 function getTodayString() {
     const today = new Date();
     const year = today.getFullYear();
@@ -60,12 +62,13 @@ function listenUserProfile(user) {
     const userDocRef = doc(db, "users", user.uid);
     unsubscribeUser = onSnapshot(userDocRef, (userSnap) => {
         let userName = user.displayName || "회원";
-        let remCount = 0;
+        let remCount = DEFAULT_INITIAL_TICKETS; // 기본값 4회 설정
 
         if (userSnap.exists()) {
             const userData = userSnap.data();
             if (userData.name) userName = userData.name;
 
+            // DB에 잔여 횟수 필드가 명시적으로 존재하는 경우 해당 값 반영
             if (userData.remainingCount !== undefined) remCount = Number(userData.remainingCount);
             else if (userData.ticketCount !== undefined) remCount = Number(userData.ticketCount);
             else if (userData.remCount !== undefined) remCount = Number(userData.remCount);
@@ -90,7 +93,7 @@ window.setSelectedDate = function(date) {
     loadReservationCounts();
 };
 
-// 5. 시간 버튼 랜더링
+// 5. 시간 버튼 랜더링 (🔥 지난 시간 회색 비활성화 로직 추가)
 function renderTimeButtons(selectedDateStr) {
     const container = document.getElementById('timeButtons');
     if (!container || !selectedDateStr) return;
@@ -106,6 +109,9 @@ function renderTimeButtons(selectedDateStr) {
         return;
     }
 
+    const todayStr = getTodayString();
+    const currentTimeStr = getCurrentTimeString();
+
     availableTimes.forEach(time => {
         const timeId = time.replace(":", "");
         const button = document.createElement('button');
@@ -114,11 +120,21 @@ function renderTimeButtons(selectedDateStr) {
         button.dataset.time = time;
         button.innerHTML = `${time} (예약 <span id="count${timeId}">0</span> / ${MAX_PEOPLE}명)`;
 
-        button.addEventListener('click', () => {
-            document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected', 'active'));
-            button.classList.add('selected', 'active');
-            selectedTime = time;
-        });
+        // 🔥 날짜가 오늘이고, 시간이 현재 시각보다 같거나 작으면 지나간 시간으로 판별
+        const formattedTime = time.length === 4 ? `0${time}` : time;
+        const isPast = (selectedDateStr === todayStr && formattedTime <= currentTimeStr);
+
+        if (isPast) {
+            button.classList.add('disabled');
+            button.disabled = true;
+            button.style.cssText = "background-color: #e5e7eb; color: #9ca3af; border-color: #d1d5db; cursor: not-allowed; opacity: 0.7;";
+        } else {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected', 'active'));
+                button.classList.add('selected', 'active');
+                selectedTime = time;
+            });
+        }
 
         container.appendChild(button);
     });
@@ -148,7 +164,7 @@ async function loadReservationCounts() {
     }
 }
 
-// 7. 🔥 내 예약 목록 불러오기 (수정완료)
+// 7. 내 예약 목록 불러오기
 async function loadMyReservation() {
     const user = auth.currentUser;
     if (!user) return;
@@ -172,7 +188,6 @@ async function loadMyReservation() {
 
         snapshot.forEach(item => {
             const data = item.data();
-            // 두 자릿수 시:분 보장
             const formattedTime = data.time.length === 4 ? `0${data.time}` : data.time;
 
             const isFutureDate = data.date > todayStr;
@@ -225,7 +240,7 @@ async function loadMyReservation() {
     }
 }
 
-// 8. 🔥 예약 처리 함수
+// 8. 예약 처리 함수
 async function handleReservation() {
     const user = auth.currentUser;
     if (!user) {
@@ -243,30 +258,38 @@ async function handleReservation() {
         return;
     }
 
+    // 🔥 지난 시간에 대한 최종 방어 예외 처리
+    const todayStr = getTodayString();
+    const currentTimeStr = getCurrentTimeString();
+    const formattedSelectedTime = selectedTime.length === 4 ? `0${selectedTime}` : selectedTime;
+    
+    if (selectedDate === todayStr && formattedSelectedTime <= currentTimeStr) {
+        alert("이미 지나간 시간은 예약할 수 없습니다.");
+        return;
+    }
+
     try {
         const userDocRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userDocRef);
 
-        if (!userSnap.exists()) {
-            alert("회원 정보가 없습니다.");
-            return;
-        }
-
-        const userData = userSnap.data();
-        let userName = userData.name || user.displayName || "회원";
-        
+        let userName = user.displayName || "회원";
         let countFieldName = "remainingCount";
-        let remCount = 0;
+        let remCount = DEFAULT_INITIAL_TICKETS;
 
-        if (userData.remainingCount !== undefined) {
-            remCount = Number(userData.remainingCount);
-            countFieldName = "remainingCount";
-        } else if (userData.ticketCount !== undefined) {
-            remCount = Number(userData.ticketCount);
-            countFieldName = "ticketCount";
-        } else if (userData.remCount !== undefined) {
-            remCount = Number(userData.remCount);
-            countFieldName = "remCount";
+        if (userSnap.exists()) {
+            const userData = userSnap.data();
+            if (userData.name) userName = userData.name;
+
+            if (userData.remainingCount !== undefined) {
+                remCount = Number(userData.remainingCount);
+                countFieldName = "remainingCount";
+            } else if (userData.ticketCount !== undefined) {
+                remCount = Number(userData.ticketCount);
+                countFieldName = "ticketCount";
+            } else if (userData.remCount !== undefined) {
+                remCount = Number(userData.remCount);
+                countFieldName = "remCount";
+            }
         }
 
         if (remCount <= 0) {
@@ -313,7 +336,7 @@ async function handleReservation() {
     }
 }
 
-// 9. 🔥 예약 취소 함수
+// 9. 예약 취소 함수
 async function cancelReservation(resId) {
     if (!confirm("정말 예약을 취소하시겠습니까?")) return;
 
