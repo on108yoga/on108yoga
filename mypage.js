@@ -37,7 +37,7 @@ const userDoc = await getDoc(doc(db, "users", currentUser.uid));
 if (userDoc.exists()) {
   const data = userDoc.data();
   // remainingCount가 없거나 undefined일 때 무조건 0이 아닌 기본값을 고려
-  document.getElementById("myCount").innerText = data.remainingCount ?? 1; 
+  document.getElementById("myCount").innerText = data.remainingCount ?? 0; 
 } else {
   console.log("사용자 정보가 없습니다.");
 }
