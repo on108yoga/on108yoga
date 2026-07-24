@@ -3,65 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>로그인</title>
-     <!-- 구글 폰트 및 프리텐다드 불러오기 -->
+    <title>로그인 - ON108 YOGA</title>
+    
+    <!-- 구글 폰트 및 프리텐다드 불러오기 -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;300;400&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&family=Playfair+Display:ital,wght@0,600;1,600&family=Poppins:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+    
     <style>
-     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Noto+Sans+KR:wght@200;300;400;500;700&display=swap');
- 
-     * {
-        box-sizing: border-box;
+        * {
+            box-sizing: border-box;
         }
-        
+
         body {
-            text-align: center;
             margin: 0;
             font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: #fcfcfc;
             color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
-        .navbar{
-               justify-content: center;
-                display: flex;
-                text-align: center;
-                align-items: center;
-                gap: 15px;
-                background-color: #517e73;
-                padding: 10px;
-                font-size: 14px;     
+
+        /* 1. Header & Navigation */
+        .navbar {
+            justify-content: center;
+            display: flex;
+            text-align: center;
+            align-items: center;
+            gap: 15px;
+            background-color: #517e73;
+            padding: 10px;
+            font-size: 14px;     
         }
-        .navbar a{
+
+        .navbar a {
             color: white;
             text-decoration: none;
             font-weight: 500;
         }
-         .navbar a:hover {
+
+        .navbar a:hover {
             text-decoration: underline;
         }
-        
-        body{
-            width: 100%;
-            text-align: center;
-        }
+
         h1 {
-                background-color: #f4efe6; /* 따뜻하고 세련된 샌드 베이지 */
-            color: #3f4e43;            /* 딥 그린 폰트 컬러 */
+            background-color: #f4efe6; /* 따뜻하고 세련된 샌드 베이지 */
+            color: #3f4e43;           /* 딥 그린 폰트 컬러 */
             text-align: center;
             letter-spacing: 0.35em;
             margin: 0;
-            padding: 12px 0;           /* 🔥 높이 축소 */
+            padding: 12px 0;
             font-family: 'Cormorant Garamond', 'Noto Sans KR', serif;
             font-weight: 300;
             font-size: 20px;
             text-transform: uppercase;
-                }
+        }
 
-        /* 메인 */
-   main {
+        /* 2. Main Content */
+        main {
             flex: 1;
             display: flex;
             justify-content: center;
@@ -69,7 +71,8 @@
             padding: 40px 20px;
         }
 
-        .signup-container {
+        /* 클래스명 수정: signup-container -> login-container */
+        .login-container {
             background: #ffffff;
             width: 100%;
             max-width: 440px;
@@ -79,7 +82,7 @@
             border: 1px solid #eae6df;
         }
 
-        .signup-container h2 {
+        .login-container h2 {
             font-size: 22px;
             font-weight: 600;
             color: #3f4e43;
@@ -122,31 +125,34 @@
             box-shadow: 0 0 0 3px rgba(81, 126, 115, 0.15);
         }
 
-        /* Checkbox Styling */
-        .checkbox-group {
+        /* Checkbox (로그인 상태 유지) 스타일 추가 */
+        .remember-box {
+            display: flex;
+            align-items: center;
+            margin-top: 16px;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .remember-box label {
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-top: 24px;
-            margin-bottom: 28px;
-        }
-
-        .checkbox-group input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: #517e73;
-            cursor: pointer;
-        }
-
-        .checkbox-group label {
             font-size: 13px;
             color: #666;
             cursor: pointer;
             user-select: none;
         }
 
-        /* Submit Button */
-        #signupBtn {
+        .remember-box input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #517e73;
+            cursor: pointer;
+        }
+
+        /* Submit Button (ID 수정: signupBtn -> loginBtn) */
+        #loginBtn {
             width: 100%;
             padding: 16px;
             background-color: #3f4e43;
@@ -159,31 +165,36 @@
             transition: background-color 0.2s ease, transform 0.1s ease;
         }
 
-        #signupBtn:hover {
+        #loginBtn:hover {
             background-color: #2d3830;
         }
 
-        #signupBtn:active {
+        #loginBtn:active {
             transform: scale(0.99);
         }
 
-        /* Bottom Login Link */
-        .login-link {
+        /* 하단 메뉴 (회원가입 / 비밀번호 찾기) 스타일 추가 */
+        .login-menu {
             margin-top: 24px;
             font-size: 13px;
-            color: #777;
+            color: #bbb;
             text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
         }
 
-        .login-link a {
+        .login-menu a {
             color: #517e73;
-            font-weight: 600;
+            font-weight: 500;
             text-decoration: none;
-            margin-left: 6px;
+            transition: color 0.2s;
         }
 
-        .login-link a:hover {
+        .login-menu a:hover {
             text-decoration: underline;
+            color: #3f4e43;
         }
 
         /* 3. Footer */
@@ -195,7 +206,6 @@
             background-color: #f4efe6;
             border-top: 1px solid #eae6df;
         }
-
     </style>
 </head>
 
@@ -207,71 +217,59 @@
     </nav>
     
     <h1>
-    ON108 YOGA
-    <span style="display: block; font-size: 11px; font-weight: 200; letter-spacing: 0.2em; margin-top: 4px; color: #777;">
-        온108요가
-    </span>
+        ON108 YOGA
+        <span style="display: block; font-size: 11px; font-weight: 200; letter-spacing: 0.2em; margin-top: 4px; color: #777;">
+            온108요가
+        </span>
     </h1>
 </header>
 
 <main>
-<div class="aside01"></div>
-<section class="login-container">
-    <h2>로그인</h2>
-    <form id="loginForm">
-        <div class="form-group">
-            <label for="email">전화번호</label>
-            <input
-                type="text"
-                id="phone"
-                placeholder="01012345678"
-                required>
+    <div class="aside01"></div>
+    <section class="login-container">
+        <h2>로그인</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="phone">전화번호</label>
+                <input
+                    type="text"
+                    id="phone"
+                    placeholder="01012345678"
+                    required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">비밀번호</label>
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="비밀번호를 입력하세요"
+                    required>
+            </div>
+
+            <div class="remember-box">
+                <label>
+                    <input type="checkbox" id="remember">
+                    로그인 상태 유지
+                </label>
+            </div>
+
+            <button type="submit" id="loginBtn">
+                로그인
+            </button>
+        </form>
+
+        <div class="login-menu">
+            <a href="signup.html">회원가입</a>
+            <span>|</span>
+            <a href="forgot.html">비밀번호 찾기</a>
         </div>
-
-        <div class="form-group">
-            <label for="password">비밀번호</label>
-            <input
-                type="password"
-                id="password"
-                placeholder="비밀번호를 입력하세요"
-                required>
-        </div>
-
-        <div class="remember-box">
-            <label>
-                <input type="checkbox" id="remember">
-                로그인 상태 유지
-            </label>
-        </div>
-
-        <button type="submit" id="loginBtn">
-            로그인
-        </button>
-
-    </form>
-
-    <div class="login-menu">
-
-        <a href="signup.html">
-            회원가입
-        </a>
-
-        <span>|</span>
-
-        <a href="forgot.html">
-            비밀번호 찾기
-        </a>
-
-    </div>
-
-</section>
-<div class="aside02"></div>
+    </section>
+    <div class="aside02"></div>
 </main>
 
 <footer>
-
-<p>© on1008yoga Reservation System</p>
-
+    <p>© on108yoga Reservation System</p>
 </footer>
 
 <script type="module" src="firebase.js"></script>
