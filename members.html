@@ -201,7 +201,6 @@
         <a href="reservation.html">예약</a>
         <a href="mypage.html">마이페이지</a>
         <span id="userInfo"></span>
-        <button id="logoutBtn">로그아웃</button>
     </nav>
     <h1>
     ON108 YOGA
@@ -212,7 +211,7 @@
     
     <hr><br>
     
-    <h2>[운영자]스튜디오 회원 관리 대시보드</h2>
+    <h2>[운영자] 스튜디오 회원 관리 대시보드</h2>
     <div>
         <input type="text" id="search-input" class="search-box" placeholder="이름 또는 연락처 검색...">
         <button class="btn btn-primary" onclick="openModal()" style="display:inline-block; width:auto; padding: 8px 15px;">+ 신규 회원 추가</button>
@@ -222,7 +221,11 @@
 <div class="main-container">
     <div class="member-list-section">
         <div class="list-header">전체 회원 목록</div>
-        <div class="member-list" id="member-list-container"></div>
+            <!-- 10개씩 출력될 목록 영역 -->
+        <ul id="member-list" class="member-list"></ul>
+    
+        <!-- 페이지 번호 버튼이 생성될 영역 -->
+        <div id="pagination" class="pagination"></div>
     </div>
 
     <div class="member-detail-section" id="detail-section">
@@ -230,10 +233,12 @@
             <h3>회원을 선택해 주세요</h3>
             <p>목록에서 회원을 클릭하면 상세 정보 조회 및 이용권 수정이 가능합니다.</p>
         </div>
+
+        <hr>
         
         <div id="detail-content" style="display: none;">
             <div class="detail-header">
-                <p class="detail-title" id="det-name">홍길동 회원님</p>
+                <p class="detail-title" id="det-name">선택회원: 홍길동 회원님</p>
                 <span id="det-phone" style="color:#6b7280;">010-1234-5678</span>
             </div>
 
