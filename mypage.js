@@ -302,14 +302,8 @@ function renderMyPageUI(data, docId = "") {
     if (data.ticketType && data.ticketType.trim() !== "") {
         if (ticketNameElem) {
             const ticketDate = data.startDate || "날짜 미정";
-
-            // 💡 1) "(30회)" 같은 괄호 및 이미 들어있는 "추가" 단어 제거
-            let cleanTicketName = data.ticketType
-                .replace(/\(\d+회\)/g, '') // (30회) 같은 괄호 제거
-                .replace(/추가/g, '')       // 기존 텍스트에 포함된 '추가' 제거
-                .trim();
-
-            // 💡 2) 문구 정돈: "알림! 20회권 추가 (2026-07-25) 추가가 완료되었습니다 :)"
+          
+            // 💡 문구 정돈: "알림! 20회권 추가 (2026-07-25) 가 완료되었습니다 :)"
             ticketNameElem.innerHTML = `
                 <span style="font-size: 14px; font-weight: 600; color: #ff6b00;">
                     알림! ${cleanTicketName} 
