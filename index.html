@@ -45,7 +45,7 @@
     header {
         width: 100%;   
         background-color: rgba(255, 255, 255, 0.92);
-        backdrop-filter: blur(8px); /* 고급스러운 유리 느낌 */
+        backdrop-filter: blur(8px);
         position: fixed;
         top: 0;
         left: 0;
@@ -220,27 +220,28 @@
         object-fit: cover;
     }
 
-    /* ─── [4-1] 이벤트 영역 (새로 적용된 반응형 카드) ─── */
+    /* ─── [4-1] 이벤트 영역 (크게 세로 나열) ─── */
     .event-container {
         display: flex;
-        gap: 20px;
-        justify-content: center;
+        flex-direction: column; /* 세로로 나열 */
+        gap: 30px; /* 카드 간 간격 */
+        width: 100%;
         max-width: 800px;
         margin: 0 auto;
     }
 
     .event-card {
-        flex: 1;
+        width: 100%;
         background: #ffffff;
         border-radius: 16px;
         overflow: hidden;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
         border: 1px solid #e8f0eb;
         transition: transform 0.3s ease;
     }
 
     .event-card:hover {
-        transform: translateY(-4px);
+        transform: translateY(-5px);
     }
 
     .event-card img {
@@ -452,13 +453,11 @@
         }
 
         .notice {
-            height: 220px; /* 모바일 슬라이드 높이 조절 */
+            height: 220px;
         }
 
-        /* 모바일에서는 이벤트 사진이 세로로 1개씩 표시됨 */
         .event-container {
-            flex-direction: column;
-            gap: 15px;
+            gap: 20px;
         }
 
         table {
@@ -518,14 +517,13 @@
         </div>
     </header>
 
-    <!-- 전체 본문을 감싸는 wrap -->
     <div class="wrap">
         <main>
             <div class="aside01"></div>
             
             <section>                
                 <h2 id="notice">notice</h2><br>
-                <!-- 공지사항 메인 슬라이더 (이미지 3개로 세팅) -->
+                <!-- 공지사항 메인 슬라이더 -->
                 <div class="notice">
                     <div id="slide">
                         <div class="slide-wrap">
@@ -537,7 +535,7 @@
                 </div>
                 <br>
 
-                <!-- 이벤트 사진 (반응형 정렬) -->                                
+                <!-- 이벤트 영역 (크게 세로 나열) -->                                
                 <h2 id="event">event</h2><br>
                 <div class="event-container">
                     <div class="event-card">
@@ -603,7 +601,6 @@
 
                 <h2 id="about">about</h2><br>
                 <div class="about">
-                    <!-- Swiper container -->
                     <div class="swiper" style="height: 300px; width: 100%; max-width: 800px;">
                         <div class="swiper-wrapper">
                             <div class="swiper-slide" style="background: #e2d4aa;">
