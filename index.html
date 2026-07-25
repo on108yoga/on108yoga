@@ -233,9 +233,9 @@
     .event-card {
         width: 100%;
         background: #ffffff;
-        border-radius: 16px;
+        border-radius: 1px;
         overflow: hidden;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+       /* box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06); */
         border: 1px solid #e8f0eb;
         transition: transform 0.3s ease;
     }
@@ -523,16 +523,21 @@
             
             <section>                
                 <h2 id="notice">notice</h2><br>
-                <!-- 공지사항 메인 슬라이더 -->
-                <div class="notice">
-                    <div id="slide">
-                        <div class="slide-wrap">
-                            <div class="slide01"><img src="./images/1.png" alt="Notice 1"></div>
-                            <div class="slide02"><img src="./images/1.png" alt="Notice 2"></div>
-                            <div class="slide03"><img src="./images/1.png" alt="Notice 3"></div>
+                  <div class="about">
+                    <div class="swiper" style="height: 300px; width: 100%; max-width: 800px;">
+                        <div class="swiper-wrapper">
+                            <div class="swiper-slide" style="background: #e2d4aa;">
+                                <img src="./images/1.png" alt="About 1">
+                            </div>
+                            <div class="swiper-slide" style="background: #c3b490;">
+                                <img src="./images/suon_pro.png" alt="About 2">
+                            </div>                     
                         </div>
+                        <div class="swiper-pagination"></div>
+                        <div class="swiper-button-prev"></div>
+                        <div class="swiper-button-next"></div>
+                        <div class="swiper-scrollbar"></div>
                     </div>
-                </div>
                 <br>
 
                 <!-- 이벤트 영역 (크게 세로 나열) -->                                
@@ -547,6 +552,7 @@
                 </div>
 
                 <br>
+                      
                 <h2 id="class">class</h2><br>
                 <table>
                     <thead>
@@ -597,32 +603,25 @@
                         <small style="color: #888;">* 30일 기간연장 추가금 50,000원 (구매 수련권당 1회 가능)</small>
                     </p>
                 </div>
-                <br><br>
-
-                <h2 id="about">about</h2><br>
-                <div class="about">
-                    <div class="swiper" style="height: 300px; width: 100%; max-width: 800px;">
-                        <div class="swiper-wrapper">
-                            <div class="swiper-slide" style="background: #e2d4aa;">
-                                <img src="./images/suon_pro.png" alt="About 1">
-                            </div>
-                            <div class="swiper-slide" style="background: #c3b490;">
-                                <img src="./images/suon_tell.png" alt="About 2">
-                            </div>                     
+                <br>
+                      
+                 <!--메인 슬라이더
+                <h2 id="pic">pictures</h2><br>                   
+                <div class="notice">
+                    <div id="slide">
+                        <div class="slide-wrap">
+                            <div class="slide01"><img src="./images/1.png" alt="Notice 1"></div>
+                            <div class="slide02"><img src="./images/1.png" alt="Notice 2"></div>
+                            <div class="slide03"><img src="./images/1.png" alt="Notice 3"></div>
                         </div>
-                        <div class="swiper-pagination"></div>
-                        <div class="swiper-button-prev"></div>
-                        <div class="swiper-button-next"></div>
-                        <div class="swiper-scrollbar"></div>
                     </div>
-                </div>
-                <br><br>
+                </div>  -->
 
                 <h2 id="blog">blog</h2><br>
                 <div>
                     <iframe id="blog" src="https://m.blog.naver.com/on108yoga" style="box-shadow: 0 4px 10px rgba(0,0,0,0.1);"></iframe>
                 </div>
-                <br><br>
+                <br>
 
                 <!-- 유튜브
                 <h2 id="utube">utube</h2><br>
