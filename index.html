@@ -186,45 +186,11 @@
         border: 1px solid #e2ebd8;
     }
 
-    #slide {
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-    }
-
-    .slide-wrap {
-        width: 300%;
-        height: 100%;
-        display: flex;
-        animation: slide 12s infinite ease-in-out;
-    }
-
-    @keyframes slide {
-        0%, 28% { transform: translateX(0%); }
-        33%, 61% { transform: translateX(-33.333%); }
-        66%, 94% { transform: translateX(-66.666%); }
-        100% { transform: translateX(0%); }
-    }
-
-    .slide-wrap > div {
-        width: calc(100% / 3);
-        height: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .slide-wrap img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    /* ─── [4-1] 이벤트 영역 (크게 세로 나열) ─── */
+    /* ─── [4-1] 이벤트 영역 (큰 카드 형태 세로 나열) ─── */
     .event-container {
         display: flex;
-        flex-direction: column; /* 세로로 나열 */
-        gap: 30px; /* 카드 간 간격 */
+        flex-direction: column; /* 세로 나열 */
+        gap: 35px; /* 카드 간격 */
         width: 100%;
         max-width: 800px;
         margin: 0 auto;
@@ -233,15 +199,16 @@
     .event-card {
         width: 100%;
         background: #ffffff;
-        border-radius: 1px;
+        border-radius: 12px;
         overflow: hidden;
-       /* box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06); */
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
         border: 1px solid #e8f0eb;
-        transition: transform 0.3s ease;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
     .event-card:hover {
-        transform: translateY(-5px);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
     }
 
     .event-card img {
@@ -509,7 +476,7 @@
                 <ul class="menu" id="menu">            
                     <li><a href="#event">Event</a></li>
                     <li><a href="#class">Class</a></li>
-                    <li><a href="#price">price</a></li>
+                    <li><a href="#price">Price</a></li>
                     <li><a href="#blog">Blog</a></li>                    
                     <li><a href="#location">Location</a></li>
                 </ul>
@@ -523,7 +490,7 @@
             
             <section>                
                 <h2 id="notice">notice</h2><br>
-                  <div class="about">
+                <div class="about">
                     <div class="swiper" style="height: 300px; width: 100%; max-width: 800px;">
                         <div class="swiper-wrapper">
                             <div class="swiper-slide" style="background: #e2d4aa;">
@@ -538,6 +505,7 @@
                         <div class="swiper-button-next"></div>
                         <div class="swiper-scrollbar"></div>
                     </div>
+                </div>
                 <br>
 
                 <!-- 이벤트 영역 (크게 세로 나열) -->                                
@@ -592,7 +560,7 @@
                 </table>
                 <br>
 
-                     <h2 id="price">price</h2>
+                <h2 id="price">price</h2>
                 <div class="price-box">
                     <h3>수련권 안내 (Price)</h3>
                     <p>      
@@ -605,31 +573,12 @@
                     </p>
                 </div>
                 <br>
-                      
-                 <!--메인 슬라이더
-                <h2 id="pic">pictures</h2><br>                   
-                <div class="notice">
-                    <div id="slide">
-                        <div class="slide-wrap">
-                            <div class="slide01"><img src="./images/1.png" alt="Notice 1"></div>
-                            <div class="slide02"><img src="./images/1.png" alt="Notice 2"></div>
-                            <div class="slide03"><img src="./images/1.png" alt="Notice 3"></div>
-                        </div>
-                    </div>
-                </div>  -->
 
                 <h2 id="blog">blog</h2><br>
                 <div>
                     <iframe id="blog" src="https://m.blog.naver.com/on108yoga" style="box-shadow: 0 4px 10px rgba(0,0,0,0.1);"></iframe>
                 </div>
                 <br>
-
-                <!-- 유튜브
-                <h2 id="utube">utube</h2><br>
-                <div class="video-section">
-                    <iframe src="https://www.youtube.com/embed/kPzgvh0sOSE?si=zhmBnNZGPvfBgPs9" title="YouTube video player" allowfullscreen></iframe>
-                </div>
-                <br><br> -->
 
                 <h2 id="location">location</h2><br>
                 <div class="map-section">
