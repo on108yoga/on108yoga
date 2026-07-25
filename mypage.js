@@ -309,7 +309,7 @@ function renderMyPageUI(data, docId = "") {
                 .replace(/추가/g, '')       // 기존 텍스트에 포함된 '추가' 제거
                 .trim();
 
-            // 💡 2) 문구 정돈: "알림! 20회권 추가 (2026-07-25) 가 완료되었습니다 :)"
+            // 💡 2) 문구 정돈: "알림! 20회권 추가 (2026-07-25) 추가가 완료되었습니다 :)"
             ticketNameElem.innerHTML = `
                 <span style="font-size: 14px; font-weight: 600; color: #ff6b00;">
                     알림! ${cleanTicketName} 
