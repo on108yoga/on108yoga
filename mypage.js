@@ -312,7 +312,7 @@ function renderMyPageUI(data, docId = "") {
             // 💡 2) 문구 정돈: "알림! 20회권 추가 (2026-07-25) 가 완료되었습니다 :)"
             ticketNameElem.innerHTML = `
                 <span style="font-size: 14px; font-weight: 600; color: #ff6b00;">
-                    알림! ${cleanTicketName} 추가
+                    알림! ${cleanTicketName} 
                     <span style="color: #888888; font-weight: normal;">(${ticketDate})</span>
                     가 완료되었습니다 :)
                 </span>
