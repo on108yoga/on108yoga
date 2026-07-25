@@ -68,11 +68,16 @@
 
         /* 2. Main Content */
         main {
+            max-width: 900px;
             flex: 1;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 40px 20px;
+        }
+
+        .modal{
+            width: 100%;
         }
 
         .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
@@ -133,6 +138,7 @@
     </div>
 </div>
 
+    <main>
 <!-- 글쓰기 모달 창 -->
 <div id="writeModal" class="modal">
     <div class="modal-content">
@@ -155,8 +161,11 @@
         </div>
     </div>
 </div>
-
+    </main>
 <script type="module" src="firebase.js"></script>
 <script type="module" src="notice.js"></script>
 </body>
+    <footer>
+        
+    </footer>
 </html>
