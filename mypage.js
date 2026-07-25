@@ -290,21 +290,26 @@ function renderMyPageUI(data, docId = "") {
     const userNameElem = document.getElementById('user-name');
     if (userNameElem) userNameElem.innerText = data.name || "회원";
 
-    // 2. 이용권 정보
+// 2. 이용권 정보
     const ticketNameElem = document.getElementById('ticket-name');
     const totalCountElem = document.getElementById('total-count');
     const remainingCountElem = document.getElementById('remaining-count');
     const startDateElem = document.getElementById('start-date');
     const endDateElem = document.getElementById('end-date');
 
+    const remCount = data.remainingCount ?? data.ticketCount ?? 0;
+
     if (data.ticketType && data.ticketType.trim() !== "") {
         if (ticketNameElem) {
-            ticketNameElem.innerText = data.ticketType;
+            // DB의 시작일자(startDate) 또는 오늘 날짜 불러오기
+            const ticketDate = data.startDate || "날짜 미정";
+            const ticketName = data.ticketType;
+
+            // 💡 요청하신 형태: "알림! [이용권명] 추가([날짜])가 완료되었습니다 :)"
+            ticketNameElem.innerText = `알림! ${ticketName} 추가(${ticketDate})가 완료되었습니다 :)`;
             ticketNameElem.style.color = "var(--primary-color)";
         }
         if (totalCountElem) totalCountElem.innerText = `${data.totalCount || 0}회`;
-        
-        const remCount = data.remainingCount ?? data.ticketCount ?? 0;
         if (remainingCountElem) remainingCountElem.innerText = `${remCount}회`;
 
         if (startDateElem) startDateElem.innerText = data.startDate || "-";
