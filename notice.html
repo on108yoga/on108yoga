@@ -68,14 +68,21 @@
 
         /* 2. Main Content */
 
-        main{
-             max-width: 900px;
-            display: flex;
-              justify-content: center; /* 가로 중앙 정렬 */
+       main {
+            width: 100%;            /* 가로 폭을 전체로 넓힘 */
+            max-width: 900px;       /* 최대 너비 제한 */
+            margin: 0 auto;         /* main 자체를 화면 중앙으로 이동 */
+            padding: 0 20px;        /* 여백 추가 (모바일 대응) */
+            flex: 1;                /* 푸터가 있을 경우 아래로 밀어줌 */
         }
-     
-
-        .container { width: 100%; margin: 0 auto; background: #fff; padding: 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        
+        .container { 
+            width: 100%; 
+            background: #fff; 
+            padding: 30px; 
+            border-radius: 16px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05); 
+        }
         .header-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #3f4e43; padding-bottom: 15px; margin-bottom: 20px; }
         .header-bar h2 { margin: 0; color: #3f4e43; }
         
