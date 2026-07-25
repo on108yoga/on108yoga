@@ -301,13 +301,19 @@ function renderMyPageUI(data, docId = "") {
 
     if (data.ticketType && data.ticketType.trim() !== "") {
         if (ticketNameElem) {
-            // DB의 시작일자(startDate) 또는 오늘 날짜 불러오기
             const ticketDate = data.startDate || "날짜 미정";
-            const ticketName = data.ticketType;
 
-            // 💡 요청하신 형태: "알림! [이용권명] 추가([날짜])가 완료되었습니다 :)"
-            ticketNameElem.innerText = `알림! ${ticketName} 추가(${ticketDate})가 완료되었습니다 :)`;
-            ticketNameElem.style.color = "var(--primary-color)";
+            // 💡 1) DB 텍스트에 "(30회)" 등의 괄호 문구가 있으면 깔끔하게 지워줌
+            let cleanTicketName = data.ticketType.replace(/\(\d+회\)/g, '').trim();
+
+            // 💡 2) 글씨 크기 조절 + 오렌지색 문구 + 회색 날짜 적용 (HTML 태그 활용)
+            ticketNameElem.innerHTML = `
+                <span style="font-size: 14px; font-weight: 600; color: #ff6b00;">
+                    알림! ${cleanTicketName} 추가
+                    <span style="color: #888888; font-weight: normal;">(${ticketDate})</span>
+                    가 완료되었습니다 :)
+                </span>
+            `;
         }
         if (totalCountElem) totalCountElem.innerText = `${data.totalCount || 0}회`;
         if (remainingCountElem) remainingCountElem.innerText = `${remCount}회`;
@@ -318,6 +324,7 @@ function renderMyPageUI(data, docId = "") {
         if (ticketNameElem) {
             ticketNameElem.innerText = "보유하신 이용권이 없습니다.";
             ticketNameElem.style.color = "#6b7280";
+            ticketNameElem.style.fontSize = "14px";
         }
         if (totalCountElem) totalCountElem.innerText = "0회";
         if (remainingCountElem) remainingCountElem.innerText = "0회";
@@ -325,6 +332,7 @@ function renderMyPageUI(data, docId = "") {
         if (endDateElem) endDateElem.innerText = "-";
     }
 
+    
     // 3. 일반 취소 정책
     const totalCancel = data.totalCancelLimit ?? data.totalCancel ?? 0;
     const remainingCancel = data.remainingCancelCount ?? data.remainingCancel ?? 0;
