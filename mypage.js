@@ -303,10 +303,13 @@ function renderMyPageUI(data, docId = "") {
         if (ticketNameElem) {
             const ticketDate = data.startDate || "날짜 미정";
 
-            // 💡 1) DB 텍스트에 "(30회)" 등의 괄호 문구가 있으면 깔끔하게 지워줌
-            let cleanTicketName = data.ticketType.replace(/\(\d+회\)/g, '').trim();
+            // 💡 1) "(30회)" 같은 괄호 및 이미 들어있는 "추가" 단어 제거
+            let cleanTicketName = data.ticketType
+                .replace(/\(\d+회\)/g, '') // (30회) 같은 괄호 제거
+                .replace(/추가/g, '')       // 기존 텍스트에 포함된 '추가' 제거
+                .trim();
 
-            // 💡 2) 글씨 크기 조절 + 오렌지색 문구 + 회색 날짜 적용 (HTML 태그 활용)
+            // 💡 2) 문구 정돈: "알림! 20회권 추가 (2026-07-25) 가 완료되었습니다 :)"
             ticketNameElem.innerHTML = `
                 <span style="font-size: 14px; font-weight: 600; color: #ff6b00;">
                     알림! ${cleanTicketName} 추가
@@ -331,7 +334,6 @@ function renderMyPageUI(data, docId = "") {
         if (startDateElem) startDateElem.innerText = "-";
         if (endDateElem) endDateElem.innerText = "-";
     }
-
     
     // 3. 일반 취소 정책
     const totalCancel = data.totalCancelLimit ?? data.totalCancel ?? 0;
