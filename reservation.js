@@ -269,34 +269,6 @@ async function handleReservation() {
     }
 
     try {
-        const userDocRef = doc(db, "users", user.uid);
-        const userSnap = await getDoc(userDocRef);
-
-        let userName = user.displayName || "회원";
-        let countFieldName = "remainingCount";
-        let remCount = DEFAULT_INITIAL_TICKETS;
-
-        if (userSnap.exists()) {
-            const userData = userSnap.data();
-            if (userData.name) userName = userData.name;
-
-            if (userData.remainingCount !== undefined) {
-                remCount = Number(userData.remainingCount);
-                countFieldName = "remainingCount";
-            } else if (userData.ticketCount !== undefined) {
-                remCount = Number(userData.ticketCount);
-                countFieldName = "ticketCount";
-            } else if (userData.remCount !== undefined) {
-                remCount = Number(userData.remCount);
-                countFieldName = "remCount";
-            }
-        }
-
-        if (remCount <= 0) {
-            alert(`⚠️ 남은 이용권 횟수가 없습니다. (잔여: ${remCount}회)`);
-            return;
-        }
-
         // 중복 예약 체크
         const dupQuery = query(
             collection(db, "reservations"),
@@ -310,29 +282,68 @@ async function handleReservation() {
             return;
         }
 
-        // 1) 예약 DB 등록
-        await addDoc(collection(db, "reservations"), {
-            uid: user.uid,
-            name: userName,
-            date: selectedDate,
-            time: selectedTime,
-            createdAt: serverTimestamp()
-        });
+        const userDocRef = doc(db, "users", user.uid);
 
-        // 2) 잔여 횟수 차감
-        await updateDoc(userDocRef, {
-            [countFieldName]: increment(-1)
+        // 🔥 [트랜잭션 적용] 읽기/쓰기를 하나의 작업으로 묶어 롤백 보장
+        await runTransaction(db, async (transaction) => {
+            const userSnap = await transaction.get(userDocRef);
+
+            if (!userSnap.exists()) {
+                throw new Error("사용자 정보를 찾을 수 없습니다.");
+            }
+
+            const userData = userSnap.data();
+            let userName = userData.name || user.displayName || "회원";
+            let countFieldName = "remainingCount";
+            let remCount = DEFAULT_INITIAL_TICKETS;
+
+            if (userData.remainingCount !== undefined) {
+                remCount = Number(userData.remainingCount);
+                countFieldName = "remainingCount";
+            } else if (userData.ticketCount !== undefined) {
+                remCount = Number(userData.ticketCount);
+                countFieldName = "ticketCount";
+            } else if (userData.remCount !== undefined) {
+                remCount = Number(userData.remCount);
+                countFieldName = "remCount";
+            }
+
+            if (remCount <= 0) {
+                throw new Error(`⚠️ 남은 이용권 횟수가 없습니다. (잔여: ${remCount}회)`);
+            }
+
+            // 1) 새 예약 문서 참조 생성
+            const newResRef = doc(collection(db, "reservations"));
+
+            // 2) 예약 DB 생성 및 잔여 횟수 차감 (동시 실행)
+            transaction.set(newResRef, {
+                uid: user.uid,
+                name: userName,
+                date: selectedDate,
+                time: selectedTime,
+                createdAt: serverTimestamp()
+            });
+
+            transaction.update(userDocRef, {
+                [countFieldName]: remCount - 1
+            });
         });
 
         alert("🎉 예약이 완벽하게 완료되었습니다!");
 
         // 3) UI 실시간 업데이트
-        loadReservationCounts();
-        loadMyReservation();
+        if (typeof loadReservationCounts === 'function') loadReservationCounts();
+        if (typeof loadMyReservation === 'function') loadMyReservation();
 
     } catch (err) {
-        console.error("예약 오류:", err);
-        alert("예약 중 오류가 발생했습니다.");
+        console.error("예약 오류 상세:", err);
+        
+        // throw 된 에러 메시지가 있다면 해당 메시지 출력, 없으면 기본 메시지
+        if (err.message && (err.message.includes("남은 이용권") || err.message.includes("사용자 정보"))) {
+            alert(err.message);
+        } else {
+            alert(`예약 중 오류가 발생했습니다.\n(${err.message})`);
+        }
     }
 }
 
