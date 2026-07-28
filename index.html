@@ -286,12 +286,12 @@
     }
 
     /* ─── [7] 미디어 컨텐츠 (Swiper, YouTube, Map, Blog) ─── */
-    .about .swiper {
+    .notice .swiper {
         border-radius: 16px;
         box-shadow: 0 8px 20px rgba(0,0,0,0.05);
     }
 
-    .about .swiper-slide img {
+    .notice .swiper-slide img {
         width: 100%;
         height: 100%;
         object-fit: cover;
@@ -509,25 +509,28 @@
 
     <div class="wrap">
         <main>
-            <div class="aside01"></div>            
-            <section>                
+            <div class="aside01"></div>     
+            
+            <section>
+                <!-- 스와이퍼 -->
                 <h2 id="notice">notice</h2><br>
-                <div class="about">
-                    <div class="swiper" style="height: 300px; width: 100%; max-width: 800px;">
-                        <div class="swiper-wrapper">
-                            <div class="swiper-slide" style="background: #e2d4aa;">
-                                <img src="./images/1.png" alt="About 1">
+                    <div class="notice">
+                        <div class="swiper" style="height: 300px; width: 100%; max-width: 800px;">
+                            <div class="swiper-wrapper">
+                                <div class="swiper-slide" style="background: #e2d4aa;">
+                                    <img src="./images/1.png" alt="notice 1">
+                                </div>
+                                <div class="swiper-slide" style="background: #c3b490;">
+                                    <img src="./images/suon_pro.png" alt="notice 2">
+                                </div>                      
                             </div>
-                            <div class="swiper-slide" style="background: #c3b490;">
-                                <img src="./images/suon_pro.png" alt="About 2">
-                            </div>                     
+                            <!-- ⚪ 아래 동그라미 점(페이지네이션)만 남겨두었습니다. -->
+                            <div class="swiper-pagination"></div>
+                    
+                            <!-- ❌ 화살표(prev, next) 및 스크롤바(scrollbar) 제거 완료 -->
                         </div>
-                        <div class="swiper-pagination"></div>
-                        <div class="swiper-button-prev"></div>
-                        <div class="swiper-button-next"></div>
-                        <div class="swiper-scrollbar"></div>
                     </div>
-                </div>
+                
                 <br>
 
                 <!-- 이벤트 영역 (크게 세로 나열) -->                                
