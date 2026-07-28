@@ -11,6 +11,7 @@ import {
     getDoc,
     updateDoc,
     increment,
+    runTransaction, // 👈 트랜잭션 함수 추가
     serverTimestamp,
     onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
