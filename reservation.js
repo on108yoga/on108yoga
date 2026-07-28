@@ -226,9 +226,23 @@ async function loadMyReservation() {
                 </button>
             `;
 
+           // !!수정 포인트: 클릭 즉시 버튼 잠금 처리 
             const cancelBtn = itemDiv.querySelector(".cancel-btn");
-            cancelBtn.addEventListener("click", () => {
-                cancelReservation(res.id);
+            cancelBtn.addEventListener("click", async (e) => {
+                // 1) 클릭 즉시 버튼 비활성화 및 텍스트 변경 (연타 방지)
+                const btn = e.target;
+                btn.disabled = true;
+                btn.style.background = "#e5e7eb"; // 회색으로 변경
+                btn.style.color = "#6b7280";
+                btn.style.cursor = "not-allowed";
+                btn.innerText = "취소 중...";
+
+                // 2) 아까 수정한 트랜잭션 취소 함수 실행
+                await cancelReservation(res.id);
+
+                // (참고: cancelReservation 함수 내부에서 성공/실패 시 
+                // loadMyReservation()을 다시 호출하여 화면을 새로고침하므로 
+                // 버튼 상태를 다시 원래대로 돌려놓을 필요는 없습니다.)
             });
 
             listContainer.appendChild(itemDiv);
@@ -355,40 +369,68 @@ async function handleReservation() {
     }
 }
 
-// 9. 예약 취소 함수
+// 9. 예약 취소 함수 (트랜잭션 적용 - 중복 취소 방지 & 안전한 횟수 복구)
 async function cancelReservation(resId) {
     if (!confirm("정말 예약을 취소하시겠습니까?")) return;
 
-    try {
-        await deleteDoc(doc(db, "reservations", resId));
+    const user = auth.currentUser;
+    if (!user) {
+        alert("로그인 후 이용해 주세요.");
+        return;
+    }
 
-        if (auth.currentUser) {
-            const userDocRef = doc(db, "users", auth.currentUser.uid);
-            const userSnap = await getDoc(userDocRef);
+    try {
+        const resDocRef = doc(db, "reservations", resId);
+        const userDocRef = doc(db, "users", user.uid);
+
+        // 🌟 [핵심] 예약 삭제와 횟수 복구를 단일 트랜잭션으로 처리
+        await runTransaction(db, async (transaction) => {
+            // 1. 취소하려는 예약 문서가 실제 존재하는지 확인
+            const resSnap = await transaction.get(resDocRef);
+            if (!resSnap.exists()) {
+                throw new Error("ALREADY_CANCELLED");
+            }
+
+            // 2. 유저 문서에서 이용권 필드명 파악
+            const userSnap = await transaction.get(userDocRef);
+            let countFieldName = "remainingCount";
 
             if (userSnap.exists()) {
                 const userData = userSnap.data();
-                let countFieldName = "remainingCount";
-                if (userData.remainingCount === undefined) {
-                    if (userData.ticketCount !== undefined) countFieldName = "ticketCount";
-                    else if (userData.remCount !== undefined) countFieldName = "remCount";
+                if (userData.remainingCount !== undefined) {
+                    countFieldName = "remainingCount";
+                } else if (userData.ticketCount !== undefined) {
+                    countFieldName = "ticketCount";
+                } else if (userData.remCount !== undefined) {
+                    countFieldName = "remCount";
                 }
-
-                // 횟수 복구 (+1)
-                await updateDoc(userDocRef, {
-                    [countFieldName]: increment(1)
-                });
             }
-        }
 
-        alert("예약이 취소되었습니다.");
+            // 3. 예약 문서 삭제
+            transaction.delete(resDocRef);
 
-        loadReservationCounts();
-        loadMyReservation();
+            // 4. 이용권 횟수 +1 증가 (increment 안전하게 반영)
+            transaction.update(userDocRef, {
+                [countFieldName]: increment(1)
+            });
+        });
+
+        alert("🎉 예약이 성공적으로 취소되고 이용권 1회가 복구되었습니다.");
+
+        // UI 실시간 업데이트
+        if (typeof loadReservationCounts === 'function') loadReservationCounts();
+        if (typeof loadMyReservation === 'function') loadMyReservation();
 
     } catch (err) {
-        console.error("취소 실패:", err);
-        alert("취소 처리 중 오류가 발생했습니다.");
+        console.error("취소 실패 상세:", err);
+
+        if (err.message === "ALREADY_CANCELLED") {
+            alert("⚠️ 이미 취소되었거나 존재하지 않는 예약입니다.");
+            // 이미 취소된 건이면 목록을 새로고침하여 화면 정리
+            if (typeof loadMyReservation === 'function') loadMyReservation();
+        } else {
+            alert(`취소 처리 중 오류가 발생했습니다.\n(${err.message})`);
+        }
     }
 }
 
