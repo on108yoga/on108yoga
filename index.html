@@ -329,12 +329,26 @@
         line-height: 1.6;
     }
 
-        #click{
+        .click-group{
              display: flex;
             justify-content: center;
             gap: 15px;   /* 버튼 사이 간격 */
-            text-decoration: none;
-            color: tomato;
+             font-size: 14px;      /* 글자 크기 줄이기 */
+            color: tomato;       /* 글자색 */
+            background: #405346;  /* 버튼 배경색 */
+            
+            
+        }
+
+        .click{   padding: 14px 28px;
+                border-radius: 30px;
+                text-decoration: none;
+                font-weight: 600;
+                transition: .3s;
+            }
+
+        .click:hover{
+            transform: translateY(-3px);
         }
 
     /* ─── [8] 푸터 ─── */
@@ -597,11 +611,11 @@
                     <p id="p" style="text-align: center;"> 오시는길: 부산광역시 사상구 사상로 208-1, <br> 4층 402호 온108요가 </p>
                 </div>
 
-                <div id="click">
-                    <a href="http://pf.kakao.com/_NrxbxnX" class="btn"><i class="fa-regular fa-address-card"></i>카카오채널(문의)</a>
-                    <a href="https://blog.naver.com/on108yoga" class="btn"><i class="fa-solid fa-blog"></i>블로그보러가기</a>
+                <div class="click-group">
+                    <a href="http://pf.kakao.com/_NrxbxnX" class="click"><i class="fa-regular fa-address-card"></i>카카오채널(문의)</a>
+                    <a href="https://blog.naver.com/on108yoga" class="click"><i class="fa-solid fa-blog"></i>블로그보러가기</a>
                     <a href="https://map.kakao.com/link/search/ON108YOGA"
-                        target="_blank"> <!-- 새탭에서 열기 -->
+                        target="_blank" class="click"> <!-- 새탭에서 열기 -->
                         <i class="fa-solid fa-location-dot"></i>카카오맵(위치)</a>
                 </div>        
                                         
