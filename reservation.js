@@ -371,6 +371,7 @@ async function handleReservation() {
 
 // 9. 예약 취소 함수 (트랜잭션 적용 - 중복 취소 방지 & 안전한 횟수 복구)
 // 9. 예약 취소 함수 (취소 제한 횟수 차감 + 이용권 복구)
+// 9. 예약 취소 함수 (mypage.js 필드 연동 완벽 반영)
 async function cancelReservation(resId) {
     if (!confirm("정말 예약을 취소하시겠습니까?")) return;
 
@@ -383,19 +384,19 @@ async function cancelReservation(resId) {
     try {
         const resDocRef = doc(db, "reservations", resId);
         const userDocRef = doc(db, "users", user.uid);
-        const todayStr = getTodayString(); // YYYY-MM-DD 형식의 오늘 날짜
+        const todayStr = getTodayString(); // YYYY-MM-DD 형식
 
         await runTransaction(db, async (transaction) => {
-            // 1) 예약 존재 여부 및 데이터 확인
+            // 1) 예약 존재 여부 확인
             const resSnap = await transaction.get(resDocRef);
             if (!resSnap.exists()) {
                 throw new Error("ALREADY_CANCELLED");
             }
 
             const resData = resSnap.data();
-            const isTodayReservation = (resData.date === todayStr); // 취소하려는 예약이 당일 건인지 여부
+            const isTodayReservation = (resData.date === todayStr); // 당일 예약 여부
 
-            // 2) 회원 정보 및 취소 횟수/이용권 필드 확인
+            // 2) 회원 정보 확인
             const userSnap = await transaction.get(userDocRef);
             if (!userSnap.exists()) {
                 throw new Error("USER_NOT_FOUND");
@@ -403,11 +404,18 @@ async function cancelReservation(resId) {
 
             const userData = userSnap.data();
 
-            // 필드 기본값 설정 (없을 경우 0 또는 기본 설정값 처리)
-            let totalCancelCount = userData.totalCancelCount !== undefined ? Number(userData.totalCancelCount) : 3; // 예: 기본 총 3회
-            let todayCancelCount = userData.todayCancelCount !== undefined ? Number(userData.todayCancelCount) : 1; // 예: 기본 당일 1회
+            // 🎯 mypage.js와 필드명 일치시킴
+            // (1) 일반 남은 취소 횟수
+            let remainingCancel = userData.remainingCancelCount !== undefined 
+                ? Number(userData.remainingCancelCount) 
+                : Number(userData.remainingCancel ?? 0);
 
-            // 이용권 필드명 파악
+            // (2) 당일 남은 취소 횟수
+            let remainingTodayCancel = userData.remainingTodayCancelCount !== undefined 
+                ? Number(userData.remainingTodayCancelCount) 
+                : Number(userData.remainingTodayCancel ?? 0);
+
+            // (3) 이용권 남은 횟수 필드명 파악
             let countFieldName = "remainingCount";
             let remCount = 0;
             if (userData.remainingCount !== undefined) {
@@ -422,28 +430,29 @@ async function cancelReservation(resId) {
             }
 
             // ⛔ 3) 취소 가능 횟수 검증
-            // (1) 총 취소 가능 횟수 부족 체크
-            if (totalCancelCount <= 0) {
+            if (remainingCancel <= 0) {
                 throw new Error("NO_TOTAL_CANCEL:총 취소 가능 횟수를 모두 소진하셨습니다.");
             }
 
-            // (2) 당일 예약 취소 시 당일 취소 가능 횟수 부족 체크
-            if (isTodayReservation && todayCancelCount <= 0) {
+            if (isTodayReservation && remainingTodayCancel <= 0) {
                 throw new Error("NO_TODAY_CANCEL:당일 취소 가능 횟수를 모두 소진하셨습니다.");
             }
 
             // 4) 예약 삭제
             transaction.delete(resDocRef);
 
-            // 5) 유저 정보 업데이트 객체 생성
+            // 5) mypage.js 필드명에 맞게 DB 차감 처리
+            const cancelFieldName = userData.remainingCancelCount !== undefined ? "remainingCancelCount" : "remainingCancel";
+            const todayCancelFieldName = userData.remainingTodayCancelCount !== undefined ? "remainingTodayCancelCount" : "remainingTodayCancel";
+
             const userUpdates = {
-                [countFieldName]: remCount + 1,             // 이용권 횟수 +1 회복
-                totalCancelCount: totalCancelCount - 1     // 총 취소 가능 횟수 -1 차감
+                [countFieldName]: remCount + 1,                   // 이용권 +1 복구
+                [cancelFieldName]: remainingCancel - 1            // 남은 취소 횟수 -1 차감
             };
 
-            // 당일 예약 취소인 경우 당일 취소 가능 횟수도 -1 차감
+            // 당일 취소인 경우 당일 남은 횟수도 -1 차감
             if (isTodayReservation) {
-                userUpdates.todayCancelCount = todayCancelCount - 1;
+                userUpdates[todayCancelFieldName] = remainingTodayCancel - 1;
             }
 
             transaction.update(userDocRef, userUpdates);
@@ -454,6 +463,7 @@ async function cancelReservation(resId) {
         // UI 실시간 업데이트
         if (typeof loadReservationCounts === 'function') loadReservationCounts();
         if (typeof loadMyReservation === 'function') loadMyReservation();
+        if (typeof loadUserProfile === 'function') loadUserProfile(); // 👈 마이페이지 프로필/횟수 갱신 함수가 있다면 실행
 
     } catch (err) {
         console.error("취소 실패 상세:", err);
@@ -462,7 +472,6 @@ async function cancelReservation(resId) {
             alert("⚠️ 이미 취소되었거나 존재하지 않는 예약입니다.");
             if (typeof loadMyReservation === 'function') loadMyReservation();
         } else if (err.message.startsWith("NO_TOTAL_CANCEL:") || err.message.startsWith("NO_TODAY_CANCEL:")) {
-            // 취소 횟수 부족 얼럿 출력
             alert(`⚠️ ${err.message.split(":")[1]}`);
         } else if (err.message === "USER_NOT_FOUND") {
             alert("사용자 정보를 찾을 수 없습니다.");
