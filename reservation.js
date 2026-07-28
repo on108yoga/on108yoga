@@ -241,7 +241,7 @@ async function loadMyReservation() {
     }
 }
 
-// 8. 예약 처리 함수
+// 8. 예약 처리 함수 (이용권 횟수 엄격 검증 & 중복 방지)
 async function handleReservation() {
     const user = auth.currentUser;
     if (!user) {
@@ -259,7 +259,7 @@ async function handleReservation() {
         return;
     }
 
-    // 🔥 지난 시간에 대한 최종 방어 예외 처리
+    // 🔥 지난 시간에 대한 방어 처리
     const todayStr = getTodayString();
     const currentTimeStr = getCurrentTimeString();
     const formattedSelectedTime = selectedTime.length === 4 ? `0${selectedTime}` : selectedTime;
@@ -270,7 +270,8 @@ async function handleReservation() {
     }
 
     try {
-        // 중복 예약 체크
+        // 1) 같은 날짜 & 같은 시간 중복 예약 체크
+        // (만약 하루에 1회만 가능하게 하려면 아래 where("time", "==", selectedTime) 줄을 지우시면 됩니다!)
         const dupQuery = query(
             collection(db, "reservations"),
             where("uid", "==", user.uid),
@@ -285,7 +286,7 @@ async function handleReservation() {
 
         const userDocRef = doc(db, "users", user.uid);
 
-        // 🔥 [트랜잭션 적용] 읽기/쓰기를 하나의 작업으로 묶어 롤백 보장
+        // 2) 🌟 [핵심] 트랜잭션으로 DB 잔여 횟수 실시간 무조건 검증
         await runTransaction(db, async (transaction) => {
             const userSnap = await transaction.get(userDocRef);
 
@@ -296,8 +297,9 @@ async function handleReservation() {
             const userData = userSnap.data();
             let userName = userData.name || user.displayName || "회원";
             let countFieldName = "remainingCount";
-            let remCount = DEFAULT_INITIAL_TICKETS;
+            let remCount = 0;
 
+            // 저장된 필드명에 따른 잔여 횟수 파악
             if (userData.remainingCount !== undefined) {
                 remCount = Number(userData.remainingCount);
                 countFieldName = "remainingCount";
@@ -307,16 +309,19 @@ async function handleReservation() {
             } else if (userData.remCount !== undefined) {
                 remCount = Number(userData.remCount);
                 countFieldName = "remCount";
+            } else {
+                // 필드가 아예 없는 경우 기본값 적용
+                remCount = typeof DEFAULT_INITIAL_TICKETS !== 'undefined' ? DEFAULT_INITIAL_TICKETS : 0;
             }
 
+            // ⛔ 횟수 부족 시 즉시 실패 트랜잭션 발생 (DB 예약 추가 금지)
             if (remCount <= 0) {
-                throw new Error(`⚠️ 남은 이용권 횟수가 없습니다. (잔여: ${remCount}회)`);
+                throw new Error(`NO_TICKETS:남은 이용권 횟수가 없습니다. (현재 잔여: ${remCount}회)`);
             }
 
-            // 1) 새 예약 문서 참조 생성
+            // 3) 예약 생성 및 횟수 1회 차감 동시 실행
             const newResRef = doc(collection(db, "reservations"));
 
-            // 2) 예약 DB 생성 및 잔여 횟수 차감 (동시 실행)
             transaction.set(newResRef, {
                 uid: user.uid,
                 name: userName,
@@ -332,15 +337,17 @@ async function handleReservation() {
 
         alert("🎉 예약이 완벽하게 완료되었습니다!");
 
-        // 3) UI 실시간 업데이트
+        // 4) UI 실시간 업데이트
         if (typeof loadReservationCounts === 'function') loadReservationCounts();
         if (typeof loadMyReservation === 'function') loadMyReservation();
 
     } catch (err) {
         console.error("예약 오류 상세:", err);
         
-        // throw 된 에러 메시지가 있다면 해당 메시지 출력, 없으면 기본 메시지
-        if (err.message && (err.message.includes("남은 이용권") || err.message.includes("사용자 정보"))) {
+        // 이용권 부족 에러 메시지 분기 처리
+        if (err.message && err.message.startsWith("NO_TICKETS:")) {
+            alert(`⚠️ ${err.message.replace("NO_TICKETS:", "")}`);
+        } else if (err.message && err.message.includes("사용자 정보")) {
             alert(err.message);
         } else {
             alert(`예약 중 오류가 발생했습니다.\n(${err.message})`);
