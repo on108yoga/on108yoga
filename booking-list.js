@@ -1,4 +1,3 @@
-// 1. auth 모듈에서 onAuthStateChanged 추가 import
 import { db, auth } from "./firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 import {
@@ -10,7 +9,9 @@ import {
     getDoc
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
-// 한국 표준시(KST YYYY-MM-DD) 반환 함수
+const DAY_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
+
+// KST 날짜 변환 함수
 function getTodayKST() {
     const now = new Date();
     const offset = now.getTimezoneOffset() * 60000;
@@ -18,135 +19,161 @@ function getTodayKST() {
     return dateKST.toISOString().split('T')[0];
 }
 
-// 오늘 날짜 기본값 세팅
+// 특정 날짜 기준 주간(일~토) 7일 날짜 배열 구하기
+function getWeekDates(startDateStr) {
+    const curr = new Date(startDateStr);
+    const dayOfWeek = curr.getDay(); // 0(일) ~ 6(토)
+    
+    // 주 시작일(일요일) 구하기
+    const sunday = new Date(curr);
+    sunday.setDate(curr.getDate() - dayOfWeek);
+
+    const weekDates = [];
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(sunday);
+        d.setDate(sunday.getDate() + i);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        weekDates.push(`${yyyy}-${mm}-${dd}`);
+    }
+    return weekDates;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const today = getTodayKST();
-    const dateInput = document.getElementById("searchDate");
+    const dateInput = document.getElementById("startDate");
     
     if (dateInput) {
         dateInput.value = today;
-        loadAdminReservations(today);
+        loadWeeklyReservations(today);
     }
 
     document.getElementById("loadBtn")?.addEventListener("click", () => {
-        if (dateInput) {
-            loadAdminReservations(dateInput.value);
+        if (dateInput && dateInput.value) {
+            loadWeeklyReservations(dateInput.value);
         }
     });
 });
 
-// 관리자용 특정 날짜 예약 목록 조회 함수
-async function loadAdminReservations(selectedDate) {
-    const container = document.getElementById("reservationContainer");
+// 주간 예약 목록 데이터 가져오기
+async function loadWeeklyReservations(baseDateStr) {
+    const container = document.getElementById("weeklyReservationContainer");
+    const weekRangeText = document.getElementById("weekRangeText");
     if (!container) return;
 
-    container.innerHTML = "<p class='empty-msg'>예약 내역을 불러오는 중...</p>";
+    container.innerHTML = "<p class='empty-msg'>1주일 예약 내역을 불러오는 중...</p>";
+
+    const weekDates = getWeekDates(baseDateStr); // [일, 월, 화, 수, 목, 금, 토]
+    if (weekRangeText) {
+        weekRangeText.innerText = `(${weekDates[0]} ~ ${weekDates[6]})`;
+    }
 
     try {
-        // 1. 해당 날짜의 예약 전체 조회
+        // 1. 7일 치 예약 데이터 한 번에 조회
         const q = query(
             collection(db, "reservations"),
-            where("date", "==", selectedDate)
+            where("date", "in", weekDates)
         );
         const snapshot = await getDocs(q);
 
-        if (snapshot.empty) {
-            container.innerHTML = `<p class='empty-msg'>${selectedDate}에는 예약된 수업이 없습니다.</p>`;
-            return;
-        }
+        // 2. [날짜][시간] 형태로 맵 구조 생성
+        const reservationMap = {};
+        weekDates.forEach(d => { reservationMap[d] = {}; });
 
-        // 2. 시간대별로 데이터 정리 (그룹핑)
-        const groupedByTime = {};
-
+        // 회원 정보 수집 (중복 유저 조회 최소화)
+        const uidsToFetch = new Set();
         snapshot.forEach(docSnap => {
             const data = docSnap.data();
-            const time = data.time || "시간 미지정";
-
-            if (!groupedByTime[time]) {
-                groupedByTime[time] = [];
+            if (data.date && reservationMap[data.date]) {
+                const time = data.time || "시간 미지정";
+                if (!reservationMap[data.date][time]) {
+                    reservationMap[data.date][time] = [];
+                }
+                reservationMap[data.date][time].push(data);
+                if (data.uid) uidsToFetch.add(data.uid);
             }
-            groupedByTime[time].push({
-                id: docSnap.id,
-                ...data
-            });
         });
 
-        // 3. 시간순 정렬
-        const sortedTimes = Object.keys(groupedByTime).sort();
-
-        container.innerHTML = ""; // 기존 내용 초기화
-
-        // 4. 시간대별 카드 UI 생성
-        for (const time of sortedTimes) {
-            const members = groupedByTime[time];
-
-            const card = document.createElement("div");
-            card.className = "time-slot-card";
-
-            let membersHtml = "";
-
-            // 회원의 최신 정보(사용/남은 횟수)를 users 컬렉션에서 순차적으로 조회
-          // booking-list.js 중 회원 정보 조회 반복문 부분 수정                
-                for (let idx = 0; idx < members.length; idx++) {
-                    const m = members[idx];
-                    let usedCount = 0;
-                    let remainingCount = 0;
-                
-                    if (m.uid) {
-                        try {
-                            const userSnap = await getDoc(doc(db, "users", m.uid));
-                            if (userSnap.exists()) {
-                                const uData = userSnap.data();
-                                
-                                // 사용 횟수 필드명 체크 (usedCount, usedTickets, used)
-                                usedCount = uData.usedCount ?? uData.usedTickets ?? uData.used ?? 0;
-                                
-                                // 남은 횟수 필드명 체크
-                                remainingCount = uData.remainingCount ?? uData.ticketCount ?? uData.remCount ?? 0;
-                            }
-                        } catch (e) {
-                            console.error(`회원(${m.uid}) 정보 조회 실패:`, e);
-                        }
-                    }
-                
-                    const name = m.userName || m.name || '회원';
-                    const phoneText = m.phone ? ` / 📞 ${m.phone}` : "";
-                
-                    membersHtml += `
-                        <li class="member-item">
-                            <div>
-                                <strong>${idx + 1}. ${name}</strong> 
-                                <span style="font-size: 13px; color: #2563eb; font-weight: 600; margin-left: 6px;">
-                                    (${usedCount}회 사용 / ${remainingCount}회 남음)
-                                </span>
-                                <span style="font-size: 12px; color: #6b7280; margin-left: 8px;">
-                                    ${phoneText} (UID: ${m.uid ? m.uid.substring(0, 6) : '---'}...)
-                                </span>
-                            </div>
-                        </li>
-                    `;
+        // 3. 회원별 사용/남은 횟수 정보 캐싱
+        const userCache = {};
+        for (const uid of uidsToFetch) {
+            try {
+                const uSnap = await getDoc(doc(db, "users", uid));
+                if (uSnap.exists()) {
+                    const uData = uSnap.data();
+                    userCache[uid] = {
+                        usedCount: uData.usedCount ?? uData.usedTickets ?? uData.used ?? 0,
+                        remainingCount: uData.remainingCount ?? uData.ticketCount ?? uData.remCount ?? 0
+                    };
                 }
-
-            card.innerHTML = `
-                <div class="slot-header">
-                    <span>⏰ ${time} 수업</span>
-                    <span>총 ${members.length}명 예약</span>
-                </div>
-                <ul class="member-list">
-                    ${membersHtml}
-                </ul>
-            `;
-
-            container.appendChild(card);
+            } catch (e) {
+                console.error(`UID(${uid}) 가져오기 실패:`, e);
+            }
         }
 
+        container.innerHTML = ""; // 초기화
+
+        // 4. 일~토 7개 컬럼 화면에 생성
+        weekDates.forEach((dateStr, index) => {
+            const dayCol = document.createElement("div");
+            dayCol.className = "day-column";
+
+            const dayName = DAY_NAMES[index];
+            const dateShort = dateStr.substring(5); // MM-DD
+
+            let timesHtml = "";
+            const timesObj = reservationMap[dateStr];
+            const sortedTimes = Object.keys(timesObj).sort();
+
+            if (sortedTimes.length === 0) {
+                timesHtml = `<p style="font-size:12px; color:#9ca3af; text-align:center; margin-top:20px;">예약 없음</p>`;
+            } else {
+                sortedTimes.forEach(time => {
+                    const members = timesObj[time];
+                    let memberListHtml = "";
+
+                    members.forEach((m, idx) => {
+                        const name = m.userName || m.name || '회원';
+                        const userInfo = userCache[m.uid] || { usedCount: 0, remainingCount: 0 };
+
+                        memberListHtml += `
+                            <li>
+                                <strong>${idx + 1}. ${name}</strong>
+                                <div class="count-badge">(${userInfo.usedCount}회 / ${userInfo.remainingCount}회)</div>
+                            </li>
+                        `;
+                    });
+
+                    timesHtml += `
+                        <div class="time-slot">
+                            <div class="time-title">⏰ ${time} (${members.length}명)</div>
+                            <ul class="member-item-list">
+                                ${memberListHtml}
+                            </ul>
+                        </div>
+                    `;
+                });
+            }
+
+            dayCol.innerHTML = `
+                <div class="day-header">
+                    <span>${dayName}요일</span>
+                    <span class="date-sub">${dateShort}</span>
+                </div>
+                ${timesHtml}
+            `;
+
+            container.appendChild(dayCol);
+        });
+
     } catch (error) {
-        console.error("관리자 예약 조회 오류:", error);
-        container.innerHTML = "<p class='empty-msg' style='color:red;'>예약 목록을 불러오지 못했습니다.</p>";
+        console.error("주간 예약 조회 오류:", error);
+        container.innerHTML = "<p class='empty-msg' style='color:red;'>주간 예약 내역을 불러오지 못했습니다.</p>";
     }
 }
 
-// 관리자 페이지 접근 권한 체크
+// 권한 체크
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
         alert("로그인이 필요합니다.");
@@ -162,7 +189,5 @@ onAuthStateChanged(auth, async (user) => {
         }
     } catch (err) {
         console.error("권한 체크 실패:", err);
-        alert("권한 확인 중 오류가 발생했습니다.");
-        location.href = "./index.html";
     }
 });
