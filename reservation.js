@@ -11,7 +11,7 @@ import {
     getDoc,
     updateDoc,
     increment,
-    runTransaction, // 👈 트랜잭션 함수 추가
+    runTransaction,
     serverTimestamp,
     onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
@@ -23,7 +23,7 @@ let selectedTime = "";
 let unsubscribeUser = null;
 
 const MAX_PEOPLE = 10;
-const DEFAULT_INITIAL_TICKETS = 4; // 👈 신규 회원 기본 부여 횟수 (필요에 따라 변경 가능)
+const DEFAULT_INITIAL_TICKETS = 4; // 신규 회원 기본 부여 횟수
 
 const weeklySchedule = {
     0: [],
@@ -63,13 +63,12 @@ function listenUserProfile(user) {
     const userDocRef = doc(db, "users", user.uid);
     unsubscribeUser = onSnapshot(userDocRef, (userSnap) => {
         let userName = user.displayName || "회원";
-        let remCount = DEFAULT_INITIAL_TICKETS; // 기본값 4회 설정
+        let remCount = DEFAULT_INITIAL_TICKETS;
 
         if (userSnap.exists()) {
             const userData = userSnap.data();
             if (userData.name) userName = userData.name;
 
-            // DB에 잔여 횟수 필드가 명시적으로 존재하는 경우 해당 값 반영
             if (userData.remainingCount !== undefined) remCount = Number(userData.remainingCount);
             else if (userData.ticketCount !== undefined) remCount = Number(userData.ticketCount);
             else if (userData.remCount !== undefined) remCount = Number(userData.remCount);
@@ -94,7 +93,7 @@ window.setSelectedDate = function(date) {
     loadReservationCounts();
 };
 
-// 5. 시간 버튼 랜더링 (🔥 지난 시간 회색 비활성화 로직 추가)
+// 5. 시간 버튼 랜더링 (지난 시간 회색 비활성화)
 function renderTimeButtons(selectedDateStr) {
     const container = document.getElementById('timeButtons');
     if (!container || !selectedDateStr) return;
@@ -121,7 +120,6 @@ function renderTimeButtons(selectedDateStr) {
         button.dataset.time = time;
         button.innerHTML = `${time} (예약 <span id="count${timeId}">0</span> / ${MAX_PEOPLE}명)`;
 
-        // 🔥 날짜가 오늘이고, 시간이 현재 시각보다 같거나 작으면 지나간 시간으로 판별
         const formattedTime = time.length === 4 ? `0${time}` : time;
         const isPast = (selectedDateStr === todayStr && formattedTime <= currentTimeStr);
 
@@ -226,23 +224,16 @@ async function loadMyReservation() {
                 </button>
             `;
 
-           // !!수정 포인트: 클릭 즉시 버튼 잠금 처리 
             const cancelBtn = itemDiv.querySelector(".cancel-btn");
             cancelBtn.addEventListener("click", async (e) => {
-                // 1) 클릭 즉시 버튼 비활성화 및 텍스트 변경 (연타 방지)
                 const btn = e.target;
                 btn.disabled = true;
-                btn.style.background = "#e5e7eb"; // 회색으로 변경
+                btn.style.background = "#e5e7eb";
                 btn.style.color = "#6b7280";
                 btn.style.cursor = "not-allowed";
                 btn.innerText = "취소 중...";
 
-                // 2) 아까 수정한 트랜잭션 취소 함수 실행
                 await cancelReservation(res.id);
-
-                // (참고: cancelReservation 함수 내부에서 성공/실패 시 
-                // loadMyReservation()을 다시 호출하여 화면을 새로고침하므로 
-                // 버튼 상태를 다시 원래대로 돌려놓을 필요는 없습니다.)
             });
 
             listContainer.appendChild(itemDiv);
@@ -255,7 +246,7 @@ async function loadMyReservation() {
     }
 }
 
-// 8. 예약 처리 함수 (이용권 횟수 엄격 검증 & 중복 방지)
+// 8. 예약 처리 함수 (usedCount +1 처리 반영)
 async function handleReservation() {
     const user = auth.currentUser;
     if (!user) {
@@ -273,7 +264,6 @@ async function handleReservation() {
         return;
     }
 
-    // 🔥 지난 시간에 대한 방어 처리
     const todayStr = getTodayString();
     const currentTimeStr = getCurrentTimeString();
     const formattedSelectedTime = selectedTime.length === 4 ? `0${selectedTime}` : selectedTime;
@@ -284,8 +274,6 @@ async function handleReservation() {
     }
 
     try {
-        // 1) 같은 날짜 & 같은 시간 중복 예약 체크
-        // (만약 하루에 1회만 가능하게 하려면 아래 where("time", "==", selectedTime) 줄을 지우시면 됩니다!)
         const dupQuery = query(
             collection(db, "reservations"),
             where("uid", "==", user.uid),
@@ -300,7 +288,6 @@ async function handleReservation() {
 
         const userDocRef = doc(db, "users", user.uid);
 
-        // 2) 🌟 [핵심] 트랜잭션으로 DB 잔여 횟수 실시간 무조건 검증
         await runTransaction(db, async (transaction) => {
             const userSnap = await transaction.get(userDocRef);
 
@@ -312,8 +299,8 @@ async function handleReservation() {
             let userName = userData.name || user.displayName || "회원";
             let countFieldName = "remainingCount";
             let remCount = 0;
+            let currentUsedCount = Number(userData.usedCount ?? userData.usedTickets ?? userData.used ?? 0);
 
-            // 저장된 필드명에 따른 잔여 횟수 파악
             if (userData.remainingCount !== undefined) {
                 remCount = Number(userData.remainingCount);
                 countFieldName = "remainingCount";
@@ -324,16 +311,13 @@ async function handleReservation() {
                 remCount = Number(userData.remCount);
                 countFieldName = "remCount";
             } else {
-                // 필드가 아예 없는 경우 기본값 적용
                 remCount = typeof DEFAULT_INITIAL_TICKETS !== 'undefined' ? DEFAULT_INITIAL_TICKETS : 0;
             }
 
-            // ⛔ 횟수 부족 시 즉시 실패 트랜잭션 발생 (DB 예약 추가 금지)
             if (remCount <= 0) {
                 throw new Error(`NO_TICKETS:남은 이용권 횟수가 없습니다. (현재 잔여: ${remCount}회)`);
             }
 
-            // 3) 예약 생성 및 횟수 1회 차감 동시 실행
             const newResRef = doc(collection(db, "reservations"));
 
             transaction.set(newResRef, {
@@ -344,21 +328,21 @@ async function handleReservation() {
                 createdAt: serverTimestamp()
             });
 
+            // 🔥 [중요] 남은 횟수 -1 차감 & 사용 횟수(usedCount) +1 증가
             transaction.update(userDocRef, {
-                [countFieldName]: remCount - 1
+                [countFieldName]: remCount - 1,
+                usedCount: currentUsedCount + 1
             });
         });
 
         alert("🎉 예약이 완벽하게 완료되었습니다!");
 
-        // 4) UI 실시간 업데이트
         if (typeof loadReservationCounts === 'function') loadReservationCounts();
         if (typeof loadMyReservation === 'function') loadMyReservation();
 
     } catch (err) {
         console.error("예약 오류 상세:", err);
         
-        // 이용권 부족 에러 메시지 분기 처리
         if (err.message && err.message.startsWith("NO_TICKETS:")) {
             alert(`⚠️ ${err.message.replace("NO_TICKETS:", "")}`);
         } else if (err.message && err.message.includes("사용자 정보")) {
@@ -369,9 +353,7 @@ async function handleReservation() {
     }
 }
 
-// 9. 예약 취소 함수 (트랜잭션 적용 - 중복 취소 방지 & 안전한 횟수 복구)
-// 9. 예약 취소 함수 (취소 제한 횟수 차감 + 이용권 복구)
-// 9. 예약 취소 함수 (mypage.js 필드 연동 완벽 반영)
+// 9. 예약 취소 함수 (usedCount -1 복구 반영)
 async function cancelReservation(resId) {
     if (!confirm("정말 예약을 취소하시겠습니까?")) return;
 
@@ -384,19 +366,17 @@ async function cancelReservation(resId) {
     try {
         const resDocRef = doc(db, "reservations", resId);
         const userDocRef = doc(db, "users", user.uid);
-        const todayStr = getTodayString(); // YYYY-MM-DD 형식
+        const todayStr = getTodayString();
 
         await runTransaction(db, async (transaction) => {
-            // 1) 예약 존재 여부 확인
             const resSnap = await transaction.get(resDocRef);
             if (!resSnap.exists()) {
                 throw new Error("ALREADY_CANCELLED");
             }
 
             const resData = resSnap.data();
-            const isTodayReservation = (resData.date === todayStr); // 당일 예약 여부
+            const isTodayReservation = (resData.date === todayStr);
 
-            // 2) 회원 정보 확인
             const userSnap = await transaction.get(userDocRef);
             if (!userSnap.exists()) {
                 throw new Error("USER_NOT_FOUND");
@@ -404,20 +384,18 @@ async function cancelReservation(resId) {
 
             const userData = userSnap.data();
 
-            // 🎯 mypage.js와 필드명 일치시킴
-            // (1) 일반 남은 취소 횟수
             let remainingCancel = userData.remainingCancelCount !== undefined 
                 ? Number(userData.remainingCancelCount) 
                 : Number(userData.remainingCancel ?? 0);
 
-            // (2) 당일 남은 취소 횟수
             let remainingTodayCancel = userData.remainingTodayCancelCount !== undefined 
                 ? Number(userData.remainingTodayCancelCount) 
                 : Number(userData.remainingTodayCancel ?? 0);
 
-            // (3) 이용권 남은 횟수 필드명 파악
             let countFieldName = "remainingCount";
             let remCount = 0;
+            let currentUsedCount = Number(userData.usedCount ?? userData.usedTickets ?? userData.used ?? 0);
+
             if (userData.remainingCount !== undefined) {
                 countFieldName = "remainingCount";
                 remCount = Number(userData.remainingCount);
@@ -429,7 +407,6 @@ async function cancelReservation(resId) {
                 remCount = Number(userData.remCount);
             }
 
-            // ⛔ 3) 취소 가능 횟수 검증
             if (remainingCancel <= 0) {
                 throw new Error("NO_TOTAL_CANCEL:총 취소 가능 횟수를 모두 소진하셨습니다.");
             }
@@ -438,19 +415,18 @@ async function cancelReservation(resId) {
                 throw new Error("NO_TODAY_CANCEL:당일 취소 가능 횟수를 모두 소진하셨습니다.");
             }
 
-            // 4) 예약 삭제
             transaction.delete(resDocRef);
 
-            // 5) mypage.js 필드명에 맞게 DB 차감 처리
             const cancelFieldName = userData.remainingCancelCount !== undefined ? "remainingCancelCount" : "remainingCancel";
             const todayCancelFieldName = userData.remainingTodayCancelCount !== undefined ? "remainingTodayCancelCount" : "remainingTodayCancel";
 
+            // 🔥 [중요] 이용권 +1 복구 & 사용 횟수(usedCount) -1 차감 (최소값 0 유지)
             const userUpdates = {
-                [countFieldName]: remCount + 1,                   // 이용권 +1 복구
-                [cancelFieldName]: remainingCancel - 1            // 남은 취소 횟수 -1 차감
+                [countFieldName]: remCount + 1,
+                usedCount: Math.max(0, currentUsedCount - 1),
+                [cancelFieldName]: remainingCancel - 1
             };
 
-            // 당일 취소인 경우 당일 남은 횟수도 -1 차감
             if (isTodayReservation) {
                 userUpdates[todayCancelFieldName] = remainingTodayCancel - 1;
             }
@@ -460,10 +436,9 @@ async function cancelReservation(resId) {
 
         alert("🎉 예약이 성공적으로 취소되고 이용권 1회가 복구되었습니다.");
 
-        // UI 실시간 업데이트
         if (typeof loadReservationCounts === 'function') loadReservationCounts();
         if (typeof loadMyReservation === 'function') loadMyReservation();
-        if (typeof loadUserProfile === 'function') loadUserProfile(); // 👈 마이페이지 프로필/횟수 갱신 함수가 있다면 실행
+        if (typeof loadUserProfile === 'function') loadUserProfile();
 
     } catch (err) {
         console.error("취소 실패 상세:", err);
