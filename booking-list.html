@@ -5,15 +5,6 @@
     <title>관리자 - 수업별 예약 현황</title>
     <style>    
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Noto+Sans+KR:wght@200;300;400;500;700&display=swap');
-
-        :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --bg: #f3f4f6;
-            --card: #ffffff;
-            --border: #e5e7eb;
-            --text: #1f2937;
-        }
         .menu {
             justify-content: center;
             display: flex;
@@ -57,34 +48,19 @@
                 font-weight: 300;
                 font-size: 20px;
                 text-transform: uppercase;
-        }
-        body { font-family: 'Pretendard', sans-serif; margin: 0; padding: 20px; background-color: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; }
+        }     
         header {justify-content: space-between; align-items: center; margin-bottom: 20px; }
         
         /* 기본 레이아웃 */
-        .admin-container {
-            padding: 20px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
-        .date-picker-box {
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .date-picker-box input, .date-picker-box button {
-            padding: 8px 12px;
-            border-radius: 6px;
-        }
-        
-        .date-picker-box button {
-            background: #111827;
-            color: #fff;
-            border: none;
-            cursor: pointer;
+        body { font-family: sans-serif; padding: 20px; background: #f9fafb; }
+        .admin-container { max-width: 900px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .date-picker-box { margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .time-slot-card { border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 16px; overflow: hidden; }
+        .slot-header { background: #4f46e5; color: white; padding: 12px 16px; font-weight: bold; display: flex; justify-content: space-between; }
+        .member-list { list-style: none; padding: 0; margin: 0; }
+        .member-item { padding: 12px 16px; border-bottom: 1px solid #f3f4f6; display: flex; justify-content: space-between; align-items: center; }
+        .member-item:last-child { border-bottom: none; }
+        .empty-msg { padding: 16px; color: #9ca3af; text-align: center; }cursor: pointer;
         }
         
         /* 🖥️ PC/태블릿 기본: 7컬럼 그리드 레이아웃 */
@@ -198,22 +174,20 @@
     </header>
     
         <div class="admin-container">
-            <h2>📋 주간 수업별 회원 예약 명단</h2>
-            
-            <!-- 주간 선택 영역 -->
-            <div class="date-picker-box">
-                <label for="startDate"><strong>기준 날짜:</strong></label>
-                <input type="date" id="startDate">
-                <button id="loadBtn">주간 조회</button>
-                <span id="weekRangeText" style="margin-left: 10px; font-weight: bold; color: #4f46e5;"></span>
-            </div>
+                <h2>📋 수업별 회원 예약 명단</h2>
+                
+                <!-- 날짜 선택 영역 -->
+                <div class="date-picker-box">
+                    <label for="searchDate"><strong>조회 날짜:</strong></label>
+                    <input type="date" id="searchDate">
+                    <button id="loadBtn" style="padding: 6px 12px; background: #111827; color: #fff; border:none; border-radius:4px; cursor:pointer;">조회</button>
+                </div>
         
-            <!-- 7일 요일별 리스트가 들어갈 컨테이너 -->
-            <div id="weeklyReservationContainer" class="weekly-grid">
-                <p class="empty-msg">날짜를 선택하고 조회 버튼을 눌러주세요.</p>
+                <!-- 예약 현황 출력 영역 -->
+                <div id="reservationContainer">
+                    <p class="empty-msg">날짜를 선택하고 조회 버튼을 눌러주세요.</p>
+                </div>
             </div>
-        </div>
-    
 
     <!-- booking-list.html 파일 하단 -->
   <script type="module" src="./booking-list.js"></script> <!-- or admin-reservations.js -->
