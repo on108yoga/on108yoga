@@ -77,28 +77,52 @@ async function loadAdminReservations(selectedDate) {
         container.innerHTML = ""; // 기존 내용 초기화
 
         // 4. 시간대별 카드 UI 생성
-        sortedTimes.forEach(time => {
+        for (const time of sortedTimes) {
             const members = groupedByTime[time];
 
             const card = document.createElement("div");
             card.className = "time-slot-card";
 
             let membersHtml = "";
-            members.forEach((m, idx) => {
-                // 연락처나 이메일 필드가 있다면 함께 표기 가능
+
+            // 회원의 최신 정보(사용/남은 횟수)를 users 컬렉션에서 순차적으로 조회
+            for (let idx = 0; idx < members.length; idx++) {
+                const m = members[idx];
+                let usedCount = 0;
+                let remainingCount = 0;
+
+                if (m.uid) {
+                    try {
+                        const userSnap = await getDoc(doc(db, "users", m.uid));
+                        if (userSnap.exists()) {
+                            const uData = userSnap.data();
+                            
+                            // DB의 다양한 필드명 호환 처리
+                            usedCount = uData.usedCount ?? uData.usedTickets ?? uData.used ?? 0;
+                            remainingCount = uData.remainingCount ?? uData.ticketCount ?? uData.remCount ?? 0;
+                        }
+                    } catch (e) {
+                        console.error(`회원(${m.uid}) 정보 조회 실패:`, e);
+                    }
+                }
+
+                const name = m.userName || m.name || '회원';
                 const phoneText = m.phone ? ` / 📞 ${m.phone}` : "";
-                
+
                 membersHtml += `
                     <li class="member-item">
                         <div>
-                            <strong>${idx + 1}. ${m.userName || m.name || '회원'}</strong> 
+                            <strong>${idx + 1}. ${name}</strong> 
+                            <span style="font-size: 13px; color: #2563eb; font-weight: 600; margin-left: 6px;">
+                                (${usedCount}회 사용 / ${remainingCount}회 남음)
+                            </span>
                             <span style="font-size: 12px; color: #6b7280; margin-left: 8px;">
                                 ${phoneText} (UID: ${m.uid ? m.uid.substring(0, 6) : '---'}...)
                             </span>
                         </div>
                     </li>
                 `;
-            });
+            }
 
             card.innerHTML = `
                 <div class="slot-header">
@@ -111,7 +135,7 @@ async function loadAdminReservations(selectedDate) {
             `;
 
             container.appendChild(card);
-        });
+        }
 
     } catch (error) {
         console.error("관리자 예약 조회 오류:", error);
