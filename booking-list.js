@@ -1,4 +1,6 @@
+// 1. auth 모듈에서 onAuthStateChanged 추가 import
 import { db, auth } from "./firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 import {
     collection,
     query,
@@ -8,17 +10,28 @@ import {
     getDoc
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
-// 오늘 날짜 기본값 세팅 (YYYY-MM-DD)
+// 한국 표준시(KST YYYY-MM-DD) 반환 함수
+function getTodayKST() {
+    const now = new Date();
+    const offset = now.getTimezoneOffset() * 60000;
+    const dateKST = new Date(now.getTime() - offset);
+    return dateKST.toISOString().split('T')[0];
+}
+
+// 오늘 날짜 기본값 세팅
 document.addEventListener("DOMContentLoaded", () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getTodayKST();
     const dateInput = document.getElementById("searchDate");
+    
     if (dateInput) {
         dateInput.value = today;
         loadAdminReservations(today);
     }
 
     document.getElementById("loadBtn")?.addEventListener("click", () => {
-        loadAdminReservations(dateInput.value);
+        if (dateInput) {
+            loadAdminReservations(dateInput.value);
+        }
     });
 });
 
@@ -47,7 +60,7 @@ async function loadAdminReservations(selectedDate) {
 
         snapshot.forEach(docSnap => {
             const data = docSnap.data();
-            const time = data.time;
+            const time = data.time || "시간 미지정";
 
             if (!groupedByTime[time]) {
                 groupedByTime[time] = [];
@@ -72,11 +85,16 @@ async function loadAdminReservations(selectedDate) {
 
             let membersHtml = "";
             members.forEach((m, idx) => {
+                // 연락처나 이메일 필드가 있다면 함께 표기 가능
+                const phoneText = m.phone ? ` / 📞 ${m.phone}` : "";
+                
                 membersHtml += `
                     <li class="member-item">
                         <div>
-                            <strong>${idx + 1}. ${m.name || '회원'}</strong> 
-                            <span style="font-size: 12px; color: #6b7280; margin-left: 8px;">(UID: ${m.uid.substring(0, 6)}...)</span>
+                            <strong>${idx + 1}. ${m.userName || m.name || '회원'}</strong> 
+                            <span style="font-size: 12px; color: #6b7280; margin-left: 8px;">
+                                ${phoneText} (UID: ${m.uid ? m.uid.substring(0, 6) : '---'}...)
+                            </span>
                         </div>
                     </li>
                 `;
@@ -101,7 +119,7 @@ async function loadAdminReservations(selectedDate) {
     }
 }
 
-// 관리자 페이지 접근 권한 체크 예시
+// 관리자 페이지 접근 권한 체크
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
         alert("로그인이 필요합니다.");
@@ -109,9 +127,15 @@ onAuthStateChanged(auth, async (user) => {
         return;
     }
 
-    const userSnap = await getDoc(doc(db, "users", user.uid));
-    if (!userSnap.exists() || userSnap.data().role !== "admin") {
-        alert("관리자만 접근할 수 있는 페이지입니다.");
+    try {
+        const userSnap = await getDoc(doc(db, "users", user.uid));
+        if (!userSnap.exists() || userSnap.data().role !== "admin") {
+            alert("관리자만 접근할 수 있는 페이지입니다.");
+            location.href = "./index.html";
+        }
+    } catch (err) {
+        console.error("권한 체크 실패:", err);
+        alert("권한 확인 중 오류가 발생했습니다.");
         location.href = "./index.html";
     }
 });
