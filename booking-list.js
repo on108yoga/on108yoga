@@ -86,43 +86,46 @@ async function loadAdminReservations(selectedDate) {
             let membersHtml = "";
 
             // 회원의 최신 정보(사용/남은 횟수)를 users 컬렉션에서 순차적으로 조회
-            for (let idx = 0; idx < members.length; idx++) {
-                const m = members[idx];
-                let usedCount = 0;
-                let remainingCount = 0;
-
-                if (m.uid) {
-                    try {
-                        const userSnap = await getDoc(doc(db, "users", m.uid));
-                        if (userSnap.exists()) {
-                            const uData = userSnap.data();
-                            
-                            // DB의 다양한 필드명 호환 처리
-                            usedCount = uData.usedCount ?? uData.usedTickets ?? uData.used ?? 0;
-                            remainingCount = uData.remainingCount ?? uData.ticketCount ?? uData.remCount ?? 0;
+          // booking-list.js 중 회원 정보 조회 반복문 부분 수정                
+                for (let idx = 0; idx < members.length; idx++) {
+                    const m = members[idx];
+                    let usedCount = 0;
+                    let remainingCount = 0;
+                
+                    if (m.uid) {
+                        try {
+                            const userSnap = await getDoc(doc(db, "users", m.uid));
+                            if (userSnap.exists()) {
+                                const uData = userSnap.data();
+                                
+                                // 사용 횟수 필드명 체크 (usedCount, usedTickets, used)
+                                usedCount = uData.usedCount ?? uData.usedTickets ?? uData.used ?? 0;
+                                
+                                // 남은 횟수 필드명 체크
+                                remainingCount = uData.remainingCount ?? uData.ticketCount ?? uData.remCount ?? 0;
+                            }
+                        } catch (e) {
+                            console.error(`회원(${m.uid}) 정보 조회 실패:`, e);
                         }
-                    } catch (e) {
-                        console.error(`회원(${m.uid}) 정보 조회 실패:`, e);
                     }
+                
+                    const name = m.userName || m.name || '회원';
+                    const phoneText = m.phone ? ` / 📞 ${m.phone}` : "";
+                
+                    membersHtml += `
+                        <li class="member-item">
+                            <div>
+                                <strong>${idx + 1}. ${name}</strong> 
+                                <span style="font-size: 13px; color: #2563eb; font-weight: 600; margin-left: 6px;">
+                                    (${usedCount}회 사용 / ${remainingCount}회 남음)
+                                </span>
+                                <span style="font-size: 12px; color: #6b7280; margin-left: 8px;">
+                                    ${phoneText} (UID: ${m.uid ? m.uid.substring(0, 6) : '---'}...)
+                                </span>
+                            </div>
+                        </li>
+                    `;
                 }
-
-                const name = m.userName || m.name || '회원';
-                const phoneText = m.phone ? ` / 📞 ${m.phone}` : "";
-
-                membersHtml += `
-                    <li class="member-item">
-                        <div>
-                            <strong>${idx + 1}. ${name}</strong> 
-                            <span style="font-size: 13px; color: #2563eb; font-weight: 600; margin-left: 6px;">
-                                (${usedCount}회 사용 / ${remainingCount}회 남음)
-                            </span>
-                            <span style="font-size: 12px; color: #6b7280; margin-left: 8px;">
-                                ${phoneText} (UID: ${m.uid ? m.uid.substring(0, 6) : '---'}...)
-                            </span>
-                        </div>
-                    </li>
-                `;
-            }
 
             card.innerHTML = `
                 <div class="slot-header">
