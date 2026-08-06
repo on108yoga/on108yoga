@@ -89,7 +89,6 @@ function renderMemberList(docs, page = 1) {
         return;
     }
 
-    // 🎯 10개씩 배열 슬라이싱 (1페이지: 0~9, 2페이지: 10~19)
     const startIndex = (page - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
     const paginatedDocs = docs.slice(startIndex, endIndex);
@@ -104,13 +103,35 @@ function renderMemberList(docs, page = 1) {
         
         li.onclick = () => selectMember(id, user);
 
+        // 🎯 날짜 포맷팅 함수 (YYYY/MM/DD 형식 변환)
+        const formatBadgeDate = (dateVal) => {
+            if (!dateVal) return todayStr.replace(/-/g, '/'); // 날짜 정보 없으면 오늘 날짜
+            
+            // Firestore Timestamp 객체인 경우
+            if (dateVal.toDate && typeof dateVal.toDate === 'function') {
+                const d = dateVal.toDate();
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${year}/${month}/${day}`;
+            }
+            
+            // 문자열(YYYY-MM-DD)인 경우
+            return String(dateVal).split('T')[0].replace(/-/g, '/');
+        };
+
+        // 🎯 회원 등록/생성 일자 추출 (createdAt -> startDate -> 오늘날짜)
+        const createdDateStr = formatBadgeDate(user.createdAt || user.startDate);
+
         // id가 11자리 숫자(연락처) 형태라면 임시 등록(미가입) 회원 구분
         const isTemporary = id.length === 11 && !isNaN(id);
+        
+        // 🎯 (가입됨-YYYY/MM/DD) 또는 (미가입-YYYY/MM/DD) 뱃지 출력
         const joinedBadge = isTemporary 
-            ? ' <span style="font-size:11px; color:#f59e0b; font-weight:normal;">(미가입)</span>' 
-            : ' <span style="font-size:11px; color:#10b981; font-weight:normal;">(가입됨)</span>';
+            ? ` <span style="font-size:11px; color:#f59e0b; font-weight:normal;">(미가입-${createdDateStr})</span>` 
+            : ` <span style="font-size:11px; color:#10b981; font-weight:normal;">(가입됨-${createdDateStr})</span>`;
 
-        // 🚨 이용기간 만료 체크
+        // 이용기간 만료 체크
         const isExpired = user.endDate && user.endDate < todayStr;
         let countBadge = `<span style="font-size:13px; color: var(--primary); font-weight:bold;">${user.remainingCount || 0}회 남음</span>`;
 
