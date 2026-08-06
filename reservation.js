@@ -248,7 +248,13 @@ async function loadMyReservation() {
 }
 
 // 8. 예약 처리 함수 (usedCount +1 처리 반영)
+// 🔥 [추가 1] 중복 클릭 방지 플래그 (함수 외부 또는 코드 최상단에 선언)
+let isReserving = false;
+
 async function handleReservation() {
+    // 🔥 [추가 2] 이미 예약 처리 중이라면 즉시 종료 (연달아 누르는 클릭 완전 차단)
+    if (isReserving) return;
+
     const user = auth.currentUser;
     if (!user) {
         alert("로그인 후 이용해 주세요.");
@@ -274,7 +280,17 @@ async function handleReservation() {
         return;
     }
 
+    // 🔥 [추가 3] 예약 버튼 요소 가져오기 (실제 버튼 ID에 맞게 "reserveBtn" 수정)
+    const reserveBtn = document.getElementById("reserveBtn");
+
     try {
+        // 🔥 [추가 4] 처리 상태 ON 및 버튼 비활성화 (시각적 피드백 제공)
+        isReserving = true;
+        if (reserveBtn) {
+            reserveBtn.disabled = true;
+            reserveBtn.innerText = "예약 처리 중...";
+        }
+
         const dupQuery = query(
             collection(db, "reservations"),
             where("uid", "==", user.uid),
@@ -350,6 +366,13 @@ async function handleReservation() {
             alert(err.message);
         } else {
             alert(`예약 중 오류가 발생했습니다.\n(${err.message})`);
+        }
+    } finally {
+        // 🔥 [추가 5] 성공/실패 여부와 상관없이 처리가 끝나면 플래그와 버튼 원상복구
+        isReserving = false;
+        if (reserveBtn) {
+            reserveBtn.disabled = false;
+            reserveBtn.innerText = "예약하기";
         }
     }
 }
