@@ -5,12 +5,7 @@ import {
     query,
     where,
     getDocs,
-    addDoc,
-    deleteDoc,
     doc,
-    getDoc,
-    updateDoc,
-    increment,
     runTransaction,
     serverTimestamp,
     onSnapshot
@@ -21,11 +16,13 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/f
 let selectedDate = "";
 let selectedTime = "";
 let unsubscribeUser = null;
+let isReserving = false;
+let isCanceling = false; // 🔥 중복 취소 실행 방지 플래그
 
 const MAX_PEOPLE = 10;
 const DEFAULT_INITIAL_TICKETS = 4; // 신규 회원 기본 부여 횟수
 
-// 수업시간표 수정가능란
+// 수업시간표
 const weeklySchedule = {
     0: [],
     1: ["09:30 교정하타", "11:00 힐링빈야사", "18:00 힐링빈야사", "19:30 교정하타"],
@@ -94,7 +91,7 @@ window.setSelectedDate = function(date) {
     loadReservationCounts();
 };
 
-// 5. 시간 버튼 랜더링 (지난 시간 회색 비활성화)
+// 5. 시간 버튼 랜더링
 function renderTimeButtons(selectedDateStr) {
     const container = document.getElementById('timeButtons');
     if (!container || !selectedDateStr) return;
@@ -114,14 +111,16 @@ function renderTimeButtons(selectedDateStr) {
     const currentTimeStr = getCurrentTimeString();
 
     availableTimes.forEach(time => {
-        const timeId = time.replace(":", "");
+        const timeId = time.replace(":", "").replace(/\s+/g, "");
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'time-btn';
         button.dataset.time = time;
         button.innerHTML = `${time} (예약 <span id="count${timeId}">0</span> / ${MAX_PEOPLE}명)`;
 
-        const formattedTime = time.length === 4 ? `0${time}` : time;
+        // 🔥 시간 부분만 추출 (예: "09:30 교정하타" -> "09:30")
+        const timeOnly = time.split(" ")[0];
+        const formattedTime = timeOnly.length === 4 ? `0${timeOnly}` : timeOnly;
         const isPast = (selectedDateStr === todayStr && formattedTime <= currentTimeStr);
 
         if (isPast) {
@@ -156,7 +155,8 @@ async function loadReservationCounts() {
                 where("time", "==", time)
             );
             const snapshot = await getDocs(q);
-            const element = document.getElementById("count" + time.replace(":", ""));
+            const timeId = time.replace(":", "").replace(/\s+/g, "");
+            const element = document.getElementById("count" + timeId);
             if (element) element.innerText = snapshot.size;
         } catch (e) {
             console.error(e);
@@ -188,7 +188,10 @@ async function loadMyReservation() {
 
         snapshot.forEach(item => {
             const data = item.data();
-            const formattedTime = data.time.length === 4 ? `0${data.time}` : data.time;
+            
+            // 🔥 시간 부분(HH:MM)만 정확히 추출해서 비교
+            const timeOnly = data.time ? data.time.split(" ")[0] : "";
+            const formattedTime = timeOnly.length === 4 ? `0${timeOnly}` : timeOnly;
 
             const isFutureDate = data.date > todayStr;
             const isTodayUpcoming = (data.date === todayStr && formattedTime >= currentTimeStr);
@@ -226,14 +229,7 @@ async function loadMyReservation() {
             `;
 
             const cancelBtn = itemDiv.querySelector(".cancel-btn");
-            cancelBtn.addEventListener("click", async (e) => {
-                const btn = e.target;
-                btn.disabled = true;
-                btn.style.background = "#e5e7eb";
-                btn.style.color = "#6b7280";
-                btn.style.cursor = "not-allowed";
-                btn.innerText = "취소 중...";
-
+            cancelBtn.addEventListener("click", async () => {
                 await cancelReservation(res.id);
             });
 
@@ -247,12 +243,8 @@ async function loadMyReservation() {
     }
 }
 
-// 8. 예약 처리 함수 (usedCount +1 처리 반영)
-// 🔥 [추가 1] 중복 클릭 방지 플래그 (함수 외부 또는 코드 최상단에 선언)
-let isReserving = false;
-
+// 8. 예약 처리 함수
 async function handleReservation() {
-    // 🔥 [추가 2] 이미 예약 처리 중이라면 즉시 종료 (연달아 누르는 클릭 완전 차단)
     if (isReserving) return;
 
     const user = auth.currentUser;
@@ -273,18 +265,19 @@ async function handleReservation() {
 
     const todayStr = getTodayString();
     const currentTimeStr = getCurrentTimeString();
-    const formattedSelectedTime = selectedTime.length === 4 ? `0${selectedTime}` : selectedTime;
+    
+    // 🔥 시간 파싱 수정
+    const selectedTimeOnly = selectedTime.split(" ")[0];
+    const formattedSelectedTime = selectedTimeOnly.length === 4 ? `0${selectedTimeOnly}` : selectedTimeOnly;
     
     if (selectedDate === todayStr && formattedSelectedTime <= currentTimeStr) {
         alert("이미 지나간 시간은 예약할 수 없습니다.");
         return;
     }
 
-    // 🔥 [추가 3] 예약 버튼 요소 가져오기 (실제 버튼 ID에 맞게 "reserveBtn" 수정)
     const reserveBtn = document.getElementById("reserveBtn");
 
     try {
-        // 🔥 [추가 4] 처리 상태 ON 및 버튼 비활성화 (시각적 피드백 제공)
         isReserving = true;
         if (reserveBtn) {
             reserveBtn.disabled = true;
@@ -328,7 +321,7 @@ async function handleReservation() {
                 remCount = Number(userData.remCount);
                 countFieldName = "remCount";
             } else {
-                remCount = typeof DEFAULT_INITIAL_TICKETS !== 'undefined' ? DEFAULT_INITIAL_TICKETS : 0;
+                remCount = DEFAULT_INITIAL_TICKETS;
             }
 
             if (remCount <= 0) {
@@ -345,7 +338,6 @@ async function handleReservation() {
                 createdAt: serverTimestamp()
             });
 
-            // 🔥 [중요] 남은 횟수 -1 차감 & 사용 횟수(usedCount) +1 증가
             transaction.update(userDocRef, {
                 [countFieldName]: remCount - 1,
                 usedCount: currentUsedCount + 1
@@ -368,7 +360,6 @@ async function handleReservation() {
             alert(`예약 중 오류가 발생했습니다.\n(${err.message})`);
         }
     } finally {
-        // 🔥 [추가 5] 성공/실패 여부와 상관없이 처리가 끝나면 플래그와 버튼 원상복구
         isReserving = false;
         if (reserveBtn) {
             reserveBtn.disabled = false;
@@ -377,8 +368,10 @@ async function handleReservation() {
     }
 }
 
-// 9. 예약 취소 함수 (usedCount -1 복구 반영)
+// 9. 예약 취소 함수 (안전성 강화)
 async function cancelReservation(resId) {
+    if (isCanceling) return;
+
     if (!confirm("정말 예약을 취소하시겠습니까?")) return;
 
     const user = auth.currentUser;
@@ -388,6 +381,7 @@ async function cancelReservation(resId) {
     }
 
     try {
+        isCanceling = true;
         const resDocRef = doc(db, "reservations", resId);
         const userDocRef = doc(db, "users", user.uid);
         const todayStr = getTodayString();
@@ -408,13 +402,14 @@ async function cancelReservation(resId) {
 
             const userData = userSnap.data();
 
+            // 🔥 [핵심 수정] DB에 취소 횟수 필드가 없어도 0이 아닌 기본 허용 횟수(10회/3회) 부여
             let remainingCancel = userData.remainingCancelCount !== undefined 
                 ? Number(userData.remainingCancelCount) 
-                : Number(userData.remainingCancel ?? 0);
+                : (userData.remainingCancel !== undefined ? Number(userData.remainingCancel) : 10);
 
             let remainingTodayCancel = userData.remainingTodayCancelCount !== undefined 
                 ? Number(userData.remainingTodayCancelCount) 
-                : Number(userData.remainingTodayCancel ?? 0);
+                : (userData.remainingTodayCancel !== undefined ? Number(userData.remainingTodayCancel) : 3);
 
             let countFieldName = "remainingCount";
             let remCount = 0;
@@ -439,20 +434,21 @@ async function cancelReservation(resId) {
                 throw new Error("NO_TODAY_CANCEL:당일 취소 가능 횟수를 모두 소진하셨습니다.");
             }
 
+            // 1. 해당 예약 문서만 지정 삭제
             transaction.delete(resDocRef);
 
             const cancelFieldName = userData.remainingCancelCount !== undefined ? "remainingCancelCount" : "remainingCancel";
             const todayCancelFieldName = userData.remainingTodayCancelCount !== undefined ? "remainingTodayCancelCount" : "remainingTodayCancel";
 
-            // 🔥 [중요] 이용권 +1 복구 & 사용 횟수(usedCount) -1 차감 (최소값 0 유지)
+            // 2. 이용권 1회 복구 & 사용 횟수 차감 & 취소 가능 횟수 차감
             const userUpdates = {
                 [countFieldName]: remCount + 1,
                 usedCount: Math.max(0, currentUsedCount - 1),
-                [cancelFieldName]: remainingCancel - 1
+                [cancelFieldName]: Math.max(0, remainingCancel - 1)
             };
 
             if (isTodayReservation) {
-                userUpdates[todayCancelFieldName] = remainingTodayCancel - 1;
+                userUpdates[todayCancelFieldName] = Math.max(0, remainingTodayCancel - 1);
             }
 
             transaction.update(userDocRef, userUpdates);
@@ -460,23 +456,23 @@ async function cancelReservation(resId) {
 
         alert("🎉 예약이 성공적으로 취소되고 이용권 1회가 복구되었습니다.");
 
-        if (typeof loadReservationCounts === 'function') loadReservationCounts();
-        if (typeof loadMyReservation === 'function') loadMyReservation();
-        if (typeof loadUserProfile === 'function') loadUserProfile();
-
     } catch (err) {
         console.error("취소 실패 상세:", err);
 
         if (err.message === "ALREADY_CANCELLED") {
             alert("⚠️ 이미 취소되었거나 존재하지 않는 예약입니다.");
-            if (typeof loadMyReservation === 'function') loadMyReservation();
-        } else if (err.message.startsWith("NO_TOTAL_CANCEL:") || err.message.startsWith("NO_TODAY_CANCEL:")) {
+        } else if (err.message && (err.message.startsWith("NO_TOTAL_CANCEL:") || err.message.startsWith("NO_TODAY_CANCEL:"))) {
             alert(`⚠️ ${err.message.split(":")[1]}`);
         } else if (err.message === "USER_NOT_FOUND") {
             alert("사용자 정보를 찾을 수 없습니다.");
         } else {
             alert(`취소 처리 중 오류가 발생했습니다.\n(${err.message})`);
         }
+    } finally {
+        isCanceling = false;
+        // 🔥 어떤 결과가 나오든 화면을 항상 최신 상태로 재동기화
+        if (typeof loadReservationCounts === 'function') loadReservationCounts();
+        if (typeof loadMyReservation === 'function') loadMyReservation();
     }
 }
 
