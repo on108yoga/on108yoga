@@ -5,6 +5,7 @@ import {
     query,
     where,
     doc,
+    getDocs, // 🔑 [수정 1] getDocs 추가 import
     runTransaction,
     serverTimestamp,
     onSnapshot
@@ -15,8 +16,8 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/f
 let selectedDate = "";
 let selectedTime = "";
 let unsubscribeUser = null;
-let unsubscribeMyRes = null; // 🔥 내 예약 실시간 리스너
-let scheduleUnsubscribes = []; // 🔥 시간표 인원 실시간 리스너 관리 배열
+let unsubscribeMyRes = null; // 내 예약 실시간 리스너
+let scheduleUnsubscribes = []; // 시간표 인원 실시간 리스너 관리 배열
 
 let isReserving = false;
 let isCanceling = false; // 중복 취소 실행 방지 플래그
@@ -141,9 +142,8 @@ function renderTimeButtons(selectedDateStr) {
     });
 }
 
-// 6. 타임별 인원 수 실시간 반영 (onSnapshot 완전 적용)
+// 6. 타임별 인원 수 실시간 반영
 function loadReservationCounts() {
-    // 1) 기존 연결된 실시간 리스너 해제 (메모리 누수 방지)
     scheduleUnsubscribes.forEach(unsub => unsub());
     scheduleUnsubscribes = [];
 
@@ -153,7 +153,6 @@ function loadReservationCounts() {
     const dayOfWeek = new Date(year, month - 1, day).getDay();
     const targetSchedule = weeklySchedule[dayOfWeek] || [];
 
-    // 2) 타임별로 onSnapshot 리스너 등록
     targetSchedule.forEach(time => {
         const q = query(
             collection(db, "reservations"),
@@ -166,7 +165,7 @@ function loadReservationCounts() {
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const countSpan = document.getElementById("count" + timeId);
             if (countSpan) {
-                countSpan.innerText = snapshot.size; // 실시간 문서 수 반영
+                countSpan.innerText = snapshot.size;
             }
         }, (err) => {
             console.error(`${time} 실시간 수신 오류:`, err);
@@ -176,7 +175,7 @@ function loadReservationCounts() {
     });
 }
 
-// 7. 내 예약 목록 불러오기 (실시간 onSnapshot 변환)
+// 7. 내 예약 목록 불러오기
 function loadMyReservation() {
     const user = auth.currentUser;
     if (!user) return;
@@ -191,7 +190,6 @@ function loadMyReservation() {
         where("uid", "==", user.uid)
     );
 
-    // 실시간 감시 적용
     unsubscribeMyRes = onSnapshot(q, (snapshot) => {
         box.innerHTML = `<h3 style="font-size:16px; font-weight:bold; margin-bottom:10px; color:#111827;">🗓️ 내 예약 현황</h3>`;
 
@@ -253,8 +251,7 @@ function loadMyReservation() {
     });
 }
 
-// 8. 예약 처리 함수
-// 8. 예약 처리 함수 (중복 예약 방지 완벽 강화)
+// 8. 예약 처리 함수 (수정 완료)
 async function handleReservation() {
     if (isReserving) return;
 
@@ -294,7 +291,7 @@ async function handleReservation() {
             reserveBtn.innerText = "예약 처리 중...";
         }
 
-        // 1차 중복 체크 (빠른 사용자 안내용)
+        // 🔑 [수정 2-1] 중복 예약 검사 (트랜잭션 진입 전 처리)
         const dupQuery = query(
             collection(db, "reservations"),
             where("uid", "==", user.uid),
@@ -303,24 +300,30 @@ async function handleReservation() {
         );
         const dupSnap = await getDocs(dupQuery);
         if (!dupSnap.empty) {
-            alert("이미 해당 시간대에 예약 신청하셨습니다.");
+            alert("⚠️ 이미 해당 시간대에 예약 신청하셨습니다.");
+            return;
+        }
+
+        // 🔑 [수정 2-2] 해당 타임 정원 검사 (MAX_PEOPLE = 10)
+        const timeSlotQuery = query(
+            collection(db, "reservations"),
+            where("date", "==", selectedDate),
+            where("time", "==", selectedTime)
+        );
+        const timeSlotSnap = await getDocs(timeSlotQuery);
+        if (timeSlotSnap.size >= MAX_PEOPLE) {
+            alert("⚠️ 해당 시간대는 정원(10명)이 차서 더 이상 예약할 수 없습니다.");
             return;
         }
 
         const userDocRef = doc(db, "users", user.uid);
 
-        // 2차 트랜잭션 실행 (DB 원자성 보장)
+        // 🔑 [수정 2-3] 트랜잭션 실행 (이용권 차감 및 예약 생성 전용)
         await runTransaction(db, async (transaction) => {
             const userSnap = await transaction.get(userDocRef);
 
             if (!userSnap.exists()) {
                 throw new Error("사용자 정보를 찾을 수 없습니다.");
-            }
-
-            // 트랜잭션 내에서 중복 예약 재확인
-            const txDupSnap = await getDocs(dupQuery);
-            if (!txDupSnap.empty) {
-                throw new Error("ALREADY_RESERVED:이미 해당 시간대에 예약 신청하셨습니다.");
             }
 
             const userData = userSnap.data();
@@ -367,9 +370,7 @@ async function handleReservation() {
     } catch (err) {
         console.error("예약 오류 상세:", err);
         
-        if (err.message && err.message.startsWith("ALREADY_RESERVED:")) {
-            alert(`⚠️ ${err.message.replace("ALREADY_RESERVED:", "")}`);
-        } else if (err.message && err.message.startsWith("NO_TICKETS:")) {
+        if (err.message && err.message.startsWith("NO_TICKETS:")) {
             alert(`⚠️ ${err.message.replace("NO_TICKETS:", "")}`);
         } else if (err.message && err.message.includes("사용자 정보")) {
             alert(err.message);
@@ -450,13 +451,11 @@ async function cancelReservation(resId) {
                 throw new Error("NO_TODAY_CANCEL:당일 취소 가능 횟수를 모두 소진하셨습니다.");
             }
 
-            // 1. 문서 삭제
             transaction.delete(resDocRef);
 
             const cancelFieldName = userData.remainingCancelCount !== undefined ? "remainingCancelCount" : "remainingCancel";
             const todayCancelFieldName = userData.remainingTodayCancelCount !== undefined ? "remainingTodayCancelCount" : "remainingTodayCancel";
 
-            // 2. 수치 연산
             const userUpdates = {
                 [countFieldName]: remCount + 1,
                 usedCount: Math.max(0, currentUsedCount - 1),
