@@ -68,7 +68,9 @@
         }
         body { font-family: 'Pretendard', sans-serif; margin: 0; background-color: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; }
         header {justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        main{ padding: 20px; }
         .search-box { padding: 10px; width: 260px; border: 1px solid var(--border); border-radius: 6px; }
+        footer{ width: 100%; hight: 30px; background-color: #f4efe6;}
         
         /* 메인 레이아웃 (좌우 분할) */
         .main-container { display: flex; gap: 20px; flex: 1; min-height: 0; }
@@ -293,6 +295,7 @@
     </div>
 </header>
 
+    <main>
 <div class="main-container">
     <div class="member-list-section">
         <div class="list-header">전체 회원 목록</div>
@@ -508,9 +511,9 @@
         </form>
     </div>
 </div>
-
+    </main>
     <footer>
-        
+       ⓒ ON108YOGA - members.html
     </footer>
 <script type="module" src="members.js"></script>
 </body>
