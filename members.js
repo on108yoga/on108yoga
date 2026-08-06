@@ -44,7 +44,25 @@ window.closeModal = () => {
 // 1. Firebase 실시간 회원 리스트 수신 및 갱신
 const usersCol = collection(db, 'users');
 onSnapshot(usersCol, (snapshot) => {
-    currentDocsList = snapshot.docs;
+    // 🎯 [수정] doc 데이터를 최신순으로 정렬
+    // createdAt 필드가 있으면 최신순 정렬, 없으면 최근 수정/등록된 순서(또나 문서 업데이트 기준)로 처리
+    currentDocsList = [...snapshot.docs].sort((a, b) => {
+        const aData = a.data();
+        const bData = b.data();
+        
+        // 1순위: createdAt (생성일시) 기준 내림차순 (최신이 맨 위)
+        const aTime = aData.createdAt?.toDate ? aData.createdAt.toDate().getTime() : (aData.createdAt || 0);
+        const bTime = bData.createdAt?.toDate ? bData.createdAt.toDate().getTime() : (bData.createdAt || 0);
+        
+        if (aTime !== bTime) {
+            return bTime - aTime; // 내림차순
+        }
+
+        // 2순위: createdAt이 없거나 같은 경우, 등록된 시작일(startDate) 기준 내림차순
+        const aStart = aData.startDate || '';
+        const bStart = bData.startDate || '';
+        return bStart.localeCompare(aStart);
+    });
     
     // 데이터 변경 시 현재 페이지 기준으로 회원 목록 및 페이지 버튼 UI 렌더링
     renderMemberList(currentDocsList, currentPage);
@@ -626,14 +644,16 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
 
         let targetUserId = "";
 
+       // 11. 신규 회원 등록 내부 수정
         if (registeredUser) {
             targetUserId = registeredUser.id;
-            await updateDoc(doc(doc(db, 'users', targetUserId)), {
+            await updateDoc(doc(db, 'users', targetUserId), {
                 ticketType, 
                 totalCount, 
                 remainingCount: totalCount, 
                 startDate, 
                 endDate,
+                updatedAt: new Date(), // [추가] 업데이트 시간
                 ...cancelData
             });
             alert(`이미 가입된 ${name} 회원님의 계정에 이용권이 부여되었습니다.`);
@@ -648,6 +668,7 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
                 startDate, 
                 endDate, 
                 role: "member",
+                createdAt: new Date(), // 🎯 [핵심 추가] 생성시간 저장 -> 최상단 정렬 기준이 됨
                 ...cancelData
             });
             alert("미가입 회원의 임시 정보가 추가되었습니다.");
