@@ -3,7 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ON108 YOGA - 온108요가</title>
+    <title>ON108YOGA</title>
+      <!-- 1. PWA 매니페스트 연결 -->
+      <link rel="manifest" href="manifest.json">
+    
+      <!-- 2. 모바일 브라우저 테마 색상 (선택 사항) -->
+      <meta name="theme-color" content="#000000">
+    
+      <!-- 3. 파비콘 및 애플(iOS) 전용 홈 화면 아이콘 설정 (선택 사항) -->
+      <link rel="icon" href="img/icon-192.png">
+      <link rel="apple-touch-icon" href="img/icon-192.png">
+
     
     <!-- External CDN Resources -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.css"/>
@@ -680,6 +690,20 @@
             });
         }
     </script>
+
+<!-- 4. PWA 서비스 워커(sw.js) 등록 스크립트 -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then((registration) => {
+            console.log('서비스 워커 등록 성공:', registration.scope);
+          })
+          .catch((error) => {
+            console.log('서비스 워커 등록 실패:', error);
+          });
+      });
+    }
 
     <script type="module" src="firebase.js"></script>
     <script type="module" src="auth.js"></script>
