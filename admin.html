@@ -254,13 +254,16 @@ padding:15px;
 
 <footer>
 
-© 2026 ON108 YOGA
+© 2026 ON108YOGA - admin(관리자페이지)
 
 </footer>
-
-<script type="module" src="firebase.js"></script>
-<script type="module" src="auth.js"></script>
-<script type="module" src="admin.js"></script>
-
+    
+    <!-- firebase.js 및 auth.js는 기존대로 유지 -->    
+    <script type="module" src="firebase.js"></script>
+    <script type="module" src="auth.js"></script>
+    
+    <!-- 🎯 admin.js 뒤에 ?v=1.0.1 (또는 ?v=20260806) 버전을 붙여 캐시 방지 -->
+    <script type="module" src="admin.js?v=1.0.1"></script>
+    
 </body>
 </html>
