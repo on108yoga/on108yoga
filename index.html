@@ -1,6 +1,26 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
+<head>  
+    <script>
+    // 카카오톡 인앱 브라우저 감지 및 강제 외부 브라우저 호출
+    (function() {
+        var userAgent = navigator.userAgent.toLowerCase();
+        var targetUrl = location.href;
+
+        if (userAgent.indexOf('kakaotalk') > -1) {
+            // 안드로이드: 기본 브라우저(Chrome)로 이탈
+            if (userAgent.indexOf('android') > -1) {
+                location.href = 'intent://' + targetUrl.replace(/https?:\/\//i, '') + '#Intent;scheme=http;package=com.android.chrome;end';
+            } 
+            // iOS: 사파리로 호출 (카카오톡 내장 매개변수 활용)
+            else if (userAgent.indexOf('iphone') > -1 || userAgent.indexOf('ipad') > -1) {
+                location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(targetUrl);
+            }
+        }
+    })();
+    </script>
+
+   
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ON108YOGA</title>
@@ -30,8 +50,15 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Montserrat:wght@300;400;500;700&family=Noto+Sans+KR:wght@100;200;300;400;500;700&family=Playfair+Display:ital,wght@0,600;1,600&family=Poppins:wght@700;800&display=swap" rel="stylesheet">
     
-    <!-- Custom CSS File -->
-    <link rel="stylesheet" href="./su_hp.css?v=2.0">
+
+
+    <!-- 외부 CDN crossorigin 보강 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.css" crossorigin="anonymous"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css" crossorigin="anonymous"/>
+    
+    <!-- 커스텀 CSS 호출 시 캐시 방지 버전 및 경로 보강 -->
+    <link rel="stylesheet" href="./su_hp.css?v=2.1">
+
       
     <style>
     /* ─── [1] 공통 기본 및 리셋 ─── */
