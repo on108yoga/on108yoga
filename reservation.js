@@ -254,6 +254,7 @@ function loadMyReservation() {
 }
 
 // 8. 예약 처리 함수
+// 8. 예약 처리 함수 (중복 예약 방지 완벽 강화)
 async function handleReservation() {
     if (isReserving) return;
 
@@ -293,21 +294,33 @@ async function handleReservation() {
             reserveBtn.innerText = "예약 처리 중...";
         }
 
+        // 1차 중복 체크 (빠른 사용자 안내용)
+        const dupQuery = query(
+            collection(db, "reservations"),
+            where("uid", "==", user.uid),
+            where("date", "==", selectedDate),
+            where("time", "==", selectedTime)
+        );
+        const dupSnap = await getDocs(dupQuery);
+        if (!dupSnap.empty) {
+            alert("이미 해당 시간대에 예약 신청하셨습니다.");
+            return;
+        }
+
         const userDocRef = doc(db, "users", user.uid);
 
+        // 2차 트랜잭션 실행 (DB 원자성 보장)
         await runTransaction(db, async (transaction) => {
-            // 중복 예약 체크
-            const dupQuery = query(
-                collection(db, "reservations"),
-                where("uid", "==", user.uid),
-                where("date", "==", selectedDate),
-                where("time", "==", selectedTime)
-            );
-            
             const userSnap = await transaction.get(userDocRef);
 
             if (!userSnap.exists()) {
                 throw new Error("사용자 정보를 찾을 수 없습니다.");
+            }
+
+            // 트랜잭션 내에서 중복 예약 재확인
+            const txDupSnap = await getDocs(dupQuery);
+            if (!txDupSnap.empty) {
+                throw new Error("ALREADY_RESERVED:이미 해당 시간대에 예약 신청하셨습니다.");
             }
 
             const userData = userSnap.data();
@@ -354,7 +367,9 @@ async function handleReservation() {
     } catch (err) {
         console.error("예약 오류 상세:", err);
         
-        if (err.message && err.message.startsWith("NO_TICKETS:")) {
+        if (err.message && err.message.startsWith("ALREADY_RESERVED:")) {
+            alert(`⚠️ ${err.message.replace("ALREADY_RESERVED:", "")}`);
+        } else if (err.message && err.message.startsWith("NO_TICKETS:")) {
             alert(`⚠️ ${err.message.replace("NO_TICKETS:", "")}`);
         } else if (err.message && err.message.includes("사용자 정보")) {
             alert(err.message);
