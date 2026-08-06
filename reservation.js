@@ -5,7 +5,7 @@ import {
     query,
     where,
     doc,
-    getDocs, // 🔑 [수정 1] getDocs 추가 import
+    getDocs,
     runTransaction,
     serverTimestamp,
     onSnapshot
@@ -16,16 +16,16 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/f
 let selectedDate = "";
 let selectedTime = "";
 let unsubscribeUser = null;
-let unsubscribeMyRes = null; // 내 예약 실시간 리스너
-let scheduleUnsubscribes = []; // 시간표 인원 실시간 리스너 관리 배열
+let unsubscribeMyRes = null;
+let scheduleUnsubscribes = [];
 
 let isReserving = false;
-let isCanceling = false; // 중복 취소 실행 방지 플래그
+let isCanceling = false;
+let isInitialAuthCheck = true; // 🔥 최초 인증 확인 플래그
 
 const MAX_PEOPLE = 10;
-const DEFAULT_INITIAL_TICKETS = 4; // 신규 회원 기본 부여 횟수
+const DEFAULT_INITIAL_TICKETS = 4;
 
-// 수업시간표
 const weeklySchedule = {
     0: [],
     1: ["09:30 교정하타", "11:00 힐링빈야사", "18:00 힐링빈야사", "19:30 교정하타"],
@@ -36,7 +36,6 @@ const weeklySchedule = {
     6: []
 };
 
-// 1. 오늘 날짜 구하기 (YYYY-MM-DD)
 function getTodayString() {
     const today = new Date();
     const year = today.getFullYear();
@@ -45,7 +44,6 @@ function getTodayString() {
     return `${year}-${month}-${day}`;
 }
 
-// 2. 현재 시간 구하기 (HH:MM)
 function getCurrentTimeString() {
     const now = new Date();
     const hours = String(now.getHours()).padStart(2, '0');
@@ -53,7 +51,7 @@ function getCurrentTimeString() {
     return `${hours}:${minutes}`;
 }
 
-// 3. 사용자 프로필 & 잔여 횟수 실시간 바인딩
+// 3. 사용자 프로필 & 잔여 횟수 실시간 바인딩 (+ 캐싱 저장)
 function listenUserProfile(user) {
     if (!user) return;
     if (unsubscribeUser) unsubscribeUser();
@@ -75,6 +73,10 @@ function listenUserProfile(user) {
             else if (userData.remCount !== undefined) remCount = Number(userData.remCount);
         }
 
+        // 🔥 [1번 적용] 최신 사용자 정보를 로컬스토리지에 저장
+        localStorage.setItem("cached_userName", userName);
+        localStorage.setItem("cached_ticketCount", remCount);
+
         if (nameElement) nameElement.innerText = `${userName} 님`;
         if (countElement) countElement.innerText = `${remCount} 회`;
     }, (err) => {
@@ -82,7 +84,6 @@ function listenUserProfile(user) {
     });
 }
 
-// 4. 날짜 선택 (calendar.js에서 호출)
 window.setSelectedDate = function(date) {
     selectedDate = date;
     selectedTime = "";
@@ -94,7 +95,6 @@ window.setSelectedDate = function(date) {
     loadReservationCounts();
 };
 
-// 5. 시간 버튼 랜더링
 function renderTimeButtons(selectedDateStr) {
     const container = document.getElementById('timeButtons');
     if (!container || !selectedDateStr) return;
@@ -121,7 +121,6 @@ function renderTimeButtons(selectedDateStr) {
         button.dataset.time = time;
         button.innerHTML = `${time} (예약 <span id="count${timeId}">0</span> / ${MAX_PEOPLE}명)`;
 
-        // 시간 부분만 추출 (예: "09:30 교정하타" -> "09:30")
         const timeOnly = time.split(" ")[0];
         const formattedTime = timeOnly.length === 4 ? `0${timeOnly}` : timeOnly;
         const isPast = (selectedDateStr === todayStr && formattedTime <= currentTimeStr);
@@ -142,7 +141,6 @@ function renderTimeButtons(selectedDateStr) {
     });
 }
 
-// 6. 타임별 인원 수 실시간 반영
 function loadReservationCounts() {
     scheduleUnsubscribes.forEach(unsub => unsub());
     scheduleUnsubscribes = [];
@@ -175,7 +173,6 @@ function loadReservationCounts() {
     });
 }
 
-// 7. 내 예약 목록 불러오기
 function loadMyReservation() {
     const user = auth.currentUser;
     if (!user) return;
@@ -251,7 +248,6 @@ function loadMyReservation() {
     });
 }
 
-// 8. 예약 처리 함수 (수정 완료)
 async function handleReservation() {
     if (isReserving) return;
 
@@ -291,7 +287,6 @@ async function handleReservation() {
             reserveBtn.innerText = "예약 처리 중...";
         }
 
-        // 🔑 [수정 2-1] 중복 예약 검사 (트랜잭션 진입 전 처리)
         const dupQuery = query(
             collection(db, "reservations"),
             where("uid", "==", user.uid),
@@ -304,7 +299,6 @@ async function handleReservation() {
             return;
         }
 
-        // 🔑 [수정 2-2] 해당 타임 정원 검사 (MAX_PEOPLE = 10)
         const timeSlotQuery = query(
             collection(db, "reservations"),
             where("date", "==", selectedDate),
@@ -318,7 +312,6 @@ async function handleReservation() {
 
         const userDocRef = doc(db, "users", user.uid);
 
-        // 🔑 [수정 2-3] 트랜잭션 실행 (이용권 차감 및 예약 생성 전용)
         await runTransaction(db, async (transaction) => {
             const userSnap = await transaction.get(userDocRef);
 
@@ -386,7 +379,6 @@ async function handleReservation() {
     }
 }
 
-// 9. 예약 취소 함수
 async function cancelReservation(resId) {
     if (isCanceling) return;
 
@@ -488,14 +480,26 @@ async function cancelReservation(resId) {
     }
 }
 
-// 10. 이벤트 바인딩 및 상태 감시
+// 10. 앱 초기화 (캐시 복원 + 이벤트 바인딩)
 document.addEventListener("DOMContentLoaded", () => {
+    // 🔥 [1번 적용] 캐시된 정보로 화면 0.1초 만에 렌더링
+    const cachedName = localStorage.getItem("cached_userName");
+    const cachedTicket = localStorage.getItem("cached_ticketCount");
+
+    if (cachedName && cachedTicket) {
+        const nameElement = document.getElementById("myUserName");
+        const countElement = document.getElementById("myTicketCount");
+        if (nameElement) nameElement.innerText = `${cachedName} 님`;
+        if (countElement) countElement.innerText = `${cachedTicket} 회`;
+    }
+
     const reserveBtn = document.getElementById("reserveBtn");
     if (reserveBtn) {
         reserveBtn.addEventListener("click", handleReservation);
     }
 });
 
+// 🔥 [2번 적용] 인증 확인 완료 시 스플래시 숨기기
 onAuthStateChanged(auth, (user) => {
     if (user) {
         listenUserProfile(user);
@@ -505,5 +509,21 @@ onAuthStateChanged(auth, (user) => {
         if (unsubscribeMyRes) unsubscribeMyRes();
         scheduleUnsubscribes.forEach(unsub => unsub());
         scheduleUnsubscribes = [];
+
+        // 로그아웃 상태면 저장된 캐시 삭제
+        localStorage.removeItem("cached_userName");
+        localStorage.removeItem("cached_ticketCount");
+    }
+
+    // 최초 인증 확인 완료 후 스플래시 오버레이 제거
+    if (isInitialAuthCheck) {
+        isInitialAuthCheck = false;
+        const splashElement = document.getElementById("appSplash");
+        if (splashElement) {
+            splashElement.style.opacity = "0";
+            setTimeout(() => {
+                splashElement.style.display = "none";
+            }, 300); // 부드러운 페이드아웃
+        }
     }
 });
