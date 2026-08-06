@@ -140,28 +140,44 @@ function renderTimeButtons(selectedDateStr) {
 }
 
 // 6. 타임별 인원 수 표시
-async function loadReservationCounts() {
+// 🔥 [추가] 실시간 시간표 수신 해제용 배열 (상단 변수 선언부에 추가)
+let scheduleUnsubscribes = [];
+
+// 6. 타임별 인원 수 실시간 반영 (onSnapshot 적용)
+function loadReservationCounts() {
+    // 1) 기존에 연결되어 있던 실시간 감시 리스너들 전부 해제
+    scheduleUnsubscribes.forEach(unsub => unsub());
+    scheduleUnsubscribes = [];
+
     if (!selectedDate) return;
 
     const [year, month, day] = selectedDate.split('-').map(Number);
     const dayOfWeek = new Date(year, month - 1, day).getDay();
     const targetSchedule = weeklySchedule[dayOfWeek] || [];
 
-    for (const time of targetSchedule) {
-        try {
-            const q = query(
-                collection(db, "reservations"),
-                where("date", "==", selectedDate),
-                where("time", "==", time)
-            );
-            const snapshot = await getDocs(q);
-            const timeId = time.replace(":", "").replace(/\s+/g, "");
+    // 2) 선택된 날짜의 각 타임별로 실시간 감시(onSnapshot) 등록
+    targetSchedule.forEach(time => {
+        const q = query(
+            collection(db, "reservations"),
+            where("date", "==", selectedDate),
+            where("time", "==", time)
+        );
+
+        const timeId = time.replace(":", "").replace(/\s+/g, "");
+
+        // onSnapshot을 사용하여 DB 변경 시 화면 숫자가 즉시 변경됨
+        const unsubscribe = onSnapshot(q, (snapshot) => {
             const element = document.getElementById("count" + timeId);
-            if (element) element.innerText = snapshot.size;
-        } catch (e) {
-            console.error(e);
-        }
-    }
+            if (element) {
+                element.innerText = snapshot.size; // 현재 예약된 인원수로 실시간 업데이트
+            }
+        }, (err) => {
+            console.error(`${time} 인원 실시간 수신 오류:`, err);
+        });
+
+        // 나중에 날짜 변경 시 해제하기 위해 저장
+        scheduleUnsubscribes.push(unsubscribe);
+    });
 }
 
 // 7. 내 예약 목록 불러오기
