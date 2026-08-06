@@ -21,7 +21,6 @@ let scheduleUnsubscribes = [];
 
 let isReserving = false;
 let isCanceling = false;
-let isInitialAuthCheck = true; // 🔥 최초 인증 확인 플래그
 
 const MAX_PEOPLE = 10;
 const DEFAULT_INITIAL_TICKETS = 4;
@@ -31,10 +30,21 @@ const weeklySchedule = {
     1: ["09:30 교정하타", "11:00 힐링빈야사", "18:00 힐링빈야사", "19:30 교정하타"],
     2: ["14:00 교정하타", "15:30 힐링빈야사", "18:00 교정하타", "19:30 힐링빈야사"],
     3: ["09:30 힐링빈야사", "11:00 교정하타", "18:00 힐링빈야사", "19:30 교정하타"],
-    4: ["14:00 힐링빈야사", "15:30 교정하타", "18:00 교정하타", "19:30 힐링빈야사"],
+    4: ["14:00 힐링빈야사", "15:30 교정하타", "18:00 교정하타", "19:30 교정하타"],
     5: ["09:30 교정하타", "11:00 힐링빈야사", "18:00 힐링빈야사", "19:30 교정하타"],
     6: []
 };
+
+// 스플래시 화면을 빠르게 숨기는 함수
+function hideSplash() {
+    const splashElement = document.getElementById("appSplash");
+    if (splashElement) {
+        splashElement.style.opacity = "0";
+        setTimeout(() => {
+            splashElement.style.display = "none";
+        }, 200);
+    }
+}
 
 function getTodayString() {
     const today = new Date();
@@ -51,7 +61,7 @@ function getCurrentTimeString() {
     return `${hours}:${minutes}`;
 }
 
-// 3. 사용자 프로필 & 잔여 횟수 실시간 바인딩 (+ 캐싱 저장)
+// 사용자 프로필 실시간 수신
 function listenUserProfile(user) {
     if (!user) return;
     if (unsubscribeUser) unsubscribeUser();
@@ -73,7 +83,7 @@ function listenUserProfile(user) {
             else if (userData.remCount !== undefined) remCount = Number(userData.remCount);
         }
 
-        // 🔥 [1번 적용] 최신 사용자 정보를 로컬스토리지에 저장
+        // 캐시 업데이트
         localStorage.setItem("cached_userName", userName);
         localStorage.setItem("cached_ticketCount", remCount);
 
@@ -480,9 +490,8 @@ async function cancelReservation(resId) {
     }
 }
 
-// 10. 앱 초기화 (캐시 복원 + 이벤트 바인딩)
+// ⚡ [핵심] 앱 켜짐과 동시에 즉시 실행 (0.1초 만에 화면 복원)
 document.addEventListener("DOMContentLoaded", () => {
-    // 🔥 [1번 적용] 캐시된 정보로 화면 0.1초 만에 렌더링
     const cachedName = localStorage.getItem("cached_userName");
     const cachedTicket = localStorage.getItem("cached_ticketCount");
 
@@ -493,14 +502,19 @@ document.addEventListener("DOMContentLoaded", () => {
         if (countElement) countElement.innerText = `${cachedTicket} 회`;
     }
 
+    // 💡 스플래시 오버레이가 있다면 앱 실행 후 즉시(0.2초 내) 제거하여 가리지 않도록 처리
+    setTimeout(hideSplash, 200);
+
     const reserveBtn = document.getElementById("reserveBtn");
     if (reserveBtn) {
         reserveBtn.addEventListener("click", handleReservation);
     }
 });
 
-// 🔥 [2번 적용] 인증 확인 완료 시 스플래시 숨기기
+// 백그라운드에서 인증 및 실시간 정보 동기화
 onAuthStateChanged(auth, (user) => {
+    hideSplash(); // 인증 상태 확인되면 무조건 스플래시 제거
+
     if (user) {
         listenUserProfile(user);
         loadMyReservation();
@@ -510,20 +524,7 @@ onAuthStateChanged(auth, (user) => {
         scheduleUnsubscribes.forEach(unsub => unsub());
         scheduleUnsubscribes = [];
 
-        // 로그아웃 상태면 저장된 캐시 삭제
         localStorage.removeItem("cached_userName");
         localStorage.removeItem("cached_ticketCount");
-    }
-
-    // 최초 인증 확인 완료 후 스플래시 오버레이 제거
-    if (isInitialAuthCheck) {
-        isInitialAuthCheck = false;
-        const splashElement = document.getElementById("appSplash");
-        if (splashElement) {
-            splashElement.style.opacity = "0";
-            setTimeout(() => {
-                splashElement.style.display = "none";
-            }, 300); // 부드러운 페이드아웃
-        }
     }
 });
