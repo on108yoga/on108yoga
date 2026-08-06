@@ -1,9 +1,14 @@
-const CACHE_NAME = 'on108yoga-v10';
+// 🎯 버전을 v10 -> v11로 올려서 브라우저가 새 서비스 워커를 감지하게 합니다.
+const CACHE_NAME = 'on108yoga-v11';
 
-// 앱 시작 시 오프라인/PWA 환경에서도 꼭 필요한 핵심 파일 목록
+// 관리자 페이지 관련 중요 JS/HTML 파일들까지 포함
 const urlsToCache = [
   './',
   './index.html',
+  './admin.html',
+  './admin.js',
+  './firebase.js',
+  './auth.js',
   './su_hp.css?v=2.0',
   './manifest.json',
   './images/micon_108.png'
@@ -21,7 +26,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// 2. 오래된 구버전 캐시 정리
+// 2. 오래된 구버전 캐시 정리 및 제어권 즉시 확보
 self.addEventListener('activate', (event) => {
   console.log('[Service Worker] Activated');
   event.waitUntil(
@@ -34,27 +39,39 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
-    }).then(() => self.clients.claim())
+    }).then(() => self.clients.claim()) // 현재 열려있는 페이지들에 즉시 새 서비스워커 적용
   );
 });
 
-// 3. 파일 요청 처리 (네트워크 우선, 실패 시 캐시에서 제공)
+// 3. 파일 요청 처리 (네트워크 우선)
 self.addEventListener('fetch', (event) => {
+  const req = event.request;
+
+  // 🎯 Firebase / Chrome Ext / non-GET / non-HTTP 요청은 캐시하지 않고 네트워크로 직행
+  if (
+    req.method !== 'GET' ||
+    !req.url.startsWith('http') ||
+    req.url.includes('firestore.googleapis.com') ||
+    req.url.includes('identitytoolkit.googleapis.com')
+  ) {
+    return;
+  }
+
   event.respondWith(
-    fetch(event.request)
+    fetch(req)
       .then((response) => {
-        // 정상 응답을 받았을 경우 캐시 최신화
+        // 정상 네트워크 응답(200)을 받으면 캐시 업데이트
         if (response && response.status === 200 && response.type === 'basic') {
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
+            cache.put(req, responseToCache);
           });
         }
         return response;
       })
       .catch(() => {
-        // 네트워크 연결 실패 시 캐시된 파일 제공 (CSS 깨짐 방지)
-        return caches.match(event.request);
+        // 오프라인 상태이거나 네트워크 에러 발생 시 캐시된 파일 제공
+        return caches.match(req);
       })
   );
 });
