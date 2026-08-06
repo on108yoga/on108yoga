@@ -4,7 +4,6 @@ import {
     collection,
     query,
     where,
-    getDocs,
     doc,
     runTransaction,
     serverTimestamp,
@@ -16,8 +15,11 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/f
 let selectedDate = "";
 let selectedTime = "";
 let unsubscribeUser = null;
+let unsubscribeMyRes = null; // 🔥 내 예약 실시간 리스너
+let scheduleUnsubscribes = []; // 🔥 시간표 인원 실시간 리스너 관리 배열
+
 let isReserving = false;
-let isCanceling = false; // 🔥 중복 취소 실행 방지 플래그
+let isCanceling = false; // 중복 취소 실행 방지 플래그
 
 const MAX_PEOPLE = 10;
 const DEFAULT_INITIAL_TICKETS = 4; // 신규 회원 기본 부여 횟수
@@ -118,7 +120,7 @@ function renderTimeButtons(selectedDateStr) {
         button.dataset.time = time;
         button.innerHTML = `${time} (예약 <span id="count${timeId}">0</span> / ${MAX_PEOPLE}명)`;
 
-        // 🔥 시간 부분만 추출 (예: "09:30 교정하타" -> "09:30")
+        // 시간 부분만 추출 (예: "09:30 교정하타" -> "09:30")
         const timeOnly = time.split(" ")[0];
         const formattedTime = timeOnly.length === 4 ? `0${timeOnly}` : timeOnly;
         const isPast = (selectedDateStr === todayStr && formattedTime <= currentTimeStr);
@@ -139,13 +141,9 @@ function renderTimeButtons(selectedDateStr) {
     });
 }
 
-// 6. 타임별 인원 수 표시
-// 🔥 [추가] 실시간 시간표 수신 해제용 배열 (상단 변수 선언부에 추가)
-let scheduleUnsubscribes = [];
-
-// 6. 타임별 인원 수 실시간 반영 (onSnapshot 적용)
+// 6. 타임별 인원 수 실시간 반영 (onSnapshot 완전 적용)
 function loadReservationCounts() {
-    // 1) 기존에 연결되어 있던 실시간 감시 리스너들 전부 해제
+    // 1) 기존 연결된 실시간 리스너 해제 (메모리 누수 방지)
     scheduleUnsubscribes.forEach(unsub => unsub());
     scheduleUnsubscribes = [];
 
@@ -155,7 +153,7 @@ function loadReservationCounts() {
     const dayOfWeek = new Date(year, month - 1, day).getDay();
     const targetSchedule = weeklySchedule[dayOfWeek] || [];
 
-    // 2) 선택된 날짜의 각 타임별로 실시간 감시(onSnapshot) 등록
+    // 2) 타임별로 onSnapshot 리스너 등록
     targetSchedule.forEach(time => {
         const q = query(
             collection(db, "reservations"),
@@ -165,47 +163,44 @@ function loadReservationCounts() {
 
         const timeId = time.replace(":", "").replace(/\s+/g, "");
 
-        // onSnapshot을 사용하여 DB 변경 시 화면 숫자가 즉시 변경됨
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            const element = document.getElementById("count" + timeId);
-            if (element) {
-                element.innerText = snapshot.size; // 현재 예약된 인원수로 실시간 업데이트
+            const countSpan = document.getElementById("count" + timeId);
+            if (countSpan) {
+                countSpan.innerText = snapshot.size; // 실시간 문서 수 반영
             }
         }, (err) => {
-            console.error(`${time} 인원 실시간 수신 오류:`, err);
+            console.error(`${time} 실시간 수신 오류:`, err);
         });
 
-        // 나중에 날짜 변경 시 해제하기 위해 저장
         scheduleUnsubscribes.push(unsubscribe);
     });
 }
 
-// 7. 내 예약 목록 불러오기
-async function loadMyReservation() {
+// 7. 내 예약 목록 불러오기 (실시간 onSnapshot 변환)
+function loadMyReservation() {
     const user = auth.currentUser;
     if (!user) return;
+
+    if (unsubscribeMyRes) unsubscribeMyRes();
 
     const box = document.getElementById("myReservations");
     if (!box) return;
 
-    box.innerHTML = `<h3 style="font-size:16px; font-weight:bold; margin-bottom:10px; color:#111827;">🗓️ 내 예약 현황</h3>`;
+    const q = query(
+        collection(db, "reservations"),
+        where("uid", "==", user.uid)
+    );
 
-    try {
-        const q = query(
-            collection(db, "reservations"),
-            where("uid", "==", user.uid)
-        );
+    // 실시간 감시 적용
+    unsubscribeMyRes = onSnapshot(q, (snapshot) => {
+        box.innerHTML = `<h3 style="font-size:16px; font-weight:bold; margin-bottom:10px; color:#111827;">🗓️ 내 예약 현황</h3>`;
 
-        const snapshot = await getDocs(q);
         const todayStr = getTodayString();
         const currentTimeStr = getCurrentTimeString();
-
         let validReservations = [];
 
         snapshot.forEach(item => {
             const data = item.data();
-            
-            // 🔥 시간 부분(HH:MM)만 정확히 추출해서 비교
             const timeOnly = data.time ? data.time.split(" ")[0] : "";
             const formattedTime = timeOnly.length === 4 ? `0${timeOnly}` : timeOnly;
 
@@ -253,10 +248,9 @@ async function loadMyReservation() {
         });
 
         box.appendChild(listContainer);
-
-    } catch (error) {
-        console.error("내 예약 불러오기 오류:", error);
-    }
+    }, (error) => {
+        console.error("내 예약 실시간 수신 오류:", error);
+    });
 }
 
 // 8. 예약 처리 함수
@@ -282,7 +276,6 @@ async function handleReservation() {
     const todayStr = getTodayString();
     const currentTimeStr = getCurrentTimeString();
     
-    // 🔥 시간 파싱 수정
     const selectedTimeOnly = selectedTime.split(" ")[0];
     const formattedSelectedTime = selectedTimeOnly.length === 4 ? `0${selectedTimeOnly}` : selectedTimeOnly;
     
@@ -300,21 +293,17 @@ async function handleReservation() {
             reserveBtn.innerText = "예약 처리 중...";
         }
 
-        const dupQuery = query(
-            collection(db, "reservations"),
-            where("uid", "==", user.uid),
-            where("date", "==", selectedDate),
-            where("time", "==", selectedTime)
-        );
-        const dupSnap = await getDocs(dupQuery);
-        if (!dupSnap.empty) {
-            alert("이미 해당 시간대에 예약 신청하셨습니다.");
-            return;
-        }
-
         const userDocRef = doc(db, "users", user.uid);
 
         await runTransaction(db, async (transaction) => {
+            // 중복 예약 체크
+            const dupQuery = query(
+                collection(db, "reservations"),
+                where("uid", "==", user.uid),
+                where("date", "==", selectedDate),
+                where("time", "==", selectedTime)
+            );
+            
             const userSnap = await transaction.get(userDocRef);
 
             if (!userSnap.exists()) {
@@ -362,9 +351,6 @@ async function handleReservation() {
 
         alert("🎉 예약이 완벽하게 완료되었습니다!");
 
-        if (typeof loadReservationCounts === 'function') loadReservationCounts();
-        if (typeof loadMyReservation === 'function') loadMyReservation();
-
     } catch (err) {
         console.error("예약 오류 상세:", err);
         
@@ -384,7 +370,7 @@ async function handleReservation() {
     }
 }
 
-// 9. 예약 취소 함수 (안전성 강화)
+// 9. 예약 취소 함수
 async function cancelReservation(resId) {
     if (isCanceling) return;
 
@@ -418,7 +404,6 @@ async function cancelReservation(resId) {
 
             const userData = userSnap.data();
 
-            // 🔥 [핵심 수정] DB에 취소 횟수 필드가 없어도 0이 아닌 기본 허용 횟수(10회/3회) 부여
             let remainingCancel = userData.remainingCancelCount !== undefined 
                 ? Number(userData.remainingCancelCount) 
                 : (userData.remainingCancel !== undefined ? Number(userData.remainingCancel) : 10);
@@ -450,13 +435,13 @@ async function cancelReservation(resId) {
                 throw new Error("NO_TODAY_CANCEL:당일 취소 가능 횟수를 모두 소진하셨습니다.");
             }
 
-            // 1. 해당 예약 문서만 지정 삭제
+            // 1. 문서 삭제
             transaction.delete(resDocRef);
 
             const cancelFieldName = userData.remainingCancelCount !== undefined ? "remainingCancelCount" : "remainingCancel";
             const todayCancelFieldName = userData.remainingTodayCancelCount !== undefined ? "remainingTodayCancelCount" : "remainingTodayCancel";
 
-            // 2. 이용권 1회 복구 & 사용 횟수 차감 & 취소 가능 횟수 차감
+            // 2. 수치 연산
             const userUpdates = {
                 [countFieldName]: remCount + 1,
                 usedCount: Math.max(0, currentUsedCount - 1),
@@ -486,9 +471,6 @@ async function cancelReservation(resId) {
         }
     } finally {
         isCanceling = false;
-        // 🔥 어떤 결과가 나오든 화면을 항상 최신 상태로 재동기화
-        if (typeof loadReservationCounts === 'function') loadReservationCounts();
-        if (typeof loadMyReservation === 'function') loadMyReservation();
     }
 }
 
@@ -506,5 +488,8 @@ onAuthStateChanged(auth, (user) => {
         loadMyReservation();
     } else {
         if (unsubscribeUser) unsubscribeUser();
+        if (unsubscribeMyRes) unsubscribeMyRes();
+        scheduleUnsubscribes.forEach(unsub => unsub());
+        scheduleUnsubscribes = [];
     }
 });
