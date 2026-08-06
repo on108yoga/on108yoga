@@ -516,12 +516,7 @@
             padding-top: calc(210px + env(safe-area-inset-top));
         }
     }
-
-    /* 스플레시 오버레이 '로그인 중' */
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
+        
     </style>
 </head>
 
@@ -560,32 +555,7 @@
     </header>
 
     <div class="wrap">
-        <main>
-            <!-- 스플래시 오버레이 (자동 로그인 체크 동안 표시) -->
-          <div id="appSplash" style="
-              position: fixed;
-              top: 0; left: 0; right: 0; bottom: 0;
-              background-color: #ffffff;
-              z-index: 9999;
-              display: flex;
-              flex-direction: column;
-              justify-content: center;
-              align-items: center;
-              transition: opacity 0.3s ease;
-          ">
-            <div class="spinner" style="
-                width: 40px;
-                height: 40px;
-                border: 4px solid #f3f3f3;
-                border-top: 4px solid #4f46e5;
-                border-radius: 50%;
-                animation: spin 1s linear infinite;
-            "></div>
-            <p style="margin-top: 16px; color: #6b7280; font-size: 14px; font-weight: 500;">
-              사용자 정보를 확인하고 있습니다...
-            </p>
-          </div><br>
-            
+        <main>            
             <div class="aside01"></div>                 
             <section>
                 <!-- 스와이퍼 -->
