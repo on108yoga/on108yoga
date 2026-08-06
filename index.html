@@ -1,700 +1,713 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ON108YOGA</title>
-    
-    <!-- 1. PWA 매니페스트 및 서비스 워커 연결 -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#000000">
-    <link rel="icon" href="images/micon_108.png">
-    <link rel="apple-touch-icon" href="images/micon_180.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ON108YOGA</title>
+      <!-- 1. PWA 매니페스트 연결 -->
+      <link rel="manifest" href="manifest.json">
+    
+      <!-- 2. 모바일 브라우저 테마 색상 (선택 사항) -->
+      <meta name="theme-color" content="#000000">
+    
+      <!-- 3. 파비콘 및 애플(iOS) 전용 홈 화면 아이콘 설정 (선택 사항) -->
+    <link rel="icon" href="images/micon_108.png">
+    <link rel="apple-touch-icon" href="images/micon_108.png">
 
-    <!-- External CDN Resources -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.css"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
-    
-    <!-- Pretendard Web Font -->
-    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
-    
-    <!-- Google Fonts Integration -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Montserrat:wght@300;400;500;700&family=Noto+Sans+KR:wght@100;200;300;400;500;700&family=Playfair+Display:ital,wght@0,600;1,600&family=Poppins:wght@700;800&display=swap" rel="stylesheet">
-    
-    <!-- Custom CSS File -->
-    <link rel="stylesheet" href="./su_hp.css">
-    
-    <style>
-    /* ─── [1] 공통 기본 및 리셋 ─── */
-    * { 
-        padding: 0; 
-        margin: 0; 
-        box-sizing: border-box; 
-    }   
-    
-    html {
-        scroll-behavior: smooth;
-    }
+    
+    <!-- External CDN Resources -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
+    
+    <!-- Pretendard Web Font -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+    
+    <!-- Google Fonts Integration -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Montserrat:wght@300;400;500;700&family=Noto+Sans+KR:wght@100;200;300;400;500;700&family=Playfair+Display:ital,wght@0,600;1,600&family=Poppins:wght@700;800&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS File -->
+    <link rel="stylesheet" href="./su_hp.css">
+    
+    <style>
+    /* ─── [1] 공통 기본 및 리셋 ─── */
+    * { 
+        padding: 0; 
+        margin: 0; 
+        box-sizing: border-box; 
+    }   
+    
+    html {
+        scroll-behavior: smooth;
+    }
 
-    body {
-        text-align: center;
-        margin: 0;        
-        font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;        
-        background-color: #faf7f2;
-        color: #333;
-        line-height: 1.6;
-    }
-    
-    /* ─── [2] 헤더 & 로고 ─── */
-    header {
-        width: 100%;   
-        background-color: rgba(255, 255, 255, 0.92);
-        backdrop-filter: blur(8px);
-        position: fixed;
-        top: 0;
-        left: 0;
-        z-index: 1000;
-        border-bottom: 1px solid #e8decb;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-    }
-      
-    .menu2 {
-        font-family: 'Pretendard', 'Noto Sans KR', sans-serif;            
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 30px;
-        background-color: #517e73;
-        padding: 10px;
-        font-size: 14px;
-    }
-    
-    .menu2 a {
-        text-decoration: none !important;
-        color: white;
-        font-weight: 500;
-        letter-spacing: 0.08em;
-        padding: 2px 4px;
-        transition: opacity 0.2s ease;
-    }
-    
-    .menu2 a:hover {
-        opacity: 0.8;
-        text-decoration: none !important;
-    }
-        
-    #userInfo {
-        color: #fff;
-        font-weight: bold;       
-        margin-right: 12px;
-    }
-        
-    #logoutBtn {
-        font-size: 12px;
-        padding: 4px 8px;
-        border: 1px solid #fff;
-        background: transparent;
-        color: white;
-        cursor: pointer;
-        border-radius: 4px;
-        transition: background 0.2s;
-    }
-    
-    .menu2 button:hover,
-    #logoutBtn:hover {
-        background: rgba(255, 255, 255, 0.2);
-        border-color: #ffffff;
-    }
+    body {
+        text-align: center;
+        margin: 0;        
+        font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;        
+        background-color: #faf7f2; /* 화사하고 따뜻한 크림 베이지 */
+        color: #333;
+        line-height: 1.6;
+    }
+    
+    /* ─── [2] 헤더 & 로고 ─── */
+    header {
+        width: 100%;   
+        background-color: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(8px);
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+        border-bottom: 1px solid #e8decb;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    }
+      
+    /* 로그인/회원 메뉴 바 (.menu2) */
+    .menu2 {
+        font-family: 'Pretendard', 'Noto Sans KR', sans-serif;            
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 30px;
+        background-color: #517e73;
+        padding: 10px;
+        font-size: 14px;
+    }
+    
+    .menu2 a {
+        text-decoration: none !important;
+        color: white;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        padding: 2px 4px;
+        transition: opacity 0.2s ease;
+    }
+    
+    .menu2 a:hover {
+        opacity: 0.8;
+        text-decoration: none !important;
+    }
+        
+    #userInfo {
+        color: #fff;
+        font-weight: bold;       
+        margin-right: 12px;
+    }
+        
+    #logoutBtn {
+        font-size: 12px;
+        padding: 4px 8px;
+        border: 1px solid #fff;
+        background: transparent;
+        color: white;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background 0.2s;
+    }
+    
+    .menu2 button:hover,
+    #logoutBtn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: #ffffff;
+    }
 
-    h1 {         
-        color: #3f4e43;
-        text-align: center;
-        letter-spacing: 0.35em;
-        margin: 0;
-        padding: 12px 0;
-        font-family: 'Cormorant Garamond', 'Noto Sans KR', serif;
-        font-weight: 300;
-        font-size: 20px;
-        text-transform: uppercase;
-    }
+    /* 로고 */
+    h1 {         
+        color: #3f4e43;
+        text-align: center;
+        letter-spacing: 0.35em;
+        margin: 0;
+        padding: 12px 0;
+        font-family: 'Cormorant Garamond', 'Noto Sans KR', serif;
+        font-weight: 300;
+        font-size: 20px;
+        text-transform: uppercase;
+    }
 
-    .menu {
-        display: flex;
-        justify-content: center;
-        letter-spacing: 0.25em;
-        gap: 15px;
-        padding: 10px 15px 15px 15px;
-        list-style: none;
-    }
+    /* 상단 주 메뉴 */
+    .menu {
+        display: flex;
+        justify-content: center;
+        letter-spacing: 0.25em;
+        gap: 15px;
+        padding: 10px 15px 15px 15px;
+        list-style: none;
+    }
 
-    .menu a {
-        color: #3e5c4e;
-        text-decoration: none !important;
-        font-weight: 500;
-        font-size: 13px;
-        text-transform: uppercase;
-        transition: all 0.2s ease;
-        padding: 4px 8px;
-    }     
+    .menu a {
+        color: #3e5c4e;
+        text-decoration: none !important;
+        font-weight: 500;
+        font-size: 13px;
+        text-transform: uppercase;
+        transition: all 0.2s ease;
+        padding: 4px 8px;
+    }     
 
-    .menu a:hover {
-        color: #ff512f;
-        background-color: rgba(255, 81, 47, 0.08);
-        border-radius: 12px;
-        opacity: 1;
-    }
+    .menu a:hover {
+        color: #ff512f;
+        background-color: rgba(255, 81, 47, 0.08);
+        border-radius: 12px;
+        opacity: 1;
+    }
 
-    /* ─── [3] 메인 컨텐츠 영역 ─── */
-    main {
-        padding-top: 180px; 
-        max-width: 900px;
-        margin: 0 auto;
-        padding-left: 20px;
-        padding-right: 20px;
-    }
+    /* ─── [3] 메인 컨텐츠 영역 ─── */
+    main {
+        padding-top: 180px; 
+        max-width: 900px;
+        margin: 0 auto;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
 
-    h2 {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;       
-        height: 48px;
-        margin: 40px auto 20px auto;     
-        color: #2d4538;
-        letter-spacing: 6px;     
-        padding: 0 15px 0 20px;  
-        border-left: 4px solid #10b981;
-        border-bottom: 1px dashed #c2d6cc;
-        font-family: 'Montserrat', 'Noto Sans KR', sans-serif;
-        font-weight: 400; 
-        font-size: 22px;
-        text-transform: uppercase;
-    }
+    h2 {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;       
+        height: 48px;
+        margin: 40px auto 20px auto;     
+        color: #2d4538;
+        letter-spacing: 6px;     
+        padding: 0 15px 0 20px;  
+        border-left: 4px solid #10b981;
+        border-bottom: 1px dashed #c2d6cc;
+        font-family: 'Montserrat', 'Noto Sans KR', sans-serif;
+        font-weight: 400; 
+        font-size: 22px;
+        text-transform: uppercase;
+    }
 
-    section h2 {
-        scroll-margin-top: 180px;
-    }
+    section h2 {
+        scroll-margin-top: 180px;
+    }
 
-    /* ─── [4] 슬라이드 (Notice) ─── */
-    .notice {
-        width: 100%;
-        max-width: 800px;
-        height: 380px;
-        overflow: hidden;
-        border-radius: 16px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.06);
-        margin: 0 auto;
-        border: 1px solid #e2ebd8;
-    }
+    /* ─── [4] 슬라이드 (Notice) ─── */
+    .notice {
+        width: 100%;
+        max-width: 800px;
+        height: 380px;
+        overflow: hidden;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+        margin: 0 auto;
+        border: 1px solid #e2ebd8;
+    }
 
-    .event-container {
-        display: flex;
-        flex-direction: column;
-        gap: 35px;
-        width: 100%;
-        max-width: 800px;
-        margin: 0 auto;
-    }
+    /* ─── [4-1] 이벤트 영역 (큰 카드 형태 세로 나열) ─── */
+    .event-container {
+        display: flex;
+        flex-direction: column; /* 세로 나열 */
+        gap: 35px; /* 카드 간격 */
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto;
+    }
 
-    .event-card {
-        width: 100%;
-        background: #ffffff;
-        border-radius: 2px;
-        overflow: hidden;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
-        border: 1px solid #e8f0eb;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
+    .event-card {
+        width: 100%;
+        background: #ffffff;
+        border-radius: 2px;
+        overflow: hidden;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e8f0eb;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
 
-    .event-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
-    }
+    .event-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+    }
 
-    .event-card img {
-        width: 100%;
-        height: auto;
-        display: block;
-        object-fit: cover;
-    }
+    .event-card img {
+        width: 100%;
+        height: auto;
+        display: block;
+        object-fit: cover;
+    }
 
-    /* ─── [5] 시간표 ─── */
-    table {
-        width: 100%;
-        max-width: 800px; 
-        margin: 0 auto;   
-        border-collapse: separate; 
-        border-spacing: 0;
-        text-align: center;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-        border: 1px solid #d8e5dd;
-    }
+    /* ─── [5] 시간표 (Class Table) ─── */
+    table {
+        width: 100%;
+        max-width: 800px; 
+        margin: 0 auto;   
+        border-collapse: separate; 
+        border-spacing: 0;
+        text-align: center;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        border: 1px solid #d8e5dd;
+    }
 
-    th, td {
-        width: 14.28%; 
-        border-right: 1px solid #eef4f0;
-        border-bottom: 1px solid #eef4f0;
-        padding: 10px 5px;
-        height: 48px; 
-        background-color: #ffffff; 
-        font-size: 13px;
-        color: #4a5568;
-    }
+    th, td {
+        width: 14.28%; 
+        border-right: 1px solid #eef4f0;
+        border-bottom: 1px solid #eef4f0;
+        padding: 10px 5px;
+        height: 48px; 
+        background-color: #ffffff; 
+        font-size: 13px;
+        color: #4a5568;
+    }
 
-    th {
-        background-color: #d1eae1; 
-        color: #234e3e;
-        font-weight: 600;
-    }
+    th {
+        background-color: #d1eae1; 
+        color: #234e3e;
+        font-weight: 600;
+    }
 
-    /* ─── [6] 가격표 ─── */
-    .price-box {
-        max-width: 800px;
-        margin: 25px auto;
-        background: #ffffff;
-        border-radius: 16px;
-        padding: 25px 30px;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.03);
-        border: 1px solid #e8f0eb;
-        text-align: center;
-    }
+    /* ─── [6] 가격표 (Price Section) ─── */
+    .price-box {
+        max-width: 800px;
+        margin: 25px auto;
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 25px 30px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.03);
+        border: 1px solid #e8f0eb;
+        text-align: center;
+    }
 
-    .price-box h3 {
-        color: #3e5c4e;
-        margin-bottom: 15px;
-        font-weight: 600;
-    }
+    .price-box h3 {
+        color: #3e5c4e;
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
 
-    .price-box p {
-        font-size: 14px; 
-        text-align: center;
-        color: #5c6b63;
-        line-height: 2;
-        margin: 0;
-    }     
+    .price-box p {
+        font-size: 14px; 
+        text-align: center;
+        color: #5c6b63;
+        line-height: 2;
+        margin: 0;
+    }     
 
-    .price-box del {
-        color: #a0aec0;
-    }
+    .price-box del {
+        color: #a0aec0;
+    }
 
-    .price-box ins {
-        text-decoration: none;
-        color: #e53e3e;
-        font-weight: 600;
-    }
+    .price-box ins {
+        text-decoration: none;
+        color: #e53e3e;
+        font-weight: 600;
+    }
 
-    /* ─── [7] 미디어 컨텐츠 ─── */
-    .notice .swiper {
-        border-radius: 16px;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-    }
+    /* ─── [7] 미디어 컨텐츠 (Swiper, YouTube, Map, Blog) ─── */
+    .notice .swiper {
+        border-radius: 16px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    }
 
-    .notice .swiper-slide img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
+    .notice .swiper-slide img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
 
-    div iframe, div video { 
-        width: 100%;              
-        max-width: 800px; 
-        height: 420px;            
-        border: none;
-        display: block;
-        margin: 0 auto;
-        border-radius: 16px;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-        transition: transform 0.3s ease;
-    }
+    #blog {
+        width: 100%;
+    }            
 
-    iframe:hover {
-        transform: translateY(-3px);
-    }
+    div iframe, div video { 
+        width: 100%;              
+        max-width: 800px; 
+        height: 420px;            
+        border: none;
+        display: block;
+        margin: 0 auto;
+        border-radius: 16px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        transition: transform 0.3s ease;
+    }
 
-    .map-section iframe {
-        border: 1px solid #ccc;
-    }
-    
-    #p {
-        max-width: 800px;
-        margin: 12px auto 0 auto;
-        font-size: 13px;
-        color: #333;
-        line-height: 1.6;
-    }
+    iframe:hover {
+        transform: translateY(-3px);
+    }
 
-    .click-group{
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        font-size: 13px;
-        margin-top: 15px;
-        flex-wrap: wrap;
-    }
+    .map-section iframe {
+        border: 1px solid #ccc;
+    }
+    
+    #p {
+        max-width: 800px;
+        margin: 12px auto 0 auto;
+        font-size: 13px;
+        color: #333;
+        line-height: 1.6;
+    }
 
-    .click { 
-        padding: 10px 20px;
-        border-radius: 20px;
-        text-decoration: none;
-        color: #3e5c4e;
-        font-weight: 500;
-        transition: .3s;
-        background: white;
-        border: 1px solid #d8e5dd;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    }
+        .click-group{
+             display: flex;
+            justify-content: center;
+            gap: 7px;   /* 버튼 사이 간격 */
+             font-size: 10px;      /* 글자 크기 줄이기 */
+            color: tomato;       /* 글자색 */              
+            
+        }
 
-    .click:hover{
-        transform: translateY(-2px);
-        background: #517e73;
-        color: white;
-    }
+        .click{ padding: 14px 28px;
+                border-radius: 30px;
+                text-decoration: none;
+                color: inherit;   /* 부모의 글자색 사용 */
+                font-weight: 500;
+                transition: .3s;
+                background: white;
+                border-radius: 50%;
+            }
 
-    /* ─── [8] 푸터 ─── */
-    footer {            
-        margin-top: 80px;
-        width: 100%;
-        padding: 50px 20px;
-        color: #e2e8f0; 
-        box-sizing: border-box;
-        background: linear-gradient(
-            135deg, 
-            #080a0f 0%,       
-            #0f172a 45%,      
-            #1e1b4b 75%,      
-            #042f2e 92%,      
-            #10b981 100%      
-        );
-        border-top: 1px solid rgba(16, 185, 129, 0.2); 
-        box-shadow: inset 0 1px 10px rgba(16, 185, 129, 0.08);
-    }
+        .click:hover{
+            transform: translateY(-3px);
+        }
 
-    .footer {
-        width: 100%;
-        margin: 0;
-        text-align: center;
-        font-size: 14px;
-        line-height: 1.6;
-        letter-spacing: 0.05em;
-        position: relative;
-    }
+    /* ─── [8] 푸터 ─── */
+    footer {            
+        margin-top: 80px;
+        width: 100%;
+        padding: 50px 20px;
+        color: #e2e8f0; 
+        box-sizing: border-box;
+        background: linear-gradient(
+            135deg, 
+            #080a0f 0%,       
+            #0f172a 45%,      
+            #1e1b4b 75%,      
+            #042f2e 92%,      
+            #10b981 100%      
+        );
+        border-top: 1px solid rgba(16, 185, 129, 0.2); 
+        box-shadow: inset 0 1px 10px rgba(16, 185, 129, 0.08);
+    }
 
-    .footer dl {
-        text-align: center;
-        padding: 10px 0; 
-        color: #cbd5e1;
-        margin: 0;
-    }
+    .footer {
+        width: 100%;
+        margin: 0;
+        text-align: center;
+        font-size: 14px;
+        line-height: 1.6;
+        letter-spacing: 0.05em;
+        position: relative;
+    }
 
-    .footer dt {
-        font-weight: 600;
-        margin-top: 15px;
-        color: #10b981;
-    }
+    .footer dl {
+        text-align: center;
+        padding: 10px 0; 
+        color: #cbd5e1;
+        margin: 0;
+    }
 
-    .footer dd {
-        margin: 2px 0 12px 0;
-        font-weight: 300;
-    }
+    .footer dt {
+        font-weight: 600;
+        margin-top: 15px;
+        color: #10b981;
+    }
 
-    #topBtn {
-        background-color: #10b981;
-        border: none;
-        border-radius: 20px;
-        padding: 8px 18px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        margin-bottom: 20px;
-    }
+    .footer dd {
+        margin: 2px 0 12px 0;
+        font-weight: 300;
+    }
 
-    #topBtn a {
-        text-decoration: none;
-        color: #ffffff !important;
-        font-weight: 600;
-        font-size: 12px;
-    }
+    #topBtn {
+        background-color: #10b981;
+        border: none;
+        border-radius: 20px;
+        padding: 8px 18px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        margin-bottom: 20px;
+    }
 
-    #topBtn:hover {
-        background-color: #059669;
-        transform: translateY(-2px);
-    }
+    #topBtn a {
+        text-decoration: none;
+        color: #ffffff !important;
+        font-weight: 600;
+        font-size: 12px;
+    }
 
-    /* ─── [9] 모바일 반응형 ─── */
-    @media (max-width: 768px) {
-        main {
-            padding-top: 210px;
-        }
+    #topBtn:hover {
+        background-color: #059669;
+        transform: translateY(-2px);
+    }
 
-        .menu {
-            width: 100%;
-            gap: 8px 10px;
-            padding: 8px;
-            flex-wrap: wrap;
-            letter-spacing: 0.1em;
-        }
+    /* ─── [9] 모바일 반응형 (768px 이하) ─── */
+    @media (max-width: 768px) {
+        main {
+            padding-top: 210px;
+        }
 
-        .menu a {
-            font-size: 12px;
-            padding: 4px 6px;
-            white-space: nowrap;
-        }
+        .menu {
+            width: 100%;
+            gap: 8px 10px;
+            padding: 8px;
+            flex-wrap: wrap;
+            letter-spacing: 0.1em;
+        }
 
-        .notice {
-            height: 220px;
-        }
+        .menu a {
+            font-size: 12px;
+            padding: 4px 6px;
+            white-space: nowrap;
+        }
 
-        .event-container {
-            gap: 20px;
-        }
+        .notice {
+            height: 220px;
+        }
 
-        table {
-            display: block;
-            width: 100%;
-            overflow-x: auto; 
-            white-space: nowrap; 
-        }
+        .event-container {
+            gap: 20px;
+        }
 
-        div iframe, div video {
-            height: 250px; 
-        }
+        table {
+            display: block;
+            width: 100%;
+            overflow-x: auto; 
+            white-space: nowrap; 
+        }
 
-        h2 {
-            font-size: 18px;
-            letter-spacing: 3px;
-        }
-        
-        section h2 {
-            scroll-margin-top: 210px;
-        }
-    }
-    </style>
+        div iframe, div video {
+            height: 250px; 
+        }
+
+        h2 {
+            font-size: 18px;
+            letter-spacing: 3px;
+        }
+        
+        section h2 {
+            scroll-margin-top: 210px;
+        }
+    }
+    </style>
 </head>
 
 <body>
-    <header>    
-        <nav class="menu2">
-            <div id="guestMenu">
-                <a href="login.html">로그인</a>
-                <a href="signup.html">회원가입</a>
-            </div>   
-            <div id="memberMenu" style="display:none;">
-                <a href="members.html" id="memberManageLink" style="display:none;">회원관리</a>                    
-                <a href="reservation.html">예약</a>
-                <a href="mypage.html">마이페이지</a>
-                <span id="userInfo"></span>
-                <a href="#" id="logoutBtn">로그아웃</a>
-            </div>
-        </nav>
-        <h1>
-            ON108 YOGA
-            <span style="display: block; font-size: 11px; font-weight: 200; letter-spacing: 0.2em; margin-top: 4px; color: #777;">
-                몸과 마음의 정화, 온108요가
-            </span>
-        </h1>
-        <div>
-            <nav>                
-                <ul class="menu" id="menu">            
-                    <li><a href="#event">Event</a></li>
-                    <li><a href="#class">Class</a></li>
-                    <li><a href="#price">Price</a></li>
-                    <li><a href="#blog">Blog</a></li>                    
-                    <li><a href="#location">Location</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
+    <header>    
+        <nav class="menu2">
+            <div id="guestMenu">
+                <a href="login.html">로그인</a>
+                <a href="signup.html">회원가입</a>
+            </div>   
+            <div id="memberMenu" style="display:none;">
+                <a href="members.html" id="memberManageLink" style="display:none;">회원관리</a>                    
+                <a href="reservation.html">예약</a>
+                <a href="mypage.html">마이페이지</a>
+                <span id="userInfo"></span>
+                <a href="#" id="logoutBtn">로그아웃</a>
+            </div>
+        </nav>
+        <h1>
+            ON108 YOGA
+            <span style="display: block; font-size: 11px; font-weight: 200; letter-spacing: 0.2em; margin-top: 4px; color: #777;">
+                몸과 마음의 정화, 온108요가
+            </span>
+        </h1>
+        <div>
+            <nav>                
+                <ul class="menu" id="menu">            
+                    <li><a href="#event">Event</a></li>
+                    <li><a href="#class">Class</a></li>
+                    <li><a href="#price">Price</a></li>
+                    <li><a href="#blog">Blog</a></li>                    
+                    <li><a href="#location">Location</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
 
-    <div class="wrap">
-        <main>
-            <div class="aside01"></div>     
-            
-            <section>
-                <!-- notice -->
-                <h2 id="notice">notice</h2><br>
-                <div class="notice">
-                    <div class="swiper" style="height: 380px; width: 100%; max-width: 800px;">
-                        <div class="swiper-wrapper">
-                            <div class="swiper-slide" style="background: #e2d4aa;">
-                                <img src="./images/1.png" alt="notice 1">
-                            </div>
-                            <div class="swiper-slide" style="background: #c3b490;">
-                                <img src="./images/suon_pro.png" alt="notice 2">
-                            </div>                      
-                        </div>
-                        <div class="swiper-pagination"></div>
-                    </div>
-                </div>
-                
-                <br>
+    <div class="wrap">
+        <main>
+            <div class="aside01"></div>     
+            
+            <section>
+                <!-- 스와이퍼 -->
+                <h2 id="notice">notice</h2><br>
+                    <div class="notice">
+                        <div class="swiper" style="height: 300px; width: 100%; max-width: 800px;">
+                            <div class="swiper-wrapper">
+                                <div class="swiper-slide" style="background: #e2d4aa;">
+                                    <img src="./images/1.png" alt="notice 1">
+                                </div>
+                                <div class="swiper-slide" style="background: #c3b490;">
+                                    <img src="./images/suon_pro.png" alt="notice 2">
+                                </div>                      
+                            </div>
+                            <!-- ⚪ 아래 동그라미 점(페이지네이션)만 남겨두었습니다. -->
+                            <div class="swiper-pagination"></div>
+                    
+                            <!-- ❌ 화살표(prev, next) 및 스크롤바(scrollbar) 제거 완료 -->
+                        </div>
+                    </div>
+                
+                <br>
 
-                <!-- event -->                                
-                <h2 id="event">event</h2><br>
-                <div class="event-container">
-                    <div class="event-card">
-                        <img src="./images/2.png" alt="Event 1">
-                        <p id="p" style="text-align: center;">2026년 9월 한정 오픈이벤트🎉<br>14+1회, 총 15회<br>21회+1, 총 22회<br>31회+2, 총 33회<br>가격 특가 + 횟수 추가 할인(~9/30)</p><br>
-                    </div>
-                    <div class="event-card">
-                        <img src="./images/3.png" alt="Event 2">
-                        <p id="p" style="text-align: center;">네이버리뷰 이벤트 참여시,<br>단체수련 1회 또는 개인1:1(스케줄조율필요) 1회 증정</p><br>
-                    </div>
-                </div>
+                <!-- 이벤트 영역 (크게 세로 나열) -->                                
+                <h2 id="event">event</h2><br>
+                <div class="event-container">
+                    <div class="event-card">
+                        <img src="./images/2.png" alt="Event 1">
+                        <p id="p" style="text-align: center;">2026년 9월 한정 오픈이벤트🎉<br>14+1회, 총 15회<br>21회+1, 총 22회<br>31회+2, 총 33회<br>가격 특가 + 횟수 추가 할인(~9/30)</p><br>
+                    </div>
+                    <div class="event-card">
+                        <img src="./images/3.png" alt="Event 2">
+                        <p id="p" style="text-align: center;">네이버리뷰 이벤트 참여시,<br>단체수련 1회 또는 개인1:1(스케줄조율필요) 1회 증정</p><br>
+                    </div>
+                </div>
 
-                <br>
-                      
-                <h2 id="class">class</h2><br>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>시간</th>
-                            <th>월</th>
-                            <th>화</th>
-                            <th>수</th>
-                            <th>목</th>
-                            <th>금</th>
-                            <th>토</th>
-                        </tr>
-                    </thead>        
-                    <tbody>
-                        <tr>
-                            <td>09:30 - 10:30</td><td>교정하타</td><td> </td><td>힐링빈야사</td><td> </td><td>교정하타</td><td rowspan="7">주말&<br>공휴일<br>휴무</td>
-                        </tr>
-                        <tr>
-                            <td>11:00 - 12:00</td><td>힐링빈야사</td><td></td><td>교정하타</td><td></td><td>힐링빈야사</td>
-                        </tr>
-                        <tr>
-                            <td>(12:00 - 18:00)</td><td colspan="5">1:1개인 스케줄 조정</td>
-                        </tr>
-                        <tr>
-                            <td>14:00 - 15:00</td><td></td><td>교정하타</td><td></td><td>힐링빈야사</td><td></td>
-                        </tr>
-                        <tr>
-                            <td>15:30 - 16:30</td><td></td><td>힐링빈야사</td><td></td><td>교정하타</td><td></td>
-                        </tr>                        
-                        <tr>
-                            <td>18:00 - 19:00</td><td>힐링빈야사</td><td>교정하타</td><td>힐링빈야사</td><td>교정하타</td><td>힐링빈야사</td>
-                        </tr>
-                        <tr>
-                            <td>19:30 - 20:30</td><td>교정하타</td><td>힐링빈야사</td><td>교정하타</td><td>힐링빈야사</td><td>교정하타</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <br>
+                <br>
+                      
+                <h2 id="class">class</h2><br>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>시간</th>
+                            <th>월</th>
+                            <th>화</th>
+                            <th>수</th>
+                            <th>목</th>
+                            <th>금</th>
+                            <th>토</th>
+                        </tr>
+                    </thead>        
+                    <tbody>
+                        <tr>
+                            <td>09:30 - 10:30</td><td>교정하타</td><td> </td><td>힐링빈야사</td><td> </td><td>교정하타</td><td rowspan="7">주말&<br>공휴일<br>휴무</td>
+                        </tr>
+                        <tr>
+                            <td>11:00 - 12:00</td><td>힐링빈야사</td><td></td><td>교정하타</td><td></td><td>힐링빈야사</td>
+                        </tr>
+                        <tr>
+                            <td>(12:00 - 18:00)</td><td colspan="5">1:1개인 스케줄 조정</td>
+                        </tr>
+                        <tr>
+                            <td>14:00 - 15:00</td><td></td><td>교정하타</td><td></td><td>힐링빈야사</td><td></td>
+                        </tr>
+                        <tr>
+                            <td>15:30 - 16:30</td><td></td><td>힐링빈야사</td><td></td><td>교정하타</td><td></td>
+                        </tr>                        
+                        <tr>
+                            <td>18:00 - 19:00</td><td>힐링빈야사</td><td>교정하타</td><td>힐링빈야사</td><td>교정하타</td><td>힐링빈야사</td>
+                        </tr>
+                        <tr>
+                            <td>19:30 - 20:30</td><td>교정하타</td><td>힐링빈야사</td><td>교정하타</td><td>힐링빈야사</td><td>교정하타</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <br>
 
-                <h2 id="price">price</h2>
-                <div class="price-box">
-                    <h3>수련권 안내 (Price)</h3>
-                    <p>      
-                        10회 수련권 (40일 기한) : <del>정가 200,000원</del> ➔ <br><ins>할인가 180,000원</ins><br>
-                        20회 수련권 (80일 기한) : <del>정가 400,000원</del> ➔ <br><ins>할인가 340,000원</ins><br>
-                        30회 수련권 (120일 기한) : <del>정가 600,000원</del> ➔ <br><ins>할인가 480,000원</ins><br>                    
-                        50회 수련권 (200일 기한) : <del>정가 1,000,000원</del> ➔ <br><ins>할인가 700,000원</ins><br>
-                        (vat별도)<br>
-                        <small style="color: #888;">* 30일 기간연장 추가금 50,000원 (구매 수련권당 1회 가능)<br>*1:1개인 수련권은 개인문의 주세요*</small>
-                    </p>
-                </div>
-                <br>
+                <h2 id="price">price</h2>
+                <div class="price-box">
+                    <h3>수련권 안내 (Price)</h3>
+                    <p>      
+                        10회 수련권 (40일 기한) : <del>정가 200,000원</del> ➔ <br><ins>할인가 180,000원</ins><br>
+                        20회 수련권 (80일 기한) : <del>정가 400,000원</del> ➔ <br><ins>할인가 340,000원</ins><br>
+                        30회 수련권 (120일 기한) : <del>정가 600,000원</del> ➔ <br><ins>할인가 480,000원</ins><br>                    
+                        50회 수련권 (200일 기한) : <del>정가 1,000,000원</del> ➔ <br><ins>할인가 700,000원</ins><br>
+                        (vat별도)<br>
+                        <small style="color: #888;">* 30일 기간연장 추가금 50,000원 (구매 수련권당 1회 가능)<br>*1:1개인 수련권은 개인문의 주세요*</small>
+                    </p>
+                </div>
+                <br>
 
-                <h2 id="blog">blog</h2><br>
-                <div style="text-align: center; padding: 20px; background: #fff; border-radius: 16px; border: 1px solid #e8f0eb;">
-                    <p style="margin-bottom: 12px; font-weight: 500;">온108요가의 공식 블로그에서 최신 소식을 확인하세요!</p>
-                    <a href="https://blog.naver.com/on108yoga" target="_blank" class="click" style="display: inline-block; background: #03cf5d; color: white; border: none;">
-                        네이버 블로그 바로가기 <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                    </a>
-                </div>
-                <br>
+                <h2 id="blog">blog</h2><br>
+                <div>
+                    <iframe id="blog" src="https://m.blog.naver.com/on108yoga" style="box-shadow: 0 4px 10px rgba(0,0,0,0.1);"></iframe>
+                </div>
+                <br>
 
-                <h2 id="location">location</h2><br>
-                <div class="map-section">
-                    <iframe src="https://www.google.com/maps/embed?pb=!1m5!3m3!1m2!1s0x3568c1d9b810a687%3A0x69fc1faf02589068!2z67aA7IKw6rSR7Jet7IucIOyCrOyDgeq1rCDsgqzsg4HroZwgMjA4LTE!5e0!3m2!1sko!2skr!4v1784622545146!5m2!1sko!2skr"
-                        width="600" height="450" style="border: 1px solid #d1d5db;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
-                    <p id="p" style="text-align: center;"> 오시는길: 부산광역시 사상구 사상로 208-1, <br> 4층 402호 온108요가 </p>
-                </div>
-                <br>
-                <div class="click-group">
-                    <a href="http://pf.kakao.com/_NrxbxnX" class="click" target="_blank">카카오채널(문의) <i class="fa-regular fa-address-card"></i></a>
-                    <a href="https://blog.naver.com/on108yoga" class="click" target="_blank">블로그보러가기 <i class="fa-solid fa-blog"></i></a>
-                    <a href="https://map.kakao.com/link/search/ON108YOGA" class="click" target="_blank">
-                        카카오맵(위치) <i class="fa-solid fa-location-dot"></i>
-                    </a>
-                </div>           
-            </section>        
-            <div class="aside02"></div>
-        </main>
-    </div> 
+                <h2 id="location">location</h2><br>
+                <div class="map-section">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m5!3m3!1m2!1s0x3568c1d9b810a687%3A0x69fc1faf02589068!2z67aA7IKw6rSR7Jet7IucIOyCrOyDgeq1rCDsgqzsg4HroZwgMjA4LTE!5e0!3m2!1sko!2skr!4v1784622545146!5m2!1sko!2skr"
+                        width="600" height="450" style="border: 1px solid #d1d5db;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+                    <p id="p" style="text-align: center;"> 오시는길: 부산광역시 사상구 사상로 208-1, <br> 4층 402호 온108요가 </p>
+                </div>
+                <br>
+                <div class="click-group">
+                    <a href="http://pf.kakao.com/_NrxbxnX" class="click">카카오채널(문의)<i class="fa-regular fa-address-card"></i></a>
+                    <a href="https://blog.naver.com/on108yoga" class="click">블로그보러가기<i class="fa-solid fa-blog"></i></a>
+                    <a href="https://map.kakao.com/link/search/ON108YOGA" class="click">
+                        카카오맵(위치)<i class="fa-solid fa-location-dot"></i>
+                    </a>
+                </div>           
+            </section>        
+            <div class="aside02"></div>
+        </main>
+    </div> 
 
-    <footer>
-        <div class="footer">
-            <dl>
-                <button onclick="scrollToTop()" id="topBtn" title="Go to top" style="padding: 5px 10px;">
-                    <a href="#menu" style="color: #ffffff !important;">↑ TOP</a>
-                </button>
-                <dt><i class="fa-solid fa-location-dot"></i> Visit</dt>
-                <dd>402, Sasang TOP, Sasang Ro 208-1, Busan Korea</dd>        
-                <dt><i class="fa-solid fa-blog"></i> Naver Blog</dt>
-                <dd>https://blog.naver.com/on108yoga</dd>
-                <dt><i class="fa-regular fa-comment-dots"></i> Contact</dt>
-                <dd>0502-5554-5307</dd>
-                <dt><i class="fa-brands fa-instagram"></i> Instagram</dt>
-                <dd>@on108yoga</dd>
-            </dl>
-        </div>
-    </footer>
+    <footer>
+        <div class="footer">
+            <dl>
+                <button onclick="scrollToTop()" id="topBtn" title="Go to top" style="padding: 5px 10px;">
+                    <a href="#menu" style="color: #ffffff !important;">↑ TOP</a>
+                </button>
+                <dt><i class="fa-solid fa-location-dot"></i> Visit</dt>
+                <dd>402, Sasang TOP, Sasang Ro 208-1, Busan Korea</dd>        
+                <dt><i class="fa-solid fa-blog"></i> Naver Blog</dt>
+                <dd>https://blog.naver.com/on108yoga</dd>
+                <dt><i class="fa-regular fa-comment-dots"></i> Contact</dt>
+                <dd>0502-5554-5307</dd>
+                <dt><i class="fa-brands fa-instagram"></i> Instagram</dt>
+                <dd>@on108yoga</dd>
+            </dl>
+        </div>
+    </footer>
 
-    <!-- JS CDN & Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.js"></script> 
-    <script>
-        const swiper = new Swiper('.swiper', {
-            direction: 'vertical',
-            loop: true,
-            autoplay: {
-                delay: 2500,
-                disableOnInteraction: false,
-            },
-            pagination: { el: '.swiper-pagination', clickable: true },
-        });
+    <!-- JS CDN & Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.js"></script> 
+    <script>
+        const swiper = new Swiper('.swiper', {
+            direction: 'vertical',
+            loop: true,
+            autoplay: {
+                delay: 2500,
+                disableOnInteraction: false,
+            },
+            pagination: { el: '.swiper-pagination' },
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+            scrollbar: { el: '.swiper-scrollbar' },
+        });
 
-        window.onscroll = function() { scrollFunction() };
-        
-        function scrollFunction() {
-            const topButton = document.getElementById("topBtn");
-            if (document.body.scrollTop > 500 || document.documentElement.scrollTop > 500) {
-                topButton.style.display = "inline-block";
-            } else {
-                topButton.style.display = "none";
-            }
-        }
-        
-        function scrollToTop() {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-        }
-    </script>
+        window.onscroll = function() { scrollFunction() };
+        
+        function scrollFunction() {
+            const topButton = document.getElementById("topBtn");
+            if (document.body.scrollTop > 500 || document.documentElement.scrollTop > 500) {
+                topButton.style.display = "inline-block";
+            } else {
+                topButton.style.display = "none";
+            }
+        }
+        
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+    </script>
 
-    <!-- PWA 서비스 워커 등록 -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js')
-            .then((registration) => {
-              console.log('서비스 워커 등록 성공:', registration.scope);
-            })
-            .catch((error) => {
-              console.log('서비스 워커 등록 실패:', error);
-            });
-        });
-      }
-    </script>
+<!-- 4. PWA 서비스 워커(sw.js) 등록 스크립트 -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then((registration) => {
+            console.log('서비스 워커 등록 성공:', registration.scope);
+          })
+          .catch((error) => {
+            console.log('서비스 워커 등록 실패:', error);
+          });
+      });
+    }
+    </script>
 
-    <script type="module" src="firebase.js"></script>
-    <script type="module" src="auth.js"></script>
-    <script type="module" src="index.js"></script>
+    <script type="module" src="firebase.js"></script>
+    <script type="module" src="auth.js"></script>
+    <script type="module" src="index.js"></script>
 </body>
 </html>
