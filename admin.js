@@ -38,17 +38,17 @@ onAuthStateChanged(auth, async (user) => {
 
         const data = userDoc.data();
 
-        // 관리자 확인
+        // 관리자 권한 확인
         if (data.role !== "admin") {
             alert("관리자만 접근 가능합니다.");
             location.href = "index.html";
             return;
         }
 
-        console.log("관리자 로그인 :", data.name);
+        console.log("관리자 로그인 :", data.name || user.email);
 
         // ✅ 관리자 인증 완료 후 전체 회원 목록 불러오기 실행
-        loadUserList();
+        await loadUserList();
 
     } catch (error) {
         console.error("권한 확인 실패:", error);
@@ -94,7 +94,7 @@ async function loadUserList() {
                 ticketCount = userData.remainingCount;
             }
 
-            // HTML 테이블 행 생성 (HTML 구조에 맞춰 조정 가능)
+            // HTML 테이블 행 생성
             const tr = document.createElement("tr");
             tr.innerHTML = `
                 <td>${name}</td>
@@ -103,7 +103,7 @@ async function loadUserList() {
                     <input type="number" id="input-${uid}" value="${ticketCount}" style="width: 60px; text-align: center; padding: 4px; border: 1px solid #ccc; border-radius: 4px;" min="0"> 회
                 </td>
                 <td>
-                    <button type="button" onclick="updateUserTicket('${uid}')" style="background:#3b82f6; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">
+                    <button type="button" class="btn-save" data-uid="${uid}" style="background:#3b82f6; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">
                         저장
                     </button>
                 </td>
@@ -111,6 +111,9 @@ async function loadUserList() {
 
             userListContainer.appendChild(tr);
         });
+
+        // 💡 생성된 버튼들에 이벤트 리스너 연결 (더 안전함)
+        attachSaveEventListeners();
 
     } catch (error) {
         console.error("회원 목록 불러오기 실패:", error);
@@ -120,9 +123,26 @@ async function loadUserList() {
 
 
 // ==========================
-// 회원 횟수 수정/충전 (예약 페이지와 연동 핵심)
+// 이벤트 리스너 바인딩
 // ==========================
-window.updateUserTicket = async function(uid) {
+function attachSaveEventListeners() {
+    const saveButtons = document.querySelectorAll(".btn-save");
+    
+    saveButtons.forEach((btn) => {
+        btn.addEventListener("click", async (e) => {
+            const uid = e.target.getAttribute("data-uid");
+            if (uid) {
+                await updateUserTicket(uid);
+            }
+        });
+    });
+}
+
+
+// ==========================
+// 회원 횟수 수정/충전
+// ==========================
+async function updateUserTicket(uid) {
     const inputEl = document.getElementById(`input-${uid}`);
     if (!inputEl) return;
 
@@ -139,19 +159,19 @@ window.updateUserTicket = async function(uid) {
     try {
         const userRef = doc(db, "users", uid);
 
-        // ✨ 예약페이지와 완전 연동되도록 'ticketCount' 필드로 저장
+        // ✨ 이전 버전과의 호환성을 위해 필요 시 주요 필드 동시 반영 가능
         await updateDoc(userRef, {
             ticketCount: newTicketCount
         });
 
         alert("횟수가 성공적으로 수정되었습니다.");
-        loadUserList(); // 목록 새로고침
+        await loadUserList(); // 목록 새로고침
 
     } catch (error) {
         console.error("횟수 수정 실패:", error);
         alert("횟수 수정 중 오류가 발생했습니다.");
     }
-};
+}
 
 
 // ==========================
@@ -161,8 +181,12 @@ const logoutBtn = document.getElementById("logoutBtn");
 
 if (logoutBtn) {
     logoutBtn.onclick = async () => {
-        await signOut(auth);
-        alert("로그아웃 되었습니다.");
-        location.href = "index.html";
+        try {
+            await signOut(auth);
+            alert("로그아웃 되었습니다.");
+            location.href = "index.html";
+        } catch (error) {
+            console.error("로그아웃 실패:", error);
+        }
     };
 }
