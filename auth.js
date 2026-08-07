@@ -12,8 +12,7 @@ import {
 import {
     doc,
     setDoc,
-    getDoc,
-    updateDoc
+    getDoc
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
 
@@ -181,7 +180,7 @@ const logoutBtn = document.getElementById("logoutBtn");
 
 if (logoutBtn) {
     logoutBtn.addEventListener("click", async (e) => {
-        e.preventDefault(); // a 태그 기본 동작(페이지 상단 이동 등) 방지
+        e.preventDefault();
         await signOut(auth);
         showToast("로그아웃 되었습니다.");
         
@@ -204,7 +203,7 @@ onAuthStateChanged(auth, async (user) => {
     const myUserNameEl = document.getElementById("myUserName");
     const myTicketCountEl = document.getElementById("myTicketCount");
 
-    // 관리자 전용 메뉴 일괄 선택 (bookingListLink, memberManageLink 포함)
+    // 관리자 전용 메뉴 일괄 선택
     const adminOnlyElements = document.querySelectorAll(".admin-only");
 
     if (user) {
@@ -215,20 +214,33 @@ onAuthStateChanged(auth, async (user) => {
         let ticketCount = 0;
 
         try {
+            let userData = null;
+
+            // 1. user.uid 문서 조회
             const userRef = doc(db, "users", user.uid);
             const userDoc = await getDoc(userRef);
 
             if (userDoc.exists()) {
-                const userData = userDoc.data();
+                userData = userDoc.data();
+            } else {
+                // 2. 만약 UID 문서가 없으면 전화번호(이메일 앞자리) ID 문서 조회 시도
+                const phone = user.email ? user.email.split("@")[0] : "";
+                if (phone) {
+                    const phoneRef = doc(db, "users", phone);
+                    const phoneDoc = await getDoc(phoneRef);
+                    if (phoneDoc.exists()) {
+                        userData = phoneDoc.data();
+                    }
+                }
+            }
+
+            if (userData) {
                 userName = userData.name || "회원";
                 role = userData.role || "member";
 
-                if (userData.ticketCount === undefined) {
-                    await updateDoc(userRef, { ticketCount: 0 });
-                    ticketCount = 0;
-                } else {
-                    ticketCount = userData.ticketCount;
-                }
+                // 📌 핵심 수정: updateDoc(0) 덮어쓰기 로직 제거!
+                // ticketCount, remainingCount 중 존재하는 필드값을 안전하게 가져옵니다.
+                ticketCount = userData.ticketCount ?? userData.remainingCount ?? 0;
 
                 console.log("Firestore 이름:", userName, "권한:", role, "잔여 횟수:", ticketCount);
             }
@@ -248,7 +260,7 @@ onAuthStateChanged(auth, async (user) => {
         if (myUserNameEl) myUserNameEl.innerText = `${userName} 님`;
         if (myTicketCountEl) myTicketCountEl.innerText = `${ticketCount} 회`;
 
-        // 3. 관리자 전용 메뉴 표시 제어 (bookingListLink + memberManageLink 일괄 제어)
+        // 3. 관리자 전용 메뉴 표시 제어
         if (role === "admin") {
             adminOnlyElements.forEach(el => el.style.display = "inline-block");
         } else {
@@ -256,7 +268,7 @@ onAuthStateChanged(auth, async (user) => {
         }
 
     } else {
-        // 비로그인 (로그아웃) 상태일 때 초기화
+        // 비로그인 상태일 때 초기화
         if (guestMenu) guestMenu.style.display = "flex";
         if (memberMenu) memberMenu.style.display = "none";
 
