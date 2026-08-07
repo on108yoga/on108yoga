@@ -533,8 +533,10 @@
                 <a href="signup.html">회원가입</a>
             </div>   
             <div id="memberMenu" style="display:none;">
-                <a href="./booking-list.html" id="memberManageLink" style="display:none;">레슨예약현황</a>
-                <a href="members.html" id="memberManageLink" style="display:none;">회원관리</a>                    
+                <!-- 관리자 전용 메뉴 (admin-only 클래스 추가 및 고유 ID 부여) -->
+                <a href="./booking-list.html" id="bookingListLink" class="admin-only" style="display:none;">레슨예약현황</a>
+                <a href="members.html" id="memberManageLink" class="admin-only" style="display:none;">회원관리</a>
+                <!-- 일반 회원 공통 메뉴 -->                 
                 <a href="reservation.html">예약</a>
                 <a href="mypage.html">마이페이지</a>
                 <span id="userInfo"></span>
