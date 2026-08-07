@@ -64,33 +64,33 @@ function getCurrentTimeString() {
 
 // 사용자 실제 Document Reference 탐색 헬퍼 함수
 // 사용자 문서 참조 헬퍼 함수 (전화번호 문서 우선 탐색)
+// 1. 사용자 문서 탐색 (전화번호 문서 최우선 탐색 -> members.html과 동기화)
 async function getUserDocRef(user) {
     if (!user) return null;
 
-    // 1. 이메일에서 전화번호 추출 (예: 01022222222@... -> 01022222222)
+    // 이메일 주소 앞자리(전화번호) 추출
     const phone = user.email ? user.email.split("@")[0] : "";
-    
-    // 2. 전화번호 ID 문서가 존재하는지 최우선 확인
+
+    // ① members.html에서 수정하는 전화번호 문서를 최우선 확인
     if (phone) {
         const phoneRef = doc(db, "users", phone);
         const phoneSnap = await getDoc(phoneRef);
         if (phoneSnap.exists()) {
-            return phoneRef; // 01022222222 문서를 사용
+            return phoneRef;
         }
     }
 
-    // 3. 전화번호 문서가 없을 경우에만 UID 문서 확인
+    // ② 전화번호 문서가 없을 경우 UID 문서 확인
     const uidRef = doc(db, "users", user.uid);
     const uidSnap = await getDoc(uidRef);
     if (uidSnap.exists()) {
         return uidRef;
     }
 
-    // 4. 둘 다 없으면 기본값으로 전화번호 또는 UID 리턴
-    return phone ? doc(db, "users", phone) : uidRef;
+    return uidRef;
 }
 
-// 사용자 프로필 실시간 수신
+// 2. 사용자 프로필 실시간 수신 (remainingCount 1순위 조회)
 async function listenUserProfile(user) {
     if (!user) return;
     if (unsubscribeUser) unsubscribeUser();
@@ -105,14 +105,10 @@ async function listenUserProfile(user) {
             const userData = userSnap.data();
             if (userData.name) userName = userData.name;
 
-            // 💡 필드 탐색 순서: ticketCount -> remainingCount -> remCount
-            if (userData.ticketCount !== undefined && userData.ticketCount !== null) {
-                remCount = Number(userData.ticketCount);
-            } else if (userData.remainingCount !== undefined && userData.remainingCount !== null) {
-                remCount = Number(userData.remainingCount);
-            } else if (userData.remCount !== undefined && userData.remCount !== null) {
-                remCount = Number(userData.remCount);
-            }
+            // 💡 members.html에서 수정하는 remainingCount를 1순위로 읽도록 변경
+            remCount = Number(
+                userData.remainingCount ?? userData.ticketCount ?? userData.remCount ?? 0
+            );
         }
 
         // 로컬 스토리지 캐시 최신화
