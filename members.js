@@ -529,6 +529,8 @@ window.updateUserTicket = async () => {
             ticketType,
             totalCount: inputTotalCount,
             remainingCount: inputRemainingCount,
+            ticketCount: inputRemainingCount,      // 👈 추가: reservation.js 호환용
+            remCount: inputRemainingCount,         // 👈 추가: 호환용
             startDate,
             endDate,
             totalCancelLimit,
