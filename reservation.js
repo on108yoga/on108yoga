@@ -301,7 +301,7 @@ function loadMyReservation() {
 }
 
 // ==========================================
-// 📌 예약 처리 로직 (트랜잭션 필드 동기화 보완)
+// 📌 예약 처리 로직 (디버깅 로그 포함)
 // ==========================================
 async function handleReservation() {
     if (isReserving) return;
@@ -367,7 +367,7 @@ async function handleReservation() {
             return;
         }
 
-        // 💡 실시간 감지와 동일한 사용자 문서 경로 추출
+        // 💡 사용자 문서 참조 가져오기
         const userDocRef = await getUserDocRef(user);
 
         // 3. 트랜잭션 (이용권 차감 및 필드 완전 동기화)
@@ -379,12 +379,22 @@ async function handleReservation() {
             }
 
             const userData = userSnap.data();
+
+            // 🔍 [디버깅 로그] 어떤 문서에서 데이터를 읽었는지 콘솔에 출력
+            console.log("🔍 [예약 시도] 읽어온 문서 ID:", userDocRef.id);
+            console.log("🔍 [예약 시도] 문서 전체 데이터:", userData);
+
             let userName = userData.name || user.displayName || "회원";
             
-            // 💡 1순위: remainingCount, 2순위: ticketCount, 3순위: remCount
-            let remCount = Number(
-                userData.remainingCount ?? userData.ticketCount ?? userData.remCount ?? 0
-            );
+            // 💡 remainingCount -> ticketCount -> remCount 순서로 횟수 판별
+            let remCount = 0;
+            if (userData.remainingCount !== undefined && userData.remainingCount !== null) {
+                remCount = Number(userData.remainingCount);
+            } else if (userData.ticketCount !== undefined && userData.ticketCount !== null) {
+                remCount = Number(userData.ticketCount);
+            } else if (userData.remCount !== undefined && userData.remCount !== null) {
+                remCount = Number(userData.remCount);
+            }
 
             let currentUsedCount = Number(userData.usedCount ?? userData.usedTickets ?? userData.used ?? 0);
 
@@ -407,7 +417,7 @@ async function handleReservation() {
             // 1회 차감 계산
             const newCount = remCount - 1;
             
-            // 💡 모든 호환용 횟수 필드를 동시에 1씩 차감 업데이트
+            // 💡 모든 횟수 필드를 동시에 차감 업데이트
             const userUpdates = {
                 remainingCount: newCount,
                 ticketCount: newCount,
