@@ -63,19 +63,31 @@ function getCurrentTimeString() {
 }
 
 // 사용자 실제 Document Reference 탐색 헬퍼 함수
+// 사용자 문서 참조 헬퍼 함수 (전화번호 문서 우선 탐색)
 async function getUserDocRef(user) {
     if (!user) return null;
-    const uidRef = doc(db, "users", user.uid);
-    const uidSnap = await getDoc(uidRef);
-    if (uidSnap.exists()) return uidRef;
 
+    // 1. 이메일에서 전화번호 추출 (예: 01022222222@... -> 01022222222)
     const phone = user.email ? user.email.split("@")[0] : "";
+    
+    // 2. 전화번호 ID 문서가 존재하는지 최우선 확인
     if (phone) {
         const phoneRef = doc(db, "users", phone);
         const phoneSnap = await getDoc(phoneRef);
-        if (phoneSnap.exists()) return phoneRef;
+        if (phoneSnap.exists()) {
+            return phoneRef; // 01022222222 문서를 사용
+        }
     }
-    return uidRef; // 기본값 반환
+
+    // 3. 전화번호 문서가 없을 경우에만 UID 문서 확인
+    const uidRef = doc(db, "users", user.uid);
+    const uidSnap = await getDoc(uidRef);
+    if (uidSnap.exists()) {
+        return uidRef;
+    }
+
+    // 4. 둘 다 없으면 기본값으로 전화번호 또는 UID 리턴
+    return phone ? doc(db, "users", phone) : uidRef;
 }
 
 // 사용자 프로필 실시간 수신
