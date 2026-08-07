@@ -314,7 +314,7 @@ function renderMyPageUI(data, docId = "") {
                 <span style="font-size: 14px; font-weight: 600; color: #ff6b00;">
                     알림! ${cleanTicketName} 
                     <span style="color: #888888; font-weight: normal;">(${ticketDate})</span>
-                    가 완료되었습니다 :)
+                    등록이 완료되었습니다 :)
                 </span>
             `;
         }
