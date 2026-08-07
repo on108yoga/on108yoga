@@ -379,7 +379,7 @@
                     
                 <!-- 💡 [핵심 추가] 이용권 횟수 설정 (총 횟수 / 잔여 횟수 입력) -->
                 <div style="margin-bottom: 12px;">
-                    <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px;">이용권 횟수 설정</label>
+                    <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px;">이용권 횟수 설정(총횟수/잔여횟수)</label>
                     <div style="display: flex; gap: 10px;">
                         <input type="number" id="edit-total-count" placeholder="총 횟수" style="width: 50%;">
                         <input type="number" id="edit-remaining-count" placeholder="잔여 횟수" style="width: 50%;">
@@ -418,6 +418,7 @@
                 <div class="btn-group">
                     <button class="btn btn-primary" onclick="updateUserTicket()">이용권 저장/수정</button>
                     <button type="button" class="btn" style="background-color: #f97316; color: white;" onclick="refundUserTicket()">이용권 환불/취소</button>
+                    <p>*환불/취소: 금액입력 -> 횟수 입력</p>
                     <button class="btn btn-secondary" onclick="resetUserTicket()">이용권 초기화(제거)</button>
                     <button class="btn btn-danger" onclick="deleteCurrentMember()">회원 삭제</button>
                 </div> 
