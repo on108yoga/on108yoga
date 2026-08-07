@@ -1,4 +1,4 @@
-// mypage.js (중복 제거 및 완전체 버전 - 페이지네이션 & 만료처리 포함)
+// mypage.js (로그아웃 기능 추가 및 에러 수정 완료 버전)
 import { db, auth } from './firebase.js';
 import { 
     doc, 
@@ -6,11 +6,11 @@ import {
     collection,
     query,
     where,
-    getDocs,
-    orderBy
+    getDocs
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 import { 
-    onAuthStateChanged 
+    onAuthStateChanged,
+    signOut 
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
 let unsubscribeUser = null;
@@ -18,7 +18,36 @@ let unsubscribeUser = null;
 // 📌 페이지네이션 전역 상태 변수
 let allMyReservations = []; // 내 전체 예약 목록 데이터
 let currentPage = 1;
-const itemsPerPage = 10;   // 한 페이지당 10개씩 표시
+const itemsPerPage = 10;    // 한 페이지당 10개씩 표시
+
+// 📌 DOM 로드 후 로그아웃 버튼 이벤트 등록
+document.addEventListener("DOMContentLoaded", () => {
+    // HTML 상의 로그아웃 버튼 ID를 확인하세요 (예: id="logout-btn" 또는 id="btn-logout")
+    const logoutBtn = document.getElementById('logout-btn') || document.getElementById('btn-logout');
+    
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
+    }
+});
+
+// 📌 로그아웃 처리 함수
+async function handleLogout(e) {
+    if (e) e.preventDefault();
+
+    if (confirm("정말 로그아웃 하시겠습니까?")) {
+        try {
+            // 실시간 리스너 해제
+            if (unsubscribeUser) unsubscribeUser();
+            
+            await signOut(auth);
+            alert("로그아웃 되었습니다.");
+            window.location.href = "index.html"; // 로그인 페이지 또는 메인으로 이동
+        } catch (error) {
+            console.error("🚨 로그아웃 처리 중 오류 발생:", error);
+            alert("로그아웃에 실패했습니다. 다시 시도해 주세요.");
+        }
+    }
+}
 
 // 로그인 상태 감지
 onAuthStateChanged(auth, async (user) => {
@@ -30,17 +59,6 @@ onAuthStateChanged(auth, async (user) => {
         window.location.href = "index.html";
     }
 });
-
-// 마이페이지 데이터 로딩 예시
-const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-
-if (userDoc.exists()) {
-  const data = userDoc.data();
-  // remainingCount가 없거나 undefined일 때 무조건 0이 아닌 기본값을 고려
-  document.getElementById("myCount").innerText = data.remainingCount ?? 0; 
-} else {
-  console.log("사용자 정보가 없습니다.");
-}
 
 // 📌 [1] 내 예약 목록 불러오기 함수
 async function loadMyReservations(userOrUid) {
@@ -57,7 +75,7 @@ async function loadMyReservations(userOrUid) {
         const uid = typeof userOrUid === 'string' ? userOrUid : (userOrUid?.uid || currentUser?.uid || "");
         const rawEmail = currentUser?.email || "";
         
-        // @yoga.local 같은 가상 이메일에서 Pure ID(전화번호)만 추출 (예: 01021230991)
+        // 가상 이메일에서 Pure ID(전화번호)만 추출
         const pureId = rawEmail.includes('@') ? rawEmail.split('@')[0] : rawEmail;
         const cleanPhone = pureId.replace(/[^0-9]/g, '');
 
@@ -69,15 +87,13 @@ async function loadMyReservations(userOrUid) {
 
         allMyReservations = [];
 
-        // 3. 다양한 필드명/값 형태를 모두 비교하여 내 예약 필터링
+        // 3. 내 예약 필터링
         querySnapshot.forEach((docSnap) => {
             const data = docSnap.data();
             
-            // DB에 저장될 수 있는 다양한 필드값
             const targetUser = String(data.userId || data.uid || data.phone || data.user_id || data.memberId || "");
             const targetPhone = targetUser.replace(/[^0-9]/g, '');
 
-            // 매칭 조건: UID 일치 OR 순수아이디/이메일 일치 OR 전화번호 일치
             const isMatch = 
                 (uid && targetUser === uid) ||
                 (pureId && targetUser === pureId) ||
@@ -103,10 +119,10 @@ async function loadMyReservations(userOrUid) {
             return;
         }
 
-        // 날짜 내림차순 정렬 (최신 날짜 우선)
+        // 날짜 내림차순 정렬
         allMyReservations.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
-        // 4. 첫 페이지 렌더링 호출
+        // 4. 첫 페이지 렌더링
         currentPage = 1;
         renderReservationPage(currentPage);
 
@@ -118,21 +134,20 @@ async function loadMyReservations(userOrUid) {
     }
 }
 
-// 📌 [1-1] 특정 페이지의 예약 목록(10개씩)을 화면에 출력하는 함수
+// 📌 [1-1] 특정 페이지 예약 목록 출력 함수
 function renderReservationPage(page) {
     const listContainer = document.getElementById('reservation-list');
     if (!listContainer) return;
 
     listContainer.innerHTML = '';
 
-    // 오늘 날짜 계산 (YYYY-MM-DD 형식)
+    // 오늘 날짜 계산 (YYYY-MM-DD)
     const today = new Date();
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
     const todayStr = `${year}-${month}-${day}`;
 
-    // 페이지에 맞는 10개 데이터만 슬라이싱
     const startIndex = (page - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const pageData = allMyReservations.slice(startIndex, endIndex);
@@ -141,16 +156,13 @@ function renderReservationPage(page) {
         const itemCard = document.createElement('div');
         itemCard.className = 'reservation-card';
 
-        // 💡 지난 날짜 판별 조건 (오늘 날짜보다 이전인 경우)
         const isPastDate = res.date && res.date < todayStr;
         const isCanceled = res.status === 'canceled';
 
-        // 상태 배지 생성
         let statusBadge = '';
         if (isCanceled) {
             statusBadge = `<span class="badge badge-canceled">취소됨</span>`;
         } else if (isPastDate) {
-            // 지난 날짜일 경우 붉은색 예약만료 표시!
             statusBadge = `<span class="badge badge-expired-red">예약만료</span>`;
         } else {
             statusBadge = `<span class="badge badge-active">예약완료</span>`;
@@ -169,14 +181,11 @@ function renderReservationPage(page) {
         listContainer.appendChild(itemCard);
     });
 
-    // 페이지 이동 후 카드 영역 맨 위로 스크롤
     listContainer.scrollTop = 0;
-
-    // 하단 페이지네이션 번호 버튼 생성
     renderPaginationControls(allMyReservations.length, page);
 }
 
-// 📌 [1-2] 하단 페이지 번호 버튼 (1, 2, 3...) 생성 함수
+// 📌 [1-2] 하단 페이지 번호 버튼 생성 함수
 function renderPaginationControls(totalItems, activePage) {
     const paginationContainer = document.getElementById('reservation-pagination');
     if (!paginationContainer) return;
@@ -184,7 +193,6 @@ function renderPaginationControls(totalItems, activePage) {
     paginationContainer.innerHTML = '';
     const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-    // 총 페이지가 1 이하일 때는 버튼을 표시하지 않음
     if (totalPages <= 1) return;
 
     for (let i = 1; i <= totalPages; i++) {
@@ -199,11 +207,11 @@ function renderPaginationControls(totalItems, activePage) {
     }
 }
 
-// [2] 회원 데이터 동기화 시작
+// 📌 [2] 회원 데이터 동기화 시작
 async function initMyPageSync(user) {
     if (unsubscribeUser) unsubscribeUser();
 
-    // 🆔 1. Auth 기준 기본 아이디 우선 표시 (이메일 또는 전화번호)
+    // 1. Auth 기준 기본 아이디 표시
     const userIdElem = document.getElementById('user-id');
     if (userIdElem) {
         const rawPhone = user.phoneNumber || "";
@@ -220,7 +228,6 @@ async function initMyPageSync(user) {
         if (!uidSnap.empty) {
             console.log("✅ [1단계 성공] Auth UID 매칭:", user.uid);
             bindRealtimeListener(uidDocRef);
-            // 예약 내역 불러오기 함수 호출
             loadMyReservations(user);
             return;
         }
@@ -237,7 +244,7 @@ async function initMyPageSync(user) {
     }
 
     if (cleanPhone) {
-        const phoneDocRef = doc(doc(db, 'users', cleanPhone));
+        const phoneDocRef = doc(db, 'users', cleanPhone);
         console.log("🔍 [2단계 시도] 전화번호 문서 ID 탐색:", cleanPhone);
         bindRealtimeListener(phoneDocRef);
         loadMyReservations(user);
@@ -266,7 +273,6 @@ function bindRealtimeListener(docRef) {
 function renderMyPageUI(data, docId = "") {
     const user = auth.currentUser;
 
-    // 🆔 2. 아이디 표시 (DB의 userId/email 필드 -> 문서 ID -> Auth 이메일/전화번호 순)
     const userIdElem = document.getElementById('user-id');
     if (userIdElem) {
         let authPhone = (user?.phoneNumber || "").replace(/[^0-9]/g, '');
@@ -290,7 +296,7 @@ function renderMyPageUI(data, docId = "") {
     const userNameElem = document.getElementById('user-name');
     if (userNameElem) userNameElem.innerText = data.name || "회원";
 
-// 2. 이용권 정보
+    // 2. 이용권 정보
     const ticketNameElem = document.getElementById('ticket-name');
     const totalCountElem = document.getElementById('total-count');
     const remainingCountElem = document.getElementById('remaining-count');
@@ -303,13 +309,11 @@ function renderMyPageUI(data, docId = "") {
         if (ticketNameElem) {
             const ticketDate = data.startDate || "날짜 미정";
             
-            // 💡 1) "(30회)" 같은 괄호 및 이미 들어있는 "추가" 단어 제거
             let cleanTicketName = data.ticketType
-                .replace(/\(\d+회\)/g, '') // (30회) 같은 괄호 제거
-                .replace(/추가/g, '')       // 기존 텍스트에 포함된 '추가' 제거
+                .replace(/\(\d+회\)/g, '')
+                .replace(/추가/g, '')
                 .trim();
             
-            // 💡 2문구 정돈: "알림! 20회권 추가 (2026-07-25) 가 완료되었습니다 :)"
             ticketNameElem.innerHTML = `
                 <span style="font-size: 14px; font-weight: 600; color: #ff6b00;">
                     알림! ${cleanTicketName} 
