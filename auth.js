@@ -180,7 +180,8 @@ if (loginForm) {
 const logoutBtn = document.getElementById("logoutBtn");
 
 if (logoutBtn) {
-    logoutBtn.addEventListener("click", async () => {
+    logoutBtn.addEventListener("click", async (e) => {
+        e.preventDefault(); // a 태그 기본 동작(페이지 상단 이동 등) 방지
         await signOut(auth);
         showToast("로그아웃 되었습니다.");
         
@@ -192,19 +193,19 @@ if (logoutBtn) {
 
 
 // =================
-// 로그인 상태 확인 & 프로필/잔여횟수 UI 연동
+// 로그인 상태 확인 & 프로필/잔여횟수/메뉴 UI 연동
 // =================
 onAuthStateChanged(auth, async (user) => {
     const userInfo = document.getElementById("userInfo");
     const guestMenu = document.getElementById("guestMenu");
     const memberMenu = document.getElementById("memberMenu");
 
-    // reservation.html 페이지 상단 카드 요소
+    // reservation.html / mypage.html 등 프로필 카드 요소
     const myUserNameEl = document.getElementById("myUserName");
     const myTicketCountEl = document.getElementById("myTicketCount");
 
-    // 관리자 전용 링크 전체 가져오기 (admin-only 클래스 활용)
-    const adminOnlyLinks = document.querySelectorAll(".admin-only");
+    // 관리자 전용 메뉴 일괄 선택 (bookingListLink, memberManageLink 포함)
+    const adminOnlyElements = document.querySelectorAll(".admin-only");
 
     if (user) {
         console.log("로그인 UID:", user.uid);
@@ -235,11 +236,11 @@ onAuthStateChanged(auth, async (user) => {
             console.log("사용자 정보 불러오기 실패", error);
         }
 
-        // 1. 메뉴 영역 스위칭 (게스트 메뉴 숨기고 회원 메뉴 표시)
+        // 1. 게스트/회원 메뉴 스위칭
         if (guestMenu) guestMenu.style.display = "none";
         if (memberMenu) memberMenu.style.display = "flex";
 
-        // 2. 상단 텍스트 및 마이페이지 카드 데이터 반영
+        // 2. 사용자 정보 표시
         if (userInfo) {
             userInfo.style.display = "inline";
             userInfo.innerHTML = `👋 ${userName}님`;
@@ -247,15 +248,15 @@ onAuthStateChanged(auth, async (user) => {
         if (myUserNameEl) myUserNameEl.innerText = `${userName} 님`;
         if (myTicketCountEl) myTicketCountEl.innerText = `${ticketCount} 회`;
 
-        // 3. 관리자 메뉴 노출 제어 (admin-only 클래스를 가진 모든 요소 대상)
+        // 3. 관리자 전용 메뉴 표시 제어 (bookingListLink + memberManageLink 일괄 제어)
         if (role === "admin") {
-            adminOnlyLinks.forEach(el => el.style.display = "inline-block");
+            adminOnlyElements.forEach(el => el.style.display = "inline-block");
         } else {
-            adminOnlyLinks.forEach(el => el.style.display = "none");
+            adminOnlyElements.forEach(el => el.style.display = "none");
         }
 
     } else {
-        // ✅ 비로그인(로그아웃) 상태일 때 처리
+        // 비로그인 (로그아웃) 상태일 때 초기화
         if (guestMenu) guestMenu.style.display = "flex";
         if (memberMenu) memberMenu.style.display = "none";
 
@@ -263,6 +264,6 @@ onAuthStateChanged(auth, async (user) => {
         if (myUserNameEl) myUserNameEl.innerText = "- 님";
         if (myTicketCountEl) myTicketCountEl.innerText = "- 회";
 
-        adminOnlyLinks.forEach(el => el.style.display = "none");
+        adminOnlyElements.forEach(el => el.style.display = "none");
     }
 });
