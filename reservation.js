@@ -23,7 +23,7 @@ let isReserving = false;
 let isCanceling = false;
 
 const MAX_PEOPLE = 10;
-const DEFAULT_INITIAL_TICKETS = 4;
+const DEFAULT_INITIAL_TICKETS = 0; // auth.js 기준 기본 회원가입 티켓 수
 
 const weeklySchedule = {
     0: [],
@@ -78,8 +78,9 @@ function listenUserProfile(user) {
             const userData = userSnap.data();
             if (userData.name) userName = userData.name;
 
-            if (userData.remainingCount !== undefined) remCount = Number(userData.remainingCount);
-            else if (userData.ticketCount !== undefined) remCount = Number(userData.ticketCount);
+            // auth.js와 맞추어 ticketCount를 최우선 확인
+            if (userData.ticketCount !== undefined) remCount = Number(userData.ticketCount);
+            else if (userData.remainingCount !== undefined) remCount = Number(userData.remainingCount);
             else if (userData.remCount !== undefined) remCount = Number(userData.remCount);
         }
 
@@ -116,7 +117,7 @@ function renderTimeButtons(selectedDateStr) {
     container.innerHTML = '';
 
     if (availableTimes.length === 0) {
-        container.innerHTML = `<p style="color:#9ca3af; font-size:14px;">해당 요일은 수업이 없습니다.</p>`;
+        container.innerHTML = `<p style="color:#9ca3af; font-size:14px; padding:10px 0;">해당 요일은 수업이 없습니다.</p>`;
         return;
     }
 
@@ -258,6 +259,9 @@ function loadMyReservation() {
     });
 }
 
+// ==========================================
+// 📌 예약 처리 로직 (동시성 제어 적용)
+// ==========================================
 async function handleReservation() {
     if (isReserving) return;
 
@@ -297,6 +301,7 @@ async function handleReservation() {
             reserveBtn.innerText = "예약 처리 중...";
         }
 
+        // 1차 사전 체크 (빠른 알림)
         const dupQuery = query(
             collection(db, "reservations"),
             where("uid", "==", user.uid),
@@ -322,6 +327,7 @@ async function handleReservation() {
 
         const userDocRef = doc(db, "users", user.uid);
 
+        // 2차 트랜잭션 (데이터 일관성 보장)
         await runTransaction(db, async (transaction) => {
             const userSnap = await transaction.get(userDocRef);
 
@@ -331,16 +337,17 @@ async function handleReservation() {
 
             const userData = userSnap.data();
             let userName = userData.name || user.displayName || "회원";
-            let countFieldName = "remainingCount";
+            let countFieldName = "ticketCount";
             let remCount = 0;
             let currentUsedCount = Number(userData.usedCount ?? userData.usedTickets ?? userData.used ?? 0);
 
-            if (userData.remainingCount !== undefined) {
-                remCount = Number(userData.remainingCount);
-                countFieldName = "remainingCount";
-            } else if (userData.ticketCount !== undefined) {
+            // 필드명 상호 호환 (ticketCount 우선)
+            if (userData.ticketCount !== undefined) {
                 remCount = Number(userData.ticketCount);
                 countFieldName = "ticketCount";
+            } else if (userData.remainingCount !== undefined) {
+                remCount = Number(userData.remainingCount);
+                countFieldName = "remainingCount";
             } else if (userData.remCount !== undefined) {
                 remCount = Number(userData.remCount);
                 countFieldName = "remCount";
@@ -389,6 +396,9 @@ async function handleReservation() {
     }
 }
 
+// ==========================================
+// 📌 예약 취소 로직
+// ==========================================
 async function cancelReservation(resId) {
     if (isCanceling) return;
 
@@ -430,16 +440,16 @@ async function cancelReservation(resId) {
                 ? Number(userData.remainingTodayCancelCount) 
                 : (userData.remainingTodayCancel !== undefined ? Number(userData.remainingTodayCancel) : 3);
 
-            let countFieldName = "remainingCount";
+            let countFieldName = "ticketCount";
             let remCount = 0;
             let currentUsedCount = Number(userData.usedCount ?? userData.usedTickets ?? userData.used ?? 0);
 
-            if (userData.remainingCount !== undefined) {
-                countFieldName = "remainingCount";
-                remCount = Number(userData.remainingCount);
-            } else if (userData.ticketCount !== undefined) {
+            if (userData.ticketCount !== undefined) {
                 countFieldName = "ticketCount";
                 remCount = Number(userData.ticketCount);
+            } else if (userData.remainingCount !== undefined) {
+                countFieldName = "remainingCount";
+                remCount = Number(userData.remainingCount);
             } else if (userData.remCount !== undefined) {
                 countFieldName = "remCount";
                 remCount = Number(userData.remCount);
@@ -490,19 +500,24 @@ async function cancelReservation(resId) {
     }
 }
 
-// ⚡ [핵심] 앱 켜짐과 동시에 즉시 실행 (0.1초 만에 화면 복원)
+// ⚡ [초기화] 앱 실행 시 오늘 날짜 기본 선택 및 캐시 복원
 document.addEventListener("DOMContentLoaded", () => {
     const cachedName = localStorage.getItem("cached_userName");
     const cachedTicket = localStorage.getItem("cached_ticketCount");
 
-    if (cachedName && cachedTicket) {
+    if (cachedName && cachedTicket !== null) {
         const nameElement = document.getElementById("myUserName");
         const countElement = document.getElementById("myTicketCount");
         if (nameElement) nameElement.innerText = `${cachedName} 님`;
         if (countElement) countElement.innerText = `${cachedTicket} 회`;
     }
 
-    // 💡 스플래시 오버레이가 있다면 앱 실행 후 즉시(0.2초 내) 제거하여 가리지 않도록 처리
+    // 기본 오늘 날짜 선택 처리
+    if (!selectedDate) {
+        const today = getTodayString();
+        window.setSelectedDate(today);
+    }
+
     setTimeout(hideSplash, 200);
 
     const reserveBtn = document.getElementById("reserveBtn");
@@ -511,9 +526,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// 백그라운드에서 인증 및 실시간 정보 동기화
+// 백그라운드 인증 상태 수신
 onAuthStateChanged(auth, (user) => {
-    hideSplash(); // 인증 상태 확인되면 무조건 스플래시 제거
+    hideSplash();
 
     if (user) {
         listenUserProfile(user);
