@@ -22,8 +22,8 @@ const itemsPerPage = 10;    // 한 페이지당 10개씩 표시
 
 // 📌 DOM 로드 후 로그아웃 버튼 이벤트 등록
 document.addEventListener("DOMContentLoaded", () => {
-    // HTML 상의 로그아웃 버튼 ID를 확인하세요 (예: id="logout-btn" 또는 id="btn-logout")
-    const logoutBtn = document.getElementById('logout-btn') || document.getElementById('btn-logout');
+    // HTML 상의 로그아웃 버튼 ID를 확인하세요 (예: id="logout-btn" 또는 id="logoutBtn")
+    const logoutBtn = document.getElementById('logout-btn') || document.getElementById('logoutBtn');
     
     if (logoutBtn) {
         logoutBtn.addEventListener('click', handleLogout);
