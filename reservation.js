@@ -62,7 +62,6 @@ function getCurrentTimeString() {
 }
 
 // 사용자 프로필 실시간 수신
-// 사용자 프로필 실시간 수신
 function listenUserProfile(user) {
     if (!user) return;
     if (unsubscribeUser) unsubscribeUser();
@@ -80,7 +79,6 @@ function listenUserProfile(user) {
             if (userData.name) userName = userData.name;
 
             // 💡 필드 탐색 순서: ticketCount -> remainingCount -> remCount
-            // 숫자로 정확히 변환하여 null/undefined/문자열 처리
             if (userData.ticketCount !== undefined && userData.ticketCount !== null) {
                 remCount = Number(userData.ticketCount);
             } else if (userData.remainingCount !== undefined && userData.remainingCount !== null) {
@@ -190,6 +188,7 @@ function loadReservationCounts() {
     });
 }
 
+// 내 예약 현황 불러오기
 function loadMyReservation() {
     const user = auth.currentUser;
     if (!user) return;
@@ -219,6 +218,7 @@ function loadMyReservation() {
             const isFutureDate = data.date > todayStr;
             const isTodayUpcoming = (data.date === todayStr && formattedTime >= currentTimeStr);
 
+            // 유효한 다가오는 예약만 목록에 추가
             if (isFutureDate || isTodayUpcoming) {
                 validReservations.push({ id: item.id, ...data });
             }
@@ -307,75 +307,6 @@ async function handleReservation() {
             reserveBtn.innerText = "예약 처리 중...";
         }
 
-        // 1차 사전 체크 (빠른 알림)
-        const dupQuery = query(
-            collection(db, "reservations"),
-            where("uid", "==", user.uid),
-            where("date", "==", selectedDate),
-            where("time", "==", selectedTime)
-        );
-        const dupSnap = await getDocs(dupQuery);
-        if (!dupSnap.empty) {
-            alert("⚠️ 이미 해당 시간대에 예약 신청하셨습니다.");
-            return;
-        }
-
-        const timeSlotQuery = query(
-            collection(db, "reservations"),
-            where("date", "==", selectedDate),
-            where("time", "==", selectedTime)
-        );
-        const timeSlotSnap = await getDocs(timeSlotQuery);
-        if (timeSlotSnap.size >= MAX_PEOPLE) {
-            alert("⚠️ 해당 시간대는 정원(10명)이 차서 더 이상 예약할 수 없습니다.");
-            return;
-        }
-
-        const userDocRef = doc(db, "users", user.uid);
-        
-// ==========================================
-// 📌 예약 처리 로직 (동시성 제어 적용)
-// ==========================================
-async function handleReservation() {
-    if (isReserving) return;
-
-    const user = auth.currentUser;
-    if (!user) {
-        alert("로그인 후 이용해 주세요.");
-        return;
-    }
-
-    if (!selectedDate) {
-        alert("날짜를 선택해 주세요.");
-        return;
-    }
-
-    if (!selectedTime) {
-        alert("시간을 선택해 주세요.");
-        return;
-    }
-
-    const todayStr = getTodayString();
-    const currentTimeStr = getCurrentTimeString();
-    
-    const selectedTimeOnly = selectedTime.split(" ")[0];
-    const formattedSelectedTime = selectedTimeOnly.length === 4 ? `0${selectedTimeOnly}` : selectedTimeOnly;
-    
-    if (selectedDate === todayStr && formattedSelectedTime <= currentTimeStr) {
-        alert("이미 지나간 시간은 예약할 수 없습니다.");
-        return;
-    }
-
-    const reserveBtn = document.getElementById("reserveBtn");
-
-    try {
-        isReserving = true;
-        if (reserveBtn) {
-            reserveBtn.disabled = true;
-            reserveBtn.innerText = "예약 처리 중...";
-        }
-
-        // 💡 1차 사전 체크 (트랜잭션 시작 전 빠른 피드백 제공)
         // 1. 중복 예약 검사
         const dupQuery = query(
             collection(db, "reservations"),
@@ -385,7 +316,7 @@ async function handleReservation() {
         );
         const dupSnap = await getDocs(dupQuery);
         if (!dupSnap.empty) {
-            alert("⚠️ 이미 해당 시간대에 예약 신청하셨증니다.");
+            alert("⚠️ 이미 해당 시간대에 예약 신청하셨습니다.");
             return;
         }
 
@@ -403,9 +334,8 @@ async function handleReservation() {
 
         const userDocRef = doc(db, "users", user.uid);
 
-        // 💡 2차 트랜잭션 (데이터 일관성 및 동시 차감 제어)
+        // 3. 트랜잭션 (데이터 일관성 및 이용권 차감)
         await runTransaction(db, async (transaction) => {
-            // [READ] 1. 트랜잭션 읽기 작업을 최상단에서 수행
             const userSnap = await transaction.get(userDocRef);
 
             if (!userSnap.exists()) {
@@ -417,7 +347,6 @@ async function handleReservation() {
             let remCount = 0;
             let currentUsedCount = Number(userData.usedCount ?? userData.usedTickets ?? userData.used ?? 0);
 
-            // 이용권 잔여 횟수 판단 (ticketCount -> remainingCount -> remCount 순)
             if (userData.ticketCount !== undefined && userData.ticketCount !== null) {
                 remCount = Number(userData.ticketCount);
             } else if (userData.remainingCount !== undefined && userData.remainingCount !== null) {
@@ -432,7 +361,6 @@ async function handleReservation() {
                 throw new Error(`NO_TICKETS:남은 이용권 횟수가 없습니다. (현재 잔여: ${remCount}회)`);
             }
 
-            // [WRITE] 2. 읽기가 완료된 후 쓰기 작업 수행
             const newResRef = doc(collection(db, "reservations"));
 
             transaction.set(newResRef, {
@@ -443,7 +371,6 @@ async function handleReservation() {
                 createdAt: serverTimestamp()
             });
 
-            // 데이터 일관성을 위해 ticketCount, remainingCount 모두 동기화
             const newCount = remCount - 1;
             const userUpdates = {
                 ticketCount: newCount,
