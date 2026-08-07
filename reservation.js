@@ -301,7 +301,7 @@ function loadMyReservation() {
 }
 
 // ==========================================
-// 📌 예약 처리 로직
+// 📌 예약 처리 로직 (트랜잭션 필드 동기화 보완)
 // ==========================================
 async function handleReservation() {
     if (isReserving) return;
@@ -367,9 +367,10 @@ async function handleReservation() {
             return;
         }
 
+        // 💡 실시간 감지와 동일한 사용자 문서 경로 추출
         const userDocRef = await getUserDocRef(user);
 
-        // 3. 트랜잭션 (이용권 차감 및 마이페이지 필드 동기화)
+        // 3. 트랜잭션 (이용권 차감 및 필드 완전 동기화)
         await runTransaction(db, async (transaction) => {
             const userSnap = await transaction.get(userDocRef);
 
@@ -379,25 +380,22 @@ async function handleReservation() {
 
             const userData = userSnap.data();
             let userName = userData.name || user.displayName || "회원";
-            let remCount = 0;
+            
+            // 💡 1순위: remainingCount, 2순위: ticketCount, 3순위: remCount
+            let remCount = Number(
+                userData.remainingCount ?? userData.ticketCount ?? userData.remCount ?? 0
+            );
+
             let currentUsedCount = Number(userData.usedCount ?? userData.usedTickets ?? userData.used ?? 0);
 
-            if (userData.ticketCount !== undefined && userData.ticketCount !== null) {
-                remCount = Number(userData.ticketCount);
-            } else if (userData.remainingCount !== undefined && userData.remainingCount !== null) {
-                remCount = Number(userData.remainingCount);
-            } else if (userData.remCount !== undefined && userData.remCount !== null) {
-                remCount = Number(userData.remCount);
-            } else {
-                remCount = DEFAULT_INITIAL_TICKETS;
-            }
-
+            // 잔여 횟수 검사
             if (remCount <= 0) {
                 throw new Error(`NO_TICKETS:남은 이용권 횟수가 없습니다. (현재 잔여: ${remCount}회)`);
             }
 
             const newResRef = doc(collection(db, "reservations"));
 
+            // 예약 데이터 저장
             transaction.set(newResRef, {
                 uid: user.uid,
                 name: userName,
@@ -406,11 +404,13 @@ async function handleReservation() {
                 createdAt: serverTimestamp()
             });
 
+            // 1회 차감 계산
             const newCount = remCount - 1;
             
+            // 💡 모든 호환용 횟수 필드를 동시에 1씩 차감 업데이트
             const userUpdates = {
-                ticketCount: newCount,
                 remainingCount: newCount,
+                ticketCount: newCount,
                 remCount: newCount,
                 usedCount: currentUsedCount + 1
             };
