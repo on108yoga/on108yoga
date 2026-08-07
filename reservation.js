@@ -334,7 +334,7 @@ async function handleReservation() {
 
         const userDocRef = doc(db, "users", user.uid);
 
-        // 3. 트랜잭션 (데이터 일관성 및 이용권 차감)
+        // 3. 트랜잭션 (이용권 차감 및 마이페이지 필드 동기화)
         await runTransaction(db, async (transaction) => {
             const userSnap = await transaction.get(userDocRef);
 
@@ -347,6 +347,7 @@ async function handleReservation() {
             let remCount = 0;
             let currentUsedCount = Number(userData.usedCount ?? userData.usedTickets ?? userData.used ?? 0);
 
+            // 기존 DB의 이용권 필드 값 추출
             if (userData.ticketCount !== undefined && userData.ticketCount !== null) {
                 remCount = Number(userData.ticketCount);
             } else if (userData.remainingCount !== undefined && userData.remainingCount !== null) {
@@ -372,9 +373,12 @@ async function handleReservation() {
             });
 
             const newCount = remCount - 1;
+            
+            // ✨ 마이페이지 및 다른 페이지에서 쓰는 필드(remCount, ticketCount, remainingCount)를 모두 같이 차감
             const userUpdates = {
                 ticketCount: newCount,
                 remainingCount: newCount,
+                remCount: newCount,
                 usedCount: currentUsedCount + 1
             };
 
@@ -403,7 +407,7 @@ async function handleReservation() {
 }
 
 // ==========================================
-// 📌 예약 취소 로직
+// 📌 예약 취소 로직 (마이페이지 필드 완벽 동기화)
 // ==========================================
 async function cancelReservation(resId) {
     if (isCanceling) return;
@@ -446,18 +450,14 @@ async function cancelReservation(resId) {
                 ? Number(userData.remainingTodayCancelCount) 
                 : (userData.remainingTodayCancel !== undefined ? Number(userData.remainingTodayCancel) : 3);
 
-            let countFieldName = "ticketCount";
             let remCount = 0;
             let currentUsedCount = Number(userData.usedCount ?? userData.usedTickets ?? userData.used ?? 0);
 
-            if (userData.ticketCount !== undefined) {
-                countFieldName = "ticketCount";
+            if (userData.ticketCount !== undefined && userData.ticketCount !== null) {
                 remCount = Number(userData.ticketCount);
-            } else if (userData.remainingCount !== undefined) {
-                countFieldName = "remainingCount";
+            } else if (userData.remainingCount !== undefined && userData.remainingCount !== null) {
                 remCount = Number(userData.remainingCount);
-            } else if (userData.remCount !== undefined) {
-                countFieldName = "remCount";
+            } else if (userData.remCount !== undefined && userData.remCount !== null) {
                 remCount = Number(userData.remCount);
             }
 
@@ -474,8 +474,13 @@ async function cancelReservation(resId) {
             const cancelFieldName = userData.remainingCancelCount !== undefined ? "remainingCancelCount" : "remainingCancel";
             const todayCancelFieldName = userData.remainingTodayCancelCount !== undefined ? "remainingTodayCancelCount" : "remainingTodayCancel";
 
+            const restoredCount = remCount + 1;
+
+            // ✨ 취소 복구 시에도 마이페이지의 모든 횟수 필드를 함께 복구
             const userUpdates = {
-                [countFieldName]: remCount + 1,
+                ticketCount: restoredCount,
+                remainingCount: restoredCount,
+                remCount: restoredCount,
                 usedCount: Math.max(0, currentUsedCount - 1),
                 [cancelFieldName]: Math.max(0, remainingCancel - 1)
             };
@@ -508,6 +513,7 @@ async function cancelReservation(resId) {
 
 // ⚡ [초기화] 앱 실행 시 오늘 날짜 기본 선택 및 캐시 복원
 document.addEventListener("DOMContentLoaded", () => {
+    // 1. 캐시된 유저 정보가 있다면 화면에 먼저 빠르게 표시 (스플래시 제거용)
     const cachedName = localStorage.getItem("cached_userName");
     const cachedTicket = localStorage.getItem("cached_ticketCount");
 
@@ -518,11 +524,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (countElement) countElement.innerText = `${cachedTicket} 회`;
     }
 
-    // 기본 오늘 날짜 선택 처리
-    if (!selectedDate) {
-        const today = getTodayString();
-        window.setSelectedDate(today);
-    }
+    // 2. 예약 페이지 진입 시 무조건 오늘 날짜로 캘린더 자동 선택 및 수업 로드
+    const today = getTodayString();
+    window.setSelectedDate(today);
 
     setTimeout(hideSplash, 200);
 
@@ -542,8 +546,10 @@ onAuthStateChanged(auth, (user) => {
     } else {
         if (unsubscribeUser) unsubscribeUser();
         if (unsubscribeMyRes) unsubscribeMyRes();
-        scheduleUnsubscribes.forEach(unsub => unsub());
-        scheduleUnsubscribes = [];
+        if (Array.isArray(scheduleUnsubscribes)) {
+            scheduleUnsubscribes.forEach(unsub => unsub());
+            scheduleUnsubscribes = [];
+        }
 
         localStorage.removeItem("cached_userName");
         localStorage.removeItem("cached_ticketCount");
