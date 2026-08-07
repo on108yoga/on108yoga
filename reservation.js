@@ -62,6 +62,7 @@ function getCurrentTimeString() {
 }
 
 // 사용자 프로필 실시간 수신
+// 사용자 프로필 실시간 수신
 function listenUserProfile(user) {
     if (!user) return;
     if (unsubscribeUser) unsubscribeUser();
@@ -78,15 +79,20 @@ function listenUserProfile(user) {
             const userData = userSnap.data();
             if (userData.name) userName = userData.name;
 
-            // auth.js와 맞추어 ticketCount를 최우선 확인
-            if (userData.ticketCount !== undefined) remCount = Number(userData.ticketCount);
-            else if (userData.remainingCount !== undefined) remCount = Number(userData.remainingCount);
-            else if (userData.remCount !== undefined) remCount = Number(userData.remCount);
+            // 💡 필드 탐색 순서: ticketCount -> remainingCount -> remCount
+            // 숫자로 정확히 변환하여 null/undefined/문자열 처리
+            if (userData.ticketCount !== undefined && userData.ticketCount !== null) {
+                remCount = Number(userData.ticketCount);
+            } else if (userData.remainingCount !== undefined && userData.remainingCount !== null) {
+                remCount = Number(userData.remainingCount);
+            } else if (userData.remCount !== undefined && userData.remCount !== null) {
+                remCount = Number(userData.remCount);
+            }
         }
 
-        // 캐시 업데이트
+        // 캐시 즉시 업데이트
         localStorage.setItem("cached_userName", userName);
-        localStorage.setItem("cached_ticketCount", remCount);
+        localStorage.setItem("cached_ticketCount", String(remCount));
 
         if (nameElement) nameElement.innerText = `${userName} 님`;
         if (countElement) countElement.innerText = `${remCount} 회`;
@@ -326,9 +332,80 @@ async function handleReservation() {
         }
 
         const userDocRef = doc(db, "users", user.uid);
+        
+// ==========================================
+// 📌 예약 처리 로직 (동시성 제어 적용)
+// ==========================================
+async function handleReservation() {
+    if (isReserving) return;
 
-        // 2차 트랜잭션 (데이터 일관성 보장)
+    const user = auth.currentUser;
+    if (!user) {
+        alert("로그인 후 이용해 주세요.");
+        return;
+    }
+
+    if (!selectedDate) {
+        alert("날짜를 선택해 주세요.");
+        return;
+    }
+
+    if (!selectedTime) {
+        alert("시간을 선택해 주세요.");
+        return;
+    }
+
+    const todayStr = getTodayString();
+    const currentTimeStr = getCurrentTimeString();
+    
+    const selectedTimeOnly = selectedTime.split(" ")[0];
+    const formattedSelectedTime = selectedTimeOnly.length === 4 ? `0${selectedTimeOnly}` : selectedTimeOnly;
+    
+    if (selectedDate === todayStr && formattedSelectedTime <= currentTimeStr) {
+        alert("이미 지나간 시간은 예약할 수 없습니다.");
+        return;
+    }
+
+    const reserveBtn = document.getElementById("reserveBtn");
+
+    try {
+        isReserving = true;
+        if (reserveBtn) {
+            reserveBtn.disabled = true;
+            reserveBtn.innerText = "예약 처리 중...";
+        }
+
+        // 💡 1차 사전 체크 (트랜잭션 시작 전 빠른 피드백 제공)
+        // 1. 중복 예약 검사
+        const dupQuery = query(
+            collection(db, "reservations"),
+            where("uid", "==", user.uid),
+            where("date", "==", selectedDate),
+            where("time", "==", selectedTime)
+        );
+        const dupSnap = await getDocs(dupQuery);
+        if (!dupSnap.empty) {
+            alert("⚠️ 이미 해당 시간대에 예약 신청하셨증니다.");
+            return;
+        }
+
+        // 2. 정원 10명 검사
+        const timeSlotQuery = query(
+            collection(db, "reservations"),
+            where("date", "==", selectedDate),
+            where("time", "==", selectedTime)
+        );
+        const timeSlotSnap = await getDocs(timeSlotQuery);
+        if (timeSlotSnap.size >= MAX_PEOPLE) {
+            alert("⚠️ 해당 시간대는 정원(10명)이 차서 더 이상 예약할 수 없습니다.");
+            return;
+        }
+
+        const userDocRef = doc(db, "users", user.uid);
+
+        // 💡 2차 트랜잭션 (데이터 일관성 및 동시 차감 제어)
         await runTransaction(db, async (transaction) => {
+            // [READ] 1. 트랜잭션 읽기 작업을 최상단에서 수행
             const userSnap = await transaction.get(userDocRef);
 
             if (!userSnap.exists()) {
@@ -337,20 +414,16 @@ async function handleReservation() {
 
             const userData = userSnap.data();
             let userName = userData.name || user.displayName || "회원";
-            let countFieldName = "ticketCount";
             let remCount = 0;
             let currentUsedCount = Number(userData.usedCount ?? userData.usedTickets ?? userData.used ?? 0);
 
-            // 필드명 상호 호환 (ticketCount 우선)
-            if (userData.ticketCount !== undefined) {
+            // 이용권 잔여 횟수 판단 (ticketCount -> remainingCount -> remCount 순)
+            if (userData.ticketCount !== undefined && userData.ticketCount !== null) {
                 remCount = Number(userData.ticketCount);
-                countFieldName = "ticketCount";
-            } else if (userData.remainingCount !== undefined) {
+            } else if (userData.remainingCount !== undefined && userData.remainingCount !== null) {
                 remCount = Number(userData.remainingCount);
-                countFieldName = "remainingCount";
-            } else if (userData.remCount !== undefined) {
+            } else if (userData.remCount !== undefined && userData.remCount !== null) {
                 remCount = Number(userData.remCount);
-                countFieldName = "remCount";
             } else {
                 remCount = DEFAULT_INITIAL_TICKETS;
             }
@@ -359,6 +432,7 @@ async function handleReservation() {
                 throw new Error(`NO_TICKETS:남은 이용권 횟수가 없습니다. (현재 잔여: ${remCount}회)`);
             }
 
+            // [WRITE] 2. 읽기가 완료된 후 쓰기 작업 수행
             const newResRef = doc(collection(db, "reservations"));
 
             transaction.set(newResRef, {
@@ -369,10 +443,15 @@ async function handleReservation() {
                 createdAt: serverTimestamp()
             });
 
-            transaction.update(userDocRef, {
-                [countFieldName]: remCount - 1,
+            // 데이터 일관성을 위해 ticketCount, remainingCount 모두 동기화
+            const newCount = remCount - 1;
+            const userUpdates = {
+                ticketCount: newCount,
+                remainingCount: newCount,
                 usedCount: currentUsedCount + 1
-            });
+            };
+
+            transaction.update(userDocRef, userUpdates);
         });
 
         alert("🎉 예약이 완벽하게 완료되었습니다!");
