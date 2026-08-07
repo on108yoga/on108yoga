@@ -61,13 +61,10 @@ function getCurrentTimeString() {
     return `${hours}:${minutes}`;
 }
 
-// 사용자 프로필 실시간 수신
+// 사용자 프로필 실시간 수신 (DOM 탐색을 스냅샷 내부에서 동적으로 실행)
 function listenUserProfile(user) {
     if (!user) return;
     if (unsubscribeUser) unsubscribeUser();
-
-    const nameElement = document.getElementById("myUserName");
-    const countElement = document.getElementById("myTicketCount");
 
     const userDocRef = doc(db, "users", user.uid);
     unsubscribeUser = onSnapshot(userDocRef, (userSnap) => {
@@ -88,9 +85,13 @@ function listenUserProfile(user) {
             }
         }
 
-        // 캐시 즉시 업데이트
+        // 로컬 스토리지 캐시 최신화
         localStorage.setItem("cached_userName", userName);
         localStorage.setItem("cached_ticketCount", String(remCount));
+
+        // 💡 실시간 DOM 업데이트 (콜백 시점마다 엘리먼트를 새로 획득)
+        const nameElement = document.getElementById("myUserName");
+        const countElement = document.getElementById("myTicketCount");
 
         if (nameElement) nameElement.innerText = `${userName} 님`;
         if (countElement) countElement.innerText = `${remCount} 회`;
@@ -99,13 +100,22 @@ function listenUserProfile(user) {
     });
 }
 
+// 📌 캘린더 및 선택 UI와 완벽 동기화하는 setSelectedDate
 window.setSelectedDate = function(date) {
     selectedDate = date;
     selectedTime = "";
     
+    // 1. 선택 날짜 텍스트 업데이트
     const dateDisplay = document.getElementById("selectedDate");
     if (dateDisplay) dateDisplay.innerText = date;
 
+    // 2. <input type="date"> 요소가 있다면 선택 날짜 값 주입
+    const dateInputs = document.querySelectorAll("input[type='date'], #reservationDate, #datePicker");
+    dateInputs.forEach(input => {
+        input.value = date;
+    });
+
+    // 3. 수업 시간 버튼 렌더링 및 예약 현황 불러오기
     renderTimeButtons(selectedDate);
     loadReservationCounts();
 };
@@ -218,7 +228,6 @@ function loadMyReservation() {
             const isFutureDate = data.date > todayStr;
             const isTodayUpcoming = (data.date === todayStr && formattedTime >= currentTimeStr);
 
-            // 유효한 다가오는 예약만 목록에 추가
             if (isFutureDate || isTodayUpcoming) {
                 validReservations.push({ id: item.id, ...data });
             }
@@ -266,7 +275,7 @@ function loadMyReservation() {
 }
 
 // ==========================================
-// 📌 예약 처리 로직 (동시성 제어 적용)
+// 📌 예약 처리 로직
 // ==========================================
 async function handleReservation() {
     if (isReserving) return;
@@ -347,7 +356,6 @@ async function handleReservation() {
             let remCount = 0;
             let currentUsedCount = Number(userData.usedCount ?? userData.usedTickets ?? userData.used ?? 0);
 
-            // 기존 DB의 이용권 필드 값 추출
             if (userData.ticketCount !== undefined && userData.ticketCount !== null) {
                 remCount = Number(userData.ticketCount);
             } else if (userData.remainingCount !== undefined && userData.remainingCount !== null) {
@@ -374,7 +382,6 @@ async function handleReservation() {
 
             const newCount = remCount - 1;
             
-            // ✨ 마이페이지 및 다른 페이지에서 쓰는 필드(remCount, ticketCount, remainingCount)를 모두 같이 차감
             const userUpdates = {
                 ticketCount: newCount,
                 remainingCount: newCount,
@@ -407,7 +414,7 @@ async function handleReservation() {
 }
 
 // ==========================================
-// 📌 예약 취소 로직 (마이페이지 필드 완벽 동기화)
+// 📌 예약 취소 로직
 // ==========================================
 async function cancelReservation(resId) {
     if (isCanceling) return;
@@ -476,7 +483,6 @@ async function cancelReservation(resId) {
 
             const restoredCount = remCount + 1;
 
-            // ✨ 취소 복구 시에도 마이페이지의 모든 횟수 필드를 함께 복구
             const userUpdates = {
                 ticketCount: restoredCount,
                 remainingCount: restoredCount,
@@ -513,7 +519,7 @@ async function cancelReservation(resId) {
 
 // ⚡ [초기화] 앱 실행 시 오늘 날짜 기본 선택 및 캐시 복원
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. 캐시된 유저 정보가 있다면 화면에 먼저 빠르게 표시 (스플래시 제거용)
+    // 1. 캐시된 유저 정보 표시
     const cachedName = localStorage.getItem("cached_userName");
     const cachedTicket = localStorage.getItem("cached_ticketCount");
 
@@ -524,9 +530,19 @@ document.addEventListener("DOMContentLoaded", () => {
         if (countElement) countElement.innerText = `${cachedTicket} 회`;
     }
 
-    // 2. 예약 페이지 진입 시 무조건 오늘 날짜로 캘린더 자동 선택 및 수업 로드
+    // 2. 예약 페이지 진입 시 오늘 날짜 자동 선택 및 캘린더 동기화
     const today = getTodayString();
     window.setSelectedDate(today);
+
+    // 3. 캘린더 Input 변경 감지 리스너 추가
+    const dateInput = document.querySelectorAll("input[type='date'], #reservationDate, #datePicker");
+    dateInput.forEach(input => {
+        input.addEventListener("change", (e) => {
+            if (e.target.value) {
+                window.setSelectedDate(e.target.value);
+            }
+        });
+    });
 
     setTimeout(hideSplash, 200);
 
