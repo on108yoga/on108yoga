@@ -1,4 +1,4 @@
-// mypage.js (로그아웃 기능 추가 및 에러 수정 완료 버전)
+// mypage.js (logoutBtn ID 반영 완전체)
 import { db, auth } from './firebase.js';
 import { 
     doc, 
@@ -22,8 +22,7 @@ const itemsPerPage = 10;    // 한 페이지당 10개씩 표시
 
 // 📌 DOM 로드 후 로그아웃 버튼 이벤트 등록
 document.addEventListener("DOMContentLoaded", () => {
-    // HTML 상의 로그아웃 버튼 ID를 확인하세요 (예: id="logout-btn" 또는 id="logoutBtn")
-    const logoutBtn = document.getElementById('logout-btn') || document.getElementById('logoutBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
     
     if (logoutBtn) {
         logoutBtn.addEventListener('click', handleLogout);
