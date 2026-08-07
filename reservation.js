@@ -5,6 +5,7 @@ import {
     query,
     where,
     doc,
+    getDoc,
     getDocs,
     runTransaction,
     serverTimestamp,
@@ -61,12 +62,29 @@ function getCurrentTimeString() {
     return `${hours}:${minutes}`;
 }
 
-// 사용자 프로필 실시간 수신 (DOM 탐색을 스냅샷 내부에서 동적으로 실행)
-function listenUserProfile(user) {
+// 사용자 실제 Document Reference 탐색 헬퍼 함수
+async function getUserDocRef(user) {
+    if (!user) return null;
+    const uidRef = doc(db, "users", user.uid);
+    const uidSnap = await getDoc(uidRef);
+    if (uidSnap.exists()) return uidRef;
+
+    const phone = user.email ? user.email.split("@")[0] : "";
+    if (phone) {
+        const phoneRef = doc(db, "users", phone);
+        const phoneSnap = await getDoc(phoneRef);
+        if (phoneSnap.exists()) return phoneRef;
+    }
+    return uidRef; // 기본값 반환
+}
+
+// 사용자 프로필 실시간 수신
+async function listenUserProfile(user) {
     if (!user) return;
     if (unsubscribeUser) unsubscribeUser();
 
-    const userDocRef = doc(db, "users", user.uid);
+    const userDocRef = await getUserDocRef(user);
+
     unsubscribeUser = onSnapshot(userDocRef, (userSnap) => {
         let userName = user.displayName || "회원";
         let remCount = DEFAULT_INITIAL_TICKETS;
@@ -89,7 +107,7 @@ function listenUserProfile(user) {
         localStorage.setItem("cached_userName", userName);
         localStorage.setItem("cached_ticketCount", String(remCount));
 
-        // 💡 실시간 DOM 업데이트 (콜백 시점마다 엘리먼트를 새로 획득)
+        // 실시간 DOM 업데이트
         const nameElement = document.getElementById("myUserName");
         const countElement = document.getElementById("myTicketCount");
 
@@ -341,7 +359,7 @@ async function handleReservation() {
             return;
         }
 
-        const userDocRef = doc(db, "users", user.uid);
+        const userDocRef = await getUserDocRef(user);
 
         // 3. 트랜잭션 (이용권 차감 및 마이페이지 필드 동기화)
         await runTransaction(db, async (transaction) => {
@@ -430,7 +448,7 @@ async function cancelReservation(resId) {
     try {
         isCanceling = true;
         const resDocRef = doc(db, "reservations", resId);
-        const userDocRef = doc(db, "users", user.uid);
+        const userDocRef = await getUserDocRef(user);
         const todayStr = getTodayString();
 
         await runTransaction(db, async (transaction) => {
