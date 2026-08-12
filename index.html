@@ -231,7 +231,9 @@
             justify-content: center;
             width: 100%;        
             max-width: 600px;
-            gap: 16px;
+            align-items: center;     /* 세로 방향 중앙 정렬 */
+            flex-wrap: wrap;         /* 화면이 좁아지면 아래로 줄바꿈 */
+            gap: 20px;               /* 아이템 카드 간의 간격 */
         }
 
         .items {
@@ -684,7 +686,7 @@
                             <div class="items-text">
                                 <span class="badge">Event1</span>
                                 <p class="count-text">14 + 1회<span>총 15회</span></p>
-                                <a href="index.html" class="btn-reserve">예약하기</a>
+                                <a href="event-login.html" class="btn-reserve">예약하기</a>
                             </div> 
                         </div>
                 
@@ -692,7 +694,7 @@
                             <div class="items-text">
                                 <span class="badge">Event2</span>
                                 <p class="count-text">21 + 1회<span>총 22회</span></p>
-                                <a href="index.html" class="btn-reserve">예약하기</a>
+                                <a href="event-login.html" class="btn-reserve">예약하기</a>
                             </div>
                         </div>
                 
@@ -700,7 +702,7 @@
                             <div class="items-text">
                                 <span class="badge">Event3</span>
                                 <p class="count-text">31 + 2회<span>총 33회</span></p>
-                                <a href="index.html" class="btn-reserve">예약하기</a>
+                                <a href="event-login.html" class="btn-reserve">예약하기</a>
                             </div>
                         </div>
 
@@ -708,7 +710,7 @@
                             <div class="items-text">
                                 <span class="badge">Reservation</span>
                                 <p class="count-text">방문일정문의<span>상담 후 결정하기</span></p>
-                                <a href="index.html" class="btn-reserve">예약하기</a>
+                                <a href="event-login.html" class="btn-reserve">예약하기</a>
                             </div>
                         </div>
                     </div>
