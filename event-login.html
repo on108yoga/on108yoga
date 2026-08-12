@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이벤트 수강권 로그인 - ON108 YOGA</title>
+    
+    <!-- 구글 폰트 및 프리텐다드 불러오기 -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #fcfcfc;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 1. Header & Navigation */
+        .navbar {
+            justify-content: center;
+            display: flex;
+            text-align: center;
+            align-items: center;
+            gap: 15px;
+            background-color: #517e73;
+            padding: 10px;
+            font-size: 14px;     
+        }
+
+        .navbar a {         
+            text-decoration: none !important;
+            color: white;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            padding: 2px 4px;
+            transition: opacity 0.2s ease;            
+        }
+
+        .navbar a:hover {
+            opacity: 0.8;
+            text-decoration: none !important;
+        }
+
+        h1 {
+            background-color: #f4efe6;
+            color: #3f4e43;
+            text-align: center;
+            letter-spacing: 0.35em;
+            margin: 0;
+            padding: 12px 0;
+            font-family: 'Cormorant Garamond', 'Noto Sans KR', serif;
+            font-weight: 300;
+            font-size: 20px;
+            text-transform: uppercase;
+        }
+
+        /* 2. Main Content */
+        main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .login-container {
+            background: #ffffff;
+            width: 100%;
+            max-width: 480px;
+            padding: 40px 32px;
+            border-radius: 20px;
+            box-shadow: 0 12px 32px rgba(63, 78, 67, 0.08);
+            border: 1px solid #eae6df;
+        }
+
+        .login-container h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: #3f4e43;
+            margin-bottom: 20px;
+            text-align: center;
+            letter-spacing: -0.02em;
+        }
+
+        /* 계좌 안내 박스 */
+        .bank-info-box {
+            background-color: #f4efe6;
+            border: 1px dashed #517e73;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            text-align: left;
+            font-size: 13px;
+            color: #3f4e43;
+            line-height: 1.6;
+        }
+
+        .bank-info-box strong {
+            font-weight: 700;
+            color: #2d3830;
+        }
+
+        .bank-info-box .notice {
+            font-size: 12px;
+            color: #e11d48;
+            margin-top: 6px;
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label.label-title {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="password"] {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #333;
+            background-color: #fafafa;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group input[type="password"]:focus {
+            border-color: #517e73;
+            background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(81, 126, 115, 0.15);
+        }
+
+        /* 이벤트 옵션 선택 그리드 카드 스타일 */
+        .event-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .event-card {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .event-card input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .event-content {
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 12px 10px;
+            background-color: #fafafa;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .event-card input[type="radio"]:checked + .event-content {
+            border-color: #517e73;
+            background-color: #f0f7f5;
+            box-shadow: 0 0 0 2px #517e73;
+        }
+
+        .event-tag {
+            font-size: 11px;
+            font-weight: 700;
+            color: #e11d48;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .event-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Checkbox 스타일 */
+        .remember-box {
+            display: flex;
+            align-items: center;
+            margin-top: 16px;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .remember-box label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #666;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .remember-box input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #517e73;
+            cursor: pointer;
+        }
+
+        /* Submit Button */
+        #loginBtn {
+            width: 100%;
+            padding: 16px;
+            background-color: #3f4e43;
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        #loginBtn:hover {
+            background-color: #2d3830;
+        }
+
+        #loginBtn:active {
+            transform: scale(0.99);
+        }
+
+        /* 하단 메뉴 */
+        .login-menu {
+            margin-top: 24px;
+            font-size: 13px;
+            color: #bbb;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .login-menu a {
+            color: #517e73;
+            font-weight: 500;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .login-menu a:hover {
+            text-decoration: underline;
+            color: #3f4e43;
+        }
+
+        /* Footer */
+        footer {
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            background-color: #f4efe6;
+            border-top: 1px solid #eae6df;
+        }
+    </style>
+</head>
+
+<body>
+<header>
+    <nav class="navbar">
+        <a href="index.html">홈</a>
+        <a href="signup.html">회원가입</a>
+    </nav>
+    
+    <h1>
+        ON108 YOGA
+        <span style="display: block; font-size: 11px; font-weight: 200; letter-spacing: 0.2em; margin-top: 4px; color: #777;">
+            온108요가
+        </span>
+    </h1>
+</header>
+
+<main>
+    <section class="login-container">
+        <h2>로그인 및 수강 신청</h2>
+
+        <!-- 입금 안내 상자 -->
+        <div class="bank-info-box">
+            <p><strong>입금 계좌:</strong> OO은행 123-456-789012</p>
+            <p><strong>예금주:</strong> 온108요가</p>
+            <p class="notice">* 로그인 시 선택하신 수강권으로 신청 처리되며, 계좌 입금 확인 후 비공개 게시판 이용이 승인됩니다.</p>
+        </div>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label class="label-title" for="phone">전화번호</label>
+                <input
+                    type="text"
+                    id="phone"
+                    placeholder="01012345678"
+                    required>
+            </div>
+
+            <div class="form-group">
+                <label class="label-title" for="password">비밀번호</label>
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="비밀번호를 입력하세요"
+                    required>
+            </div>
+
+            <!-- 이벤트 수강권 선택 카테고리 -->
+            <div class="form-group">
+                <label class="label-title">이벤트 수강권 선택</label>
+                <div class="event-options">
+                    <label class="event-card">
+                        <input type="radio" name="eventOption" value="14+1회 (총 15회)" checked>
+                        <div class="event-content">
+                            <span class="event-tag">EVENT 1</span>
+                            <span class="event-title">14+1회 (총 15회)</span>
+                        </div>
+                    </label>
+
+                    <label class="event-card">
+                        <input type="radio" name="eventOption" value="21+1회 (총 22회)">
+                        <div class="event-content">
+                            <span class="event-tag">EVENT 2</span>
+                            <span class="event-title">21+1회 (총 22회)</span>
+                        </div>
+                    </label>
+
+                    <label class="event-card">
+                        <input type="radio" name="eventOption" value="31+2회 (총 33회)">
+                        <div class="event-content">
+                            <span class="event-tag">EVENT 3</span>
+                            <span class="event-title">31+2회 (총 33회)</span>
+                        </div>
+                    </label>
+
+                    <label class="event-card">
+                        <input type="radio" name="eventOption" value="무제한 패스 (1개월)">
+                        <div class="event-content">
+                            <span class="event-tag">EVENT 4</span>
+                            <span class="event-title">1개월 무제한</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="remember-box">
+                <label>
+                    <input type="checkbox" id="remember">
+                    로그인 상태 유지
+                </label>
+            </div>
+
+            <button type="submit" id="loginBtn">
+                로그인 및 수강 신청
+            </button>
+        </form>
+
+        <div class="login-menu">
+            <a href="signup.html">회원가입</a>
+            <span>|</span>
+            <a href="forgot.html">비밀번호 찾기</a>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <p>© ON108YOGA Reservation System</p>
+</footer>
+
+<script type="module" src="firebase.js"></script>
+<script type="module" src="auth.js"></script>
+
+<script>
+    function handleLogin(event) {
+        event.preventDefault();
+
+        const phone = document.getElementById('phone').value;
+        const selectedEvent = document.querySelector('input[name="eventOption"]:checked').value;
+
+        // 선택된 이벤트 수강권 정보를 로컬 스토리지에 임시 저장 (board.html에서 불러오기용)
+        localStorage.setItem('selectedTicket', selectedEvent);
+        localStorage.setItem('userPhone', phone);
+
+        alert(`로그인 신청 완료!\n\n선택 수강권: [${selectedEvent}]\n안내해 드린 계좌로 입금해 주시면 확인 후 승인 처리됩니다.\n비공개 예약 게시판으로 이동합니다.`);
+        
+        // 비공개 게시판 페이지로 이동
+        window.location.href = 'board.html';
+    }
+</script>
+    
+</body>
+</html>
