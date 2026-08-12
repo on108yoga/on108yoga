@@ -347,7 +347,7 @@
             </tr>
             <tr>
                 <th>입금 안내 계좌</th>
-                <td>OO은행 123-456-789012 (예금주: 온108요가)</td>
+                <td>경남은행 123-456-789012 (예금주: 김정순)</td>
             </tr>
             <tr>
                 <th>신청 일시</th>
@@ -391,7 +391,7 @@
     let postData = {
         id: 1,
         phone: '010-1234-5678', // 작성자 전화번호
-        ticket: localStorage.getItem('selectedTicket') || '14+1회 (총 15회)',
+        ticket: selectedTicketValue,
         date: '2026-08-12 15:30',
         status: 'pending',
         comments: [
@@ -399,7 +399,7 @@
                 id: 101,
                 author: "ON108 YOGA 관리자",
                 date: "2026-08-12 15:35",
-                text: "수강 신청이 정상 접수되었습니다. 계좌 입금 확인 시 완료 처리됩니다."
+                text: "신청이 정상 접수되었습니다. 수강신청은 계좌 입금 확인 시 완료 처리됩니다."
             }
         ]
     };
