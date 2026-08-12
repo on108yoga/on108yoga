@@ -401,7 +401,7 @@
             <thead>
                 <tr>
                     <th style="width: 12%;">번호</th>
-                    <th style="width: 48%;">신청 수강권 (제목)</th>
+                    <th style="width: 48%;">글 목록</th>
                     <th style="width: 20%;">작성자</th>
                     <th style="width: 10%;">상태</th>
                     <th style="width: 10%; text-align: center;" id="adminColHeader">관리</th>
@@ -431,21 +431,17 @@
     let currentPage = 1;
     const itemsPerPage = 10;
 
-    // 기본 샘플 데이터
-    if (newTicket && newPhone) {
-        const newPost = {
-            id: Date.now(),
-            phone: newPhone,
-            ticket: '비공개 글 입니다', // 기존: newTicket -> '비공개 글 입니다'로 변경
-            actualTicket: newTicket,  // (선택) 상세화면 확인용으로 수강권 이름을 별도 보관
+    // 기본 샘플 데이터 정의
+    const defaultPosts = [
+        {
+            id: 1,
+            phone: '010-1234-5678',
+            ticket: '비공개 글 입니다',
+            actualTicket: '원데이 클래스 수강권',
             status: 'pending',
             comments: []
-        };
-    
-        postsData.unshift(newPost);
-        savePosts();
-        localStorage.removeItem('selectedTicket'); 
-    }
+        }
+    ];
 
     // 2. LocalStorage에서 저장된 데이터 가져오기
     let postsData = JSON.parse(localStorage.getItem('yogaPostsData')) || defaultPosts;
@@ -458,7 +454,8 @@
         const newPost = {
             id: Date.now(),
             phone: newPhone,
-            ticket: newTicket,
+            ticket: '비공개 글 입니다',
+            actualTicket: newTicket,
             status: 'pending',
             comments: []
         };
@@ -548,6 +545,8 @@
                 });
             }
 
+            const ticketDisplayName = post.actualTicket || post.ticket;
+
             detailTr.innerHTML = `
                 <td colspan="5" style="padding: 0;">
                     <div class="detail-container">
@@ -558,7 +557,7 @@
                             </tr>
                             <tr>
                                 <th>선택 수강권</th>
-                                <td style="color:#517e73; font-weight:bold;">${post.ticket}</td>
+                                <td style="color:#517e73; font-weight:bold;">${ticketDisplayName}</td>
                             </tr>
                             <tr>
                                 <th>입금 계좌</th>
