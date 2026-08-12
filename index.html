@@ -216,33 +216,51 @@
             color: #91614f;
         }
 
-    .notice{
+    /* ─── [3] Notice 영역 수정 ─── */
+    .notice {
         width: 100%;        
         max-width: 800px;
-        height: 300px;
+        height: auto; /* 고정 높이 300px 제거 */
         overflow: hidden;
         margin: 0 auto;
+        border-radius: 12px;
+    }
+    
+    .notice img {
+        width: 100%;
+        height: auto;
+        display: block;
+        object-fit: cover;
     }
 
-    /* 이벤트 버튼 */
-         /* items container */
+      /* ─── [4] Event 버튼/카드 영역 (flex layout 개선) ─── */
         .item-box {
             display: flex;
             justify-content: center;
-            align-items: center;     /* 세로 방향 중앙 정렬 */
-            flex-wrap: wrap;         /* 화면이 좁아지면 아래로 줄바꿈 */
-            gap: 20px;               /* 아이템 카드 간의 간격 */
+            align-items: stretch;
+            flex-wrap: wrap;
+            gap: 16px;
+            width: 100%;
         }
-
+        
         .items {
             display: flex;
-            flex: 1;
+            /* 기본적으로 화면 너비 100%를 차지하도록 변경 (모바일 최적화) */
+            flex: 1 1 100%; 
             background: #ffffff;
             border: 1px solid #e2e8f0;
             border-radius: 16px;
-            padding: 24px 16px;
+            padding: 20px 16px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        /* 태블릿 이상 (600px 이상) 화면에서 2열 배치 */
+        @media (min-width: 600px) {
+            .items {
+                flex: 1 1 calc(50% - 16px);
+                max-width: calc(50% - 16px);
+            }
         }
 
         /* 카드 마우스 호버 효과 */
@@ -562,9 +580,34 @@
     /* ─── [9] 모바일 반응형 및 PWA 대응 (768px 이하) ─── */
     @media (max-width: 768px) {
         main {
-            padding-top: 210px;
+            padding-top: 190px;
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+        .notice {
+            height: auto;
+        }
+    
+        .event-container {
+            gap: 20px;
+        }
+        /* 이벤트 버튼 내부 정렬 보정 */
+        .btn-reserve {
+            width: 100%; /* 버튼을 너비 채움으로 만들어 모바일 터치 편의성 증가 */
+            padding: 12px 0;
+        }
+    
+        /* Swiper 슬라이더 반응형 높이 유연화 */
+        .about {
+            height: auto;
+            aspect-ratio: 16 / 9; /* 모바일 슬라이드 비율 고정 */
+        }
+    
+        .about .swiper {
+            height: 100% !important;
         }
 
+        /* 메뉴 */
         .menu {
             width: 100%;
             gap: 8px 10px;
