@@ -496,7 +496,7 @@
 
             const displayNum = postsData.length - (startIndex + index);
 
-            // 목록 행
+          // 목록 행
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${displayNum}</td>
@@ -511,7 +511,7 @@
                     ${isAdmin ? `<button class="btn-delete" onclick="deletePost(${post.id})">삭제</button>` : '-'}
                 </td>
             `;
-
+            
             // 상세 내용 행
             const detailTr = document.createElement('tr');
             detailTr.className = 'detail-row';
