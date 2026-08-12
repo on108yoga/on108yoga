@@ -432,36 +432,20 @@
     const itemsPerPage = 10;
 
     // 기본 샘플 데이터
-    const defaultPosts = [
-        {
-            id: 2,
-            phone: '010-1234-5678',
-            ticket: '비공개 글 입니다',
+    if (newTicket && newPhone) {
+        const newPost = {
+            id: Date.now(),
+            phone: newPhone,
+            ticket: '비공개 글 입니다', // 기존: newTicket -> '비공개 글 입니다'로 변경
+            actualTicket: newTicket,  // (선택) 상세화면 확인용으로 수강권 이름을 별도 보관
             status: 'pending',
-            comments: [
-                {
-                    id: 201,
-                    author: "ON108 YOGA 관리자",
-                    date: "2026-08-12",
-                    text: "수강 신청이 접수되었습니다. 계좌 입금 확인 시 승인 완료 처리됩니다."
-                }
-            ]
-        },
-        {
-            id: 1,
-            phone: '010-9876-5432',
-            ticket: '비공개 글 입니다',
-            status: 'approved',
-            comments: [
-                {
-                    id: 101,
-                    author: "ON108 YOGA 관리자",
-                    date: "2026-08-10",
-                    text: "입금 확인되었습니다. 수강 승인 완료되었습니다."
-                }
-            ]
-        }
-    ];
+            comments: []
+        };
+    
+        postsData.unshift(newPost);
+        savePosts();
+        localStorage.removeItem('selectedTicket'); 
+    }
 
     // 2. LocalStorage에서 저장된 데이터 가져오기
     let postsData = JSON.parse(localStorage.getItem('yogaPostsData')) || defaultPosts;
@@ -529,7 +513,7 @@
                 <td>${displayNum}</td>
                 <td>
                     <span class="post-title-link" onclick="toggleDetail(${post.id})">
-                        🔒 [수강신청] ${post.ticket}
+                        🔒 [신청] ${post.ticket}
                     </span>
                 </td>
                 <td>${maskedPhone}</td>
