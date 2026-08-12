@@ -348,7 +348,7 @@
             <a href="event-login.html">로그인/수강신청</a>
         </div>
         <button class="role-toggle-btn" onclick="toggleRole()">
-            🔑 현재 모드: <span id="roleText">일반 회원</span> (클릭하여 전환)
+            🔑 : <span id="roleText">비공개 게시판</span>
         </button>
     </nav>
     
@@ -606,9 +606,33 @@
         }
     }
 
-    // 권한 변경 스위치
+    // 관리자 비밀번호 설정
+    const ADMIN_PASSWORD = "0093"; // 👈 사용할 비밀번호를 입력하세요.
+    
+    // 권한 변경 스위치 (비밀번호 인증)
     function toggleRole() {
-        isAdmin = !isAdmin;
+        if (!isAdmin) {
+            // 일반 회원 -> 관리자로 전환할 때 비밀번호 확인
+            const password = prompt("관리자 비밀번호를 입력하세요:");
+            
+            if (password === null) {
+                // 취소 버튼을 누른 경우
+                return;
+            }
+            
+            if (password === ADMIN_PASSWORD) {
+                isAdmin = true;
+                alert("관리자 모드로 전환되었습니다.");
+            } else {
+                alert("비밀번호가 올바르지 않습니다.");
+                return;
+            }
+        } else {
+            // 관리자 -> 일반 회원은 비밀번호 없이 즉시 전환
+            isAdmin = false;
+            alert("일반 회원 모드로 전환되었습니다.");
+        }
+    
         updateRoleUI();
         renderBoard();
     }
