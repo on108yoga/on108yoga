@@ -327,6 +327,36 @@
             display: table;
         }
 
+        /* 페이지네이션 스타일 */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 20px;
+        }
+        
+        .page-btn {
+            border: 1px solid #eae6df;
+            background-color: #ffffff;
+            color: #3f4e43;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        
+        .page-btn:hover {
+            background-color: #f4efe6;
+        }
+        
+        .page-btn.active {
+            background-color: #517e73;
+            color: #ffffff;
+            border-color: #517e73;
+            font-weight: bold;
+        }
+
         /* Footer */
         footer {
             padding: 20px;
@@ -336,7 +366,7 @@
             background-color: #f4efe6;
             border-top: 1px solid #eae6df;
             margin-top: auto;
-        }
+        }        
     </style>
 </head>
 
@@ -382,7 +412,10 @@
             </tbody>
         </table>
     </div>
-</main>
+
+    <!-- 페이지 수 페이지네이션 영역 -->
+    <div id="pagination" class="pagination-container"></div>
+    </main>
 
 <footer>
     <p>© ON108YOGA Reservation System</p>
@@ -651,6 +684,144 @@
             roleBadge.className = 'role-badge user';
         }
     }
+
+    // 페이지 수
+    // 페이지네이션 관련 상태 변수 추가
+    let currentPage = 1;
+    const itemsPerPage = 10; // 페이지당 10개씩 표시
+    
+    // 1. 게시판 목록 렌더링 함수 수정
+    function renderBoard() {
+        const tbody = document.getElementById('boardTbody');
+        tbody.innerHTML = '';
+    
+        if (postsData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#999; padding:30px;">등록된 게시글이 없습니다.</td></tr>`;
+            renderPagination();
+            return;
+        }
+    
+        // 현재 페이지에 해당하는 데이터만 추출 (10개씩)
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedPosts = postsData.slice(startIndex, endIndex);
+    
+        paginatedPosts.forEach((post, index) => {
+            const isApproved = post.status === 'approved';
+            const statusClass = isApproved ? 'status-approved' : 'status-pending';
+            const statusText = isApproved ? '승인완료' : '대기중';
+    
+            const maskedPhone = post.phone.length >= 11 
+                ? post.phone.substring(0, 3) + "-****-" + post.phone.substring(7)
+                : post.phone;
+    
+            // 글 번호 계산 (전체 개수 기준 역순 계산)
+            const displayNum = postsData.length - (startIndex + index);
+    
+            // 게시글 목록 행
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${displayNum}</td>
+                <td>
+                    <span class="post-title-link" onclick="toggleDetail(${post.id})">
+                        🔒 [수강신청] ${post.ticket}
+                    </span>
+                </td>
+                <td>${maskedPhone}</td>
+                <td><span class="status-tag ${statusClass}">${statusText}</span></td>
+                <td style="text-align: center;">
+                    ${isAdmin ? `<button class="btn-delete" onclick="deletePost(${post.id})">삭제</button>` : '-'}
+                </td>
+            `;
+    
+            // 상세 내용 행
+            const detailTr = document.createElement('tr');
+            detailTr.className = 'detail-row';
+            detailTr.id = `detail-${post.id}`;
+    
+            let commentsHtml = '';
+            if (post.comments.length === 0) {
+                commentsHtml = '<p style="font-size:12px; color:#999;">등록된 답변이 없습니다.</p>';
+            } else {
+                post.comments.forEach(c => {
+                    const commentDeleteBtn = isAdmin 
+                        ? `<button class="btn-delete" style="font-size:10px;" onclick="deleteComment(${post.id}, ${c.id})">삭제</button>` 
+                        : '';
+                    commentsHtml += `
+                        <div class="comment-item">
+                            <div class="comment-header">
+                                <span class="comment-author">${c.author}</span>
+                                <div><span>${c.date}</span> ${commentDeleteBtn}</div>
+                            </div>
+                            <div class="comment-body">${c.text}</div>
+                        </div>
+                    `;
+                });
+            }
+    
+            detailTr.innerHTML = `
+                <td colspan="5" style="padding: 0;">
+                    <div class="detail-container">
+                        <table class="detail-info">
+                            <tr>
+                                <th>신청자 전화번호</th>
+                                <td>${post.phone}</td>
+                            </tr>
+                            <tr>
+                                <th>선택 수강권</th>
+                                <td style="color:#517e73; font-weight:bold;">${post.ticket}</td>
+                            </tr>
+                            <tr>
+                                <th>입금 계좌</th>
+                                <td>OO은행 123-456-789012 (예금주: 온108요가)</td>
+                            </tr>
+                        </table>
+    
+                        <div class="comments-section">
+                            <div class="comments-title">💬 관리자 답변 및 승인 안내</div>
+                            <div>${commentsHtml}</div>
+    
+                            ${isAdmin ? `
+                                <div class="admin-comment-form clearfix">
+                                    <textarea id="comment-input-${post.id}" placeholder="답변 입력 (단어 '승인' 또는 '확인' 작성 시 자동 승인 처리)"></textarea>
+                                    <button class="btn-comment-submit" onclick="addAdminComment(${post.id})">답변 등록</button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </td>
+            `;
+    
+            tbody.appendChild(tr);
+            tbody.appendChild(detailTr);
+        });
+    
+        // 하단 페이지 번호 버튼 UI 업데이트
+        renderPagination();
+    }
+    
+    // 2. 페이지 번호 버튼 생성 함수
+    function renderPagination() {
+        const paginationContainer = document.getElementById('pagination');
+        if (!paginationContainer) return;
+    
+        paginationContainer.innerHTML = '';
+        const totalPages = Math.ceil(postsData.length / itemsPerPage);
+    
+        if (totalPages <= 1) return; // 10개 이하면 버튼을 안 픰
+    
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.innerText = i;
+            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+            btn.onclick = () => {
+                currentPage = i;
+                renderBoard();
+            };
+            paginationContainer.appendChild(btn);
+        }
+    }
+    
 </script>
 </body>
 </html>
