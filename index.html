@@ -224,6 +224,90 @@
         margin: 0 auto;
     }
 
+    /* 이벤트 버튼 */
+         /* items container */
+        .item-box { background-color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            width: 100%;        
+            max-width: 600px;
+            gap: 16px;
+        }
+
+        .items {
+            display: flex;
+            flex: 1;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        /* 카드 마우스 호버 효과 */
+        .items:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+        }
+
+        .items-text {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            text-align: center;
+            gap: 12px;
+        }
+
+        /* Event 배지 */
+        .badge {
+            display: inline-block;
+            background-color: #fff1f2;
+            color: #e11d48;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* 회수 정보 텍스트 */
+        .count-text {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e293b;
+            line-height: 1.4;
+            word-break: keep-all;
+        }
+
+        .count-text span {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        /* 예약하기 버튼 */
+        .btn-reserve {
+            width: 100%;
+            padding: 10px 0;
+            border: none;
+            border-radius: 10px;
+            background-color: #2563eb;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-reserve:hover {
+            background-color: #1d4ed8;
+        }
    
         
     /* ─── [4] 슬라이드 (about) ─── */
@@ -594,8 +678,34 @@
                         <img src="./images/2.png" alt="Event 1">
                         <p id="p" style="text-align: center;">2026년 9월 한정 오픈이벤트🎉<br>14+1회, 총 15회<br>21회+1, 총 22회<br>31회+2, 총 33회<br>가격 특가 + 횟수 추가 할인(~9/30)</p><br>
                     </div>
+                 <!-- 이벤트 버튼 -->
+                       <div class="item-box">
+                        <div class="items">
+                            <div class="items-text">
+                                <span class="badge">Event1</span>
+                                <p class="count-text">14 + 1회<span>총 15회</span></p>
+                                <button class="btn-reserve">예약하기</button>
+                            </div> 
+                        </div>
+                
+                        <div class="items">
+                            <div class="items-text">
+                                <span class="badge">Event2</span>
+                                <p class="count-text">21 + 1회<span>총 22회</span></p>
+                                <button class="btn-reserve">예약하기</button>
+                            </div>
+                        </div>
+                
+                        <div class="items">
+                            <div class="items-text">
+                                <span class="badge">Event3</span>
+                                <p class="count-text">31 + 2회<span>총 33회</span></p>
+                                <button class="btn-reserve">예약하기</button>
+                            </div>
+                        </div>
+                    </div>
 
-                    
+                    <!-- 리뷰 이벤트 -->
                     <div class="event-card">
                         <img src="./images/3.png" alt="Event 2">
                         <p id="p" style="text-align: center;">네이버리뷰 이벤트 참여시,<br>단체수련 1회 또는 개인1:1(스케줄조율필요) 1회 증정</p><br>
