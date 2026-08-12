@@ -169,6 +169,12 @@
             text-decoration: underline;
         }
 
+        /* 비밀글 아이콘 */
+        .lock-icon {
+            font-size: 12px;
+            margin-right: 4px;
+        }
+
         /* 상태 태그 */
         .status-tag {
             font-size: 11px;
@@ -364,10 +370,9 @@
         <table class="board-table">
             <thead>
                 <tr>
-                    <th style="width: 10%;">번호</th>
-                    <th style="width: 35%;">신청 수강권 (제목)</th>
+                    <th style="width: 12%;">번호</th>
+                    <th style="width: 48%;">신청 수강권 (제목)</th>
                     <th style="width: 20%;">작성자</th>
-                    <th style="width: 15%;">신청일</th>
                     <th style="width: 10%;">상태</th>
                     <th style="width: 10%; text-align: center;" id="adminColHeader">관리</th>
                 </tr>
@@ -384,22 +389,22 @@
 </footer>
 
 <script>
-    // 현재 권한 상태
+    // 현재 권한 상태 및 접속자 번호
     let isAdmin = false;
+    const currentUserPhone = localStorage.getItem('userPhone') || '010-1234-5678';
 
-    // 샘플 데이터
+    // 샘플 데이터 (신청일 제거됨)
     let postsData = [
         {
             id: 2,
             phone: localStorage.getItem('userPhone') || '010-1234-5678',
             ticket: localStorage.getItem('selectedTicket') || '14+1회 (총 15회)',
-            date: new Date().toISOString().slice(0, 10),
             status: 'pending',
             comments: [
                 {
                     id: 201,
                     author: "ON108 YOGA 관리자",
-                    date: new Date().toISOString().slice(0, 10),
+                    date: "2026-08-12",
                     text: "수강 신청이 접수되었습니다. 계좌 입금 확인 시 승인 완료 처리됩니다."
                 }
             ]
@@ -408,7 +413,6 @@
             id: 1,
             phone: '010-9876-5432',
             ticket: '31+2회 (총 33회)',
-            date: '2026-08-10',
             status: 'approved',
             comments: [
                 {
@@ -432,7 +436,7 @@
         tbody.innerHTML = '';
 
         if (postsData.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#999; padding:30px;">등록된 게시글이 없습니다.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#999; padding:30px;">등록된 게시글이 없습니다.</td></tr>`;
             return;
         }
 
@@ -446,17 +450,16 @@
                 ? post.phone.substring(0, 3) + "-****-" + post.phone.substring(7)
                 : post.phone;
 
-            // 1. 게시글 목록 행
+            // 1. 게시글 목록 행 (신청일 컬럼 제거)
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${postsData.length - index}</td>
                 <td>
                     <span class="post-title-link" onclick="toggleDetail(${post.id})">
-                        [수강신청] ${post.ticket}
+                        🔒 [수강신청] ${post.ticket}
                     </span>
                 </td>
                 <td>${maskedPhone}</td>
-                <td>${post.date}</td>
                 <td><span class="status-tag ${statusClass}">${statusText}</span></td>
                 <td style="text-align: center;">
                     ${isAdmin ? `<button class="btn-delete" onclick="deletePost(${post.id})">삭제</button>` : '-'}
@@ -489,7 +492,7 @@
             }
 
             detailTr.innerHTML = `
-                <td colspan="6" style="padding: 0;">
+                <td colspan="5" style="padding: 0;">
                     <div class="detail-container">
                         <table class="detail-info">
                             <tr>
@@ -526,8 +529,19 @@
         });
     }
 
-    // 제목 클릭 시 내용 열기/닫기 토글
+    // 제목 클릭 시 내용 열기/닫기 토글 (작성자 본인 및 관리자 검증)
     function toggleDetail(postId) {
+        const targetPost = postsData.find(p => p.id === postId);
+        
+        // 작성자 본인 여부 확인
+        const isOwner = targetPost && (targetPost.phone === currentUserPhone);
+
+        // 본인의 글도 아니고 관리자도 아니면 경고창 띄우고 중단
+        if (!isOwner && !isAdmin) {
+            alert("타인의 글은 읽을 수 없습니다.");
+            return;
+        }
+
         const targetRow = document.getElementById(`detail-${postId}`);
         if (targetRow.classList.contains('active')) {
             targetRow.classList.remove('active');
@@ -555,7 +569,6 @@
             if (targetPost) {
                 targetPost.comments = targetPost.comments.filter(c => c.id !== commentId);
                 renderBoard();
-                // 해당 내용 펼쳐진 상태 유지
                 document.getElementById(`detail-${postId}`).classList.add('active');
             }
         }
