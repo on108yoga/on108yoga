@@ -679,8 +679,8 @@
             roleBadge.innerText = '관리자 모드';
             roleBadge.className = 'role-badge admin';
         } else {
-            roleText.innerText = '일반 회원';
-            roleBadge.innerText = '일반 작성자';
+            roleText.innerText = '비밀게시판';
+            roleBadge.innerText = '🔒';
             roleBadge.className = 'role-badge user';
         }
     }
@@ -709,7 +709,7 @@
         paginatedPosts.forEach((post, index) => {
             const isApproved = post.status === 'approved';
             const statusClass = isApproved ? 'status-approved' : 'status-pending';
-            const statusText = isApproved ? '승인완료' : '대기중';
+            const statusText = isApproved ? '승인' : '대기중';
     
             const maskedPhone = post.phone.length >= 11 
                 ? post.phone.substring(0, 3) + "-****-" + post.phone.substring(7)
