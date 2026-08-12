@@ -1,0 +1,68 @@
+import { auth, db } from "./firebase.js";
+import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+document.addEventListener("DOMContentLoaded", () => {
+    const findForm = document.getElementById("findForm");
+    const resultBox = document.getElementById("resultBox");
+    const displayUserName = document.getElementById("displayUserName");
+    const passwordText = document.getElementById("passwordText");
+
+    if (!findForm) return;
+
+    findForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const name = document.getElementById("userName").value.trim();
+        const phone = document.getElementById("phone").value.trim();
+
+        if (!name || !phone) {
+            alert("이름과 전화번호를 모두 입력해 주세요.");
+            return;
+        }
+
+        try {
+            // 1. Firestore에서 이름과 전화번호가 일치하는 회원 검증
+            const q = query(
+                collection(db, "users"),
+                where("phone", "==", phone)
+            );
+            const querySnapshot = await getDocs(q);
+
+            if (querySnapshot.empty) {
+                alert("일치하는 회원 정보를 찾을 수 없습니다.");
+                return;
+            }
+
+            let foundUser = null;
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                if (data.name === name) {
+                    foundUser = data;
+                }
+            });
+
+            if (!foundUser) {
+                alert("입력하신 이름과 전화번호가 일치하지 않습니다.");
+                return;
+            }
+
+            // 2. 가입된 계정 이메일 확인 및 재설정 메일 발송
+            // (전화번호 기반 계정일 경우 형식을 맞춰 지정)
+            const userEmail = foundUser.email || `${phone}@yourdomain.com`;
+
+            await sendPasswordResetEmail(auth, userEmail);
+
+            // 3. 결과 안내 표시
+            displayUserName.innerText = name;
+            passwordText.style.fontSize = "15px";
+            passwordText.style.color = "#3f4e43";
+            passwordText.innerText = "등록된 이메일로 비밀번호 재설정 링크가 발송되었습니다.";
+            resultBox.style.display = "block";
+
+        } catch (error) {
+            console.error("비밀번호 찾기 오류:", error);
+            alert("비밀번호 재설정 처리 중 오류가 발생했습니다.");
+        }
+    });
+});
