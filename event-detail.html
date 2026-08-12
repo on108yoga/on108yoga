@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>수강신청 상세보기 - ON108 YOGA</title>
+    
+    <!-- 구글 폰트 및 프리텐다드 -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #fcfcfc;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 내비게이션 바 */
+        .navbar {
+            justify-content: space-between;
+            display: flex;
+            align-items: center;
+            background-color: #517e73;
+            padding: 10px 20px;
+            font-size: 14px;     
+        }
+
+        .navbar-links a {         
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            padding: 2px 8px;
+            transition: opacity 0.2s ease;            
+        }
+
+        .navbar-links a:hover {
+            opacity: 0.8;
+        }
+
+        .role-toggle-btn {
+            background-color: #3f4e43;
+            color: #fff;
+            border: 1px solid #ffffff44;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        h1 {
+            background-color: #f4efe6;
+            color: #3f4e43;
+            text-align: center;
+            letter-spacing: 0.35em;
+            margin: 0;
+            padding: 12px 0;
+            font-family: 'Cormorant Garamond', 'Noto Sans KR', serif;
+            font-weight: 300;
+            font-size: 20px;
+            text-transform: uppercase;
+        }
+
+        /* 메인 컨테이너 */
+        main {
+            flex: 1;
+            max-width: 760px;
+            width: 100%;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        /* 접근 거부 안내 화면 */
+        .access-denied {
+            background: #ffffff;
+            border: 1px solid #fca5a5;
+            border-radius: 16px;
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(225, 29, 72, 0.06);
+        }
+
+        .access-denied h2 {
+            color: #e11d48;
+            font-size: 20px;
+            margin-top: 0;
+        }
+
+        .btn-back-board {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 10px 20px;
+            background-color: #517e73;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        /* 상세 카드 */
+        .detail-card {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #eae6df;
+            padding: 28px;
+            box-shadow: 0 8px 24px rgba(63, 78, 67, 0.06);
+        }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f0f0f0;
+            margin-bottom: 20px;
+        }
+
+        .card-top-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-top h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #3f4e43;
+        }
+
+        /* 상태 및 삭제 버튼 */
+        .status-tag {
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .status-pending { background-color: #fff3cd; color: #856404; }
+        .status-approved { background-color: #d4edda; color: #155724; }
+
+        .btn-admin-delete {
+            background-color: #fff1f0;
+            color: #e11d48;
+            border: 1px solid #fca5a5;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-admin-delete:hover {
+            background-color: #e11d48;
+            color: #ffffff;
+        }
+
+        /* 본문 상세 테이블 */
+        .detail-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+        }
+
+        .detail-table th, .detail-table td {
+            padding: 12px 14px;
+            text-align: left;
+            font-size: 14px;
+            border-bottom: 1px solid #f9f9f9;
+        }
+
+        .detail-table th {
+            width: 25%;
+            color: #777;
+            font-weight: 500;
+            background-color: #fafafa;
+        }
+
+        .detail-table td {
+            color: #333;
+            font-weight: 500;
+        }
+
+        /* 댓글 영역 */
+        .comments-section {
+            background-color: #fcfcfc;
+            border: 1px solid #f0eee8;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .comments-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #3f4e43;
+            margin-bottom: 14px;
+        }
+
+        .comment-item {
+            background: #ffffff;
+            border: 1px solid #eae6df;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 6px;
+        }
+
+        .comment-author {
+            font-weight: 700;
+            color: #517e73;
+        }
+
+        .comment-body {
+            font-size: 14px;
+            color: #444;
+            line-height: 1.5;
+        }
+
+        /* 관리자 댓글 작성 */
+        .admin-comment-form {
+            margin-top: 16px;
+        }
+
+        .admin-comment-form textarea {
+            width: 100%;
+            height: 80px;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 13px;
+            resize: vertical;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .btn-comment-submit {
+            margin-top: 8px;
+            padding: 10px 18px;
+            background-color: #3f4e43;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            float: right;
+        }
+
+        .user-readonly-notice {
+            text-align: center;
+            padding: 12px;
+            background-color: #f4efe6;
+            color: #777;
+            font-size: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+
+        .clearfix::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+
+        footer {
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            background-color: #f4efe6;
+            border-top: 1px solid #eae6df;
+            margin-top: auto;
+        }
+    </style>
+</head>
+
+<body>
+<header>
+    <nav class="navbar">
+        <div class="navbar-links">
+            <a href="index.html">홈</a>
+            <a href="event-board.html">목록으로</a>
+        </div>
+        <button class="role-toggle-btn" onclick="toggleRole()">
+            🔑 현재 모드: <span id="roleText">일반 회원</span> (전환)
+        </button>
+    </nav>
+    
+    <h1>
+        ON108 YOGA
+        <span style="display: block; font-size: 11px; font-weight: 200; letter-spacing: 0.2em; margin-top: 4px; color: #777;">
+            수강 신청 상세 보기
+        </span>
+    </h1>
+</header>
+
+<main>
+    <!-- 1. 권한 없음 (타인 글 접근 시) -->
+    <div id="deniedContainer" class="access-denied" style="display: none;">
+        <h2>🔒 접근 권한이 없습니다</h2>
+        <p style="font-size: 14px; color: #666;">이 게시글은 작성자 본인과 관리자만 열람할 수 있는 비공개 글입니다.</p>
+        <a href="event-board.html" class="btn-back-board">게시판 목록으로 돌아가기</a>
+    </div>
+
+    <!-- 2. 게시글 상세 카드 (권한 통과 시) -->
+    <div id="detailContainer" class="detail-card" style="display: none;">
+        <div class="card-top">
+            <div class="card-top-left">
+                <h2>신청 상세 정보</h2>
+                <span id="postStatusTag" class="status-tag status-pending">입금 확인 대기중</span>
+            </div>
+            <!-- 관리자만 보이는 삭제 버튼 -->
+            <button id="btnPostDelete" class="btn-admin-delete" onclick="deleteCurrentPost()" style="display: none;">
+                🗑️ 게시글 삭제 (관리자)
+            </button>
+        </div>
+
+        <table class="detail-table">
+            <tr>
+                <th>신청자 전화번호</th>
+                <td id="tablePhone">-</td>
+            </tr>
+            <tr>
+                <th>선택 수강권</th>
+                <td id="tableTicket" style="color: #517e73; font-weight: 700;">-</td>
+            </tr>
+            <tr>
+                <th>입금 안내 계좌</th>
+                <td>OO은행 123-456-789012 (예금주: 온108요가)</td>
+            </tr>
+            <tr>
+                <th>신청 일시</th>
+                <td id="tableDate">-</td>
+            </tr>
+        </table>
+
+        <!-- 댓글 / 관리자 답변 영역 -->
+        <div class="comments-section">
+            <div class="comments-title">💬 관리자 답변 및 안내</div>
+
+            <div id="commentList">
+                <!-- 댓글 동적 로드 -->
+            </div>
+
+            <!-- 관리자 전용 댓글 작성 폼 -->
+            <div id="adminFormContainer" class="admin-comment-form clearfix" style="display: none;">
+                <textarea id="commentInput" placeholder="관리자 답변 입력 ('승인' 또는 '확인' 작성 시 수강 승인 완료 처리됩니다.)"></textarea>
+                <button class="btn-comment-submit" onclick="addAdminComment()">답변 등록</button>
+            </div>
+
+            <!-- 일반 회원용 안내 -->
+            <div id="userNoticeContainer" class="user-readonly-notice">
+                🔒 댓글 작성 및 삭제 권한은 관리자에게만 있습니다.
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <p>© ON108YOGA Reservation System</p>
+</footer>
+
+<script>
+    let isAdmin = false;
+    
+    // 현재 로그인된 회원 정보 (예시)
+    const currentUserPhone = localStorage.getItem('userPhone') || '010-1234-5678';
+
+    // 게시글 데이터
+    let postData = {
+        id: 1,
+        phone: '010-1234-5678', // 작성자 전화번호
+        ticket: localStorage.getItem('selectedTicket') || '14+1회 (총 15회)',
+        date: '2026-08-12 15:30',
+        status: 'pending',
+        comments: [
+            {
+                id: 101,
+                author: "ON108 YOGA 관리자",
+                date: "2026-08-12 15:35",
+                text: "수강 신청이 정상 접수되었습니다. 계좌 입금 확인 시 완료 처리됩니다."
+            }
+        ]
+    };
+
+    window.onload = function() {
+        checkAccessAndRender();
+    };
+
+    // 접근 권한 체크 및 화면 출력
+    function checkAccessAndRender() {
+        const deniedEl = document.getElementById('deniedContainer');
+        const detailEl = document.getElementById('detailContainer');
+
+        // [핵심 권한 검사] 작성자 본인인가? OR 관리자 모드인가?
+        const isOwner = (postData.phone === currentUserPhone);
+
+        if (!isOwner && !isAdmin) {
+            deniedEl.style.display = 'block';
+            detailEl.style.display = 'none';
+            return;
+        }
+
+        // 권한 통과 시 상세 화면 표시
+        deniedEl.style.display = 'none';
+        detailEl.style.display = 'block';
+
+        // 데이터 채우기
+        document.getElementById('tablePhone').innerText = postData.phone;
+        document.getElementById('tableTicket').innerText = postData.ticket;
+        document.getElementById('tableDate').innerText = postData.date;
+
+        // 상태 표시
+        const statusEl = document.getElementById('postStatusTag');
+        if (postData.status === 'approved') {
+            statusEl.innerText = '수강 승인 완료';
+            statusEl.className = 'status-tag status-approved';
+        } else {
+            statusEl.innerText = '입금 확인 대기중';
+            statusEl.className = 'status-tag status-pending';
+        }
+
+        // 관리자 전용 삭제 버튼 및 작성 폼 활성화 제어
+        document.getElementById('btnPostDelete').style.display = isAdmin ? 'block' : 'none';
+        document.getElementById('adminFormContainer').style.display = isAdmin ? 'block' : 'none';
+        document.getElementById('userNoticeContainer').style.display = isAdmin ? 'none' : 'block';
+
+        renderComments();
+    }
+
+    // 댓글 리스트 출력
+    function renderComments() {
+        const listEl = document.getElementById('commentList');
+        listEl.innerHTML = '';
+
+        if (postData.comments.length === 0) {
+            listEl.innerHTML = '<p style="font-size:13px; color:#999; text-align:center;">등록된 답변이 없습니다.</p>';
+            return;
+        }
+
+        postData.comments.forEach(c => {
+            const item = document.createElement('div');
+            item.className = 'comment-item';
+
+            // 관리자 전용 댓글 삭제 버튼
+            const deleteBtnHtml = isAdmin 
+                ? `<button class="btn-admin-delete" style="font-size:10px; padding:2px 6px;" onclick="deleteComment(${c.id})">삭제</button>` 
+                : '';
+
+            item.innerHTML = `
+                <div class="comment-header">
+                    <span class="comment-author">${c.author}</span>
+                    <div>
+                        <span style="margin-right: 6px;">${c.date}</span>
+                        ${deleteBtnHtml}
+                    </div>
+                </div>
+                <div class="comment-body">${c.text}</div>
+            `;
+            listEl.appendChild(item);
+        });
+    }
+
+    // 관리자 기능 1: 댓글 등록
+    function addAdminComment() {
+        if (!isAdmin) return;
+        const input = document.getElementById('commentInput');
+        const text = input.value.trim();
+
+        if (!text) {
+            alert('답변을 입력해 주세요.');
+            return;
+        }
+
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+        postData.comments.push({
+            id: Date.now(),
+            author: "ON108 YOGA 관리자",
+            date: dateStr,
+            text: text
+        });
+
+        if (text.includes('확인') || text.includes('승인')) {
+            postData.status = 'approved';
+        }
+
+        input.value = '';
+        checkAccessAndRender();
+    }
+
+    // 관리자 기능 2: 댓글 삭제
+    function deleteComment(commentId) {
+        if (!isAdmin) return;
+        if (confirm("이 답변을 삭제하시겠습니까?")) {
+            postData.comments = postData.comments.filter(c => c.id !== commentId);
+            renderComments();
+        }
+    }
+
+    // 관리자 기능 3: 게시글 삭제
+    function deleteCurrentPost() {
+        if (!isAdmin) return;
+        if (confirm("정말로 이 수강신청 글을 삭제하시겠습니까?\n삭제 후 게시판 목록으로 이동합니다.")) {
+            alert("게시글이 삭제되었습니다.");
+            location.href = "event-board.html";
+        }
+    }
+
+    // 테스트용 관리자/일반인 권한 변경
+    function toggleRole() {
+        isAdmin = !isAdmin;
+        document.getElementById('roleText').innerText = isAdmin ? '관리자' : '일반 회원';
+        checkAccessAndRender();
+    }
+</script>
+</body>
+</html>
