@@ -135,7 +135,7 @@
         }
 
         /* Submit Button */
-        #resetBtn {
+        #findBtn {
             width: 100%;
             padding: 16px;
             background-color: #3f4e43;
@@ -149,12 +149,37 @@
             margin-top: 10px;
         }
 
-        #resetBtn:hover {
+        #findBtn:hover {
             background-color: #2d3830;
         }
 
-        #resetBtn:active {
+        #findBtn:active {
             transform: scale(0.99);
+        }
+
+        /* 비밀번호 결과 출력 박스 */
+        .result-box {
+            display: none; /* JS 조회 후 block 처리 */
+            margin-top: 24px;
+            padding: 20px;
+            background-color: #f4efe6;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid #eae6df;
+        }
+
+        .result-box p {
+            margin: 0 0 8px 0;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .result-box .password-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: #517e73;
+            letter-spacing: 0.05em;
+            word-break: break-all;
         }
 
         /* 하단 링크 */
@@ -211,10 +236,10 @@
 
 <main>
     <section class="forgot-container">
-        <h2>비밀번호 재설정</h2>
-        <p class="forgot-desc">가입 시 등록한 성함과 전화번호를 입력하시면<br>비밀번호 재설정 안내를 도와드립니다.</p>
+        <h2>비밀번호 찾기</h2>
+        <p class="forgot-desc">가입하신 이름과 전화번호를 입력하시면<br>등록된 비밀번호를 확인하실 수 있습니다.</p>
         
-        <form id="forgotForm">
+        <form id="findForm">
             <div class="form-group">
                 <label for="userName">이름</label>
                 <input
@@ -229,17 +254,23 @@
                 <input
                     type="text"
                     id="phone"
-                    placeholder="01012345678 ('-' 없이 입력)"
+                    placeholder="01012345678"
                     required>
             </div>
 
-            <button type="submit" id="resetBtn">
-                비밀번호 재설정 요청
+            <button type="submit" id="findBtn">
+                비밀번호 조회하기
             </button>
         </form>
 
+        <!-- 결과 출력 영역 -->
+        <div id="resultBox" class="result-box">
+            <p><span id="displayUserName"></span> 회원님의 비밀번호는 다음과 같습니다.</p>
+            <div id="passwordText" class="password-text"></div>
+        </div>
+
         <div class="forgot-menu">
-            <a href="login.html">로그인으로 돌아가기</a>
+            <a href="login.html">로그인으로 이동</a>
             <span>|</span>
             <a href="signup.html">회원가입</a>
         </div>
