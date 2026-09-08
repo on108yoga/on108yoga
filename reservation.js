@@ -26,11 +26,12 @@ let isCanceling = false;
 const MAX_PEOPLE = 10;
 const DEFAULT_INITIAL_TICKETS = 0; // auth.js 기준 기본 회원가입 티켓 수
 
+// 💡 [수정] 3번 항목 끝에 누락되었던 쉼표(,) 추가
 const weeklySchedule = {
     0: [],
     1: ["10:00 힐링빈야사", "18:00 교정하타", "19:30 힐링반야사"],
     2: ["14:00 교정하타", "17:30 힐링빈야사", "19:00 교정하타"],
-    3: ["10:00 교정하타", "18:00 힐링빈야사", "19:30 교정하타"]
+    3: ["10:00 교정하타", "18:00 힐링빈야사", "19:30 교정하타"],
     4: ["14:00 힐링빈야사", "17:30 교정하타", "19:00 힐링빈야사"],
     5: ["10:00 힐링빈야사", "18:00 교정하타", "19:30 힐링빈야사"],
     6: []
@@ -62,13 +63,10 @@ function getCurrentTimeString() {
     return `${hours}:${minutes}`;
 }
 
-// 사용자 실제 Document Reference 탐색 헬퍼 함수
-// 사용자 문서 참조 헬퍼 함수 (전화번호 문서 우선 탐색)
 // 1. 사용자 문서 탐색 (전화번호 문서 최우선 탐색 -> members.html과 동기화)
 async function getUserDocRef(user) {
     if (!user) return null;
 
-    // 이메일 주소 앞자리(전화번호) 추출
     const phone = user.email ? user.email.split("@")[0] : "";
 
     // ① members.html에서 수정하는 전화번호 문서를 최우선 확인
@@ -87,7 +85,8 @@ async function getUserDocRef(user) {
         return uidRef;
     }
 
-    return uidRef;
+    // 문서가 모두 없는 신규 회원용 기본값 반환 (전화번호 우선)
+    return phone ? doc(db, "users", phone) : uidRef;
 }
 
 // 2. 사용자 프로필 실시간 수신 (remainingCount 1순위 조회)
@@ -105,7 +104,6 @@ async function listenUserProfile(user) {
             const userData = userSnap.data();
             if (userData.name) userName = userData.name;
 
-            // 💡 members.html에서 수정하는 remainingCount를 1순위로 읽도록 변경
             remCount = Number(
                 userData.remainingCount ?? userData.ticketCount ?? userData.remCount ?? 0
             );
@@ -131,17 +129,14 @@ window.setSelectedDate = function(date) {
     selectedDate = date;
     selectedTime = "";
     
-    // 1. 선택 날짜 텍스트 업데이트
     const dateDisplay = document.getElementById("selectedDate");
     if (dateDisplay) dateDisplay.innerText = date;
 
-    // 2. <input type="date"> 요소가 있다면 선택 날짜 값 주입
     const dateInputs = document.querySelectorAll("input[type='date'], #reservationDate, #datePicker");
     dateInputs.forEach(input => {
         input.value = date;
     });
 
-    // 3. 수업 시간 버튼 렌더링 및 예약 현황 불러오기
     renderTimeButtons(selectedDate);
     loadReservationCounts();
 };
@@ -224,7 +219,6 @@ function loadReservationCounts() {
     });
 }
 
-// 내 예약 현황 불러오기
 function loadMyReservation() {
     const user = auth.currentUser;
     if (!user) return;
@@ -300,9 +294,7 @@ function loadMyReservation() {
     });
 }
 
-// ==========================================
-// 📌 예약 처리 로직 (디버깅 로그 포함)
-// ==========================================
+// 예약 처리 로직
 async function handleReservation() {
     if (isReserving) return;
 
@@ -342,7 +334,6 @@ async function handleReservation() {
             reserveBtn.innerText = "예약 처리 중...";
         }
 
-        // 1. 중복 예약 검사
         const dupQuery = query(
             collection(db, "reservations"),
             where("uid", "==", user.uid),
@@ -355,7 +346,6 @@ async function handleReservation() {
             return;
         }
 
-        // 2. 정원 10명 검사
         const timeSlotQuery = query(
             collection(db, "reservations"),
             where("date", "==", selectedDate),
@@ -367,26 +357,22 @@ async function handleReservation() {
             return;
         }
 
-        // 💡 사용자 문서 참조 가져오기
         const userDocRef = await getUserDocRef(user);
 
-        // 3. 트랜잭션 (이용권 차감 및 필드 완전 동기화)
         await runTransaction(db, async (transaction) => {
             const userSnap = await transaction.get(userDocRef);
 
             if (!userSnap.exists()) {
-                throw new Error("사용자 정보를 찾을 수 없습니다.");
+                throw new Error("사용자 정보를 찾을 수 없습니다. 관리자에게 문의하세요.");
             }
 
             const userData = userSnap.data();
 
-            // 🔍 [디버깅 로그] 어떤 문서에서 데이터를 읽었는지 콘솔에 출력
             console.log("🔍 [예약 시도] 읽어온 문서 ID:", userDocRef.id);
             console.log("🔍 [예약 시도] 문서 전체 데이터:", userData);
 
             let userName = userData.name || user.displayName || "회원";
             
-            // 💡 remainingCount -> ticketCount -> remCount 순서로 횟수 판별
             let remCount = 0;
             if (userData.remainingCount !== undefined && userData.remainingCount !== null) {
                 remCount = Number(userData.remainingCount);
@@ -398,14 +384,12 @@ async function handleReservation() {
 
             let currentUsedCount = Number(userData.usedCount ?? userData.usedTickets ?? userData.used ?? 0);
 
-            // 잔여 횟수 검사
             if (remCount <= 0) {
                 throw new Error(`NO_TICKETS:남은 이용권 횟수가 없습니다. (현재 잔여: ${remCount}회)`);
             }
 
             const newResRef = doc(collection(db, "reservations"));
 
-            // 예약 데이터 저장
             transaction.set(newResRef, {
                 uid: user.uid,
                 name: userName,
@@ -414,10 +398,8 @@ async function handleReservation() {
                 createdAt: serverTimestamp()
             });
 
-            // 1회 차감 계산
             const newCount = remCount - 1;
             
-            // 💡 모든 횟수 필드를 동시에 차감 업데이트
             const userUpdates = {
                 remainingCount: newCount,
                 ticketCount: newCount,
@@ -449,9 +431,7 @@ async function handleReservation() {
     }
 }
 
-// ==========================================
-// 📌 예약 취소 로직
-// ==========================================
+// 예약 취소 로직
 async function cancelReservation(resId) {
     if (isCanceling) return;
 
@@ -553,9 +533,8 @@ async function cancelReservation(resId) {
     }
 }
 
-// ⚡ [초기화] 앱 실행 시 오늘 날짜 기본 선택 및 캐시 복원
+// DOM 최적화 초기화
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. 캐시된 유저 정보 표시
     const cachedName = localStorage.getItem("cached_userName");
     const cachedTicket = localStorage.getItem("cached_ticketCount");
 
@@ -566,11 +545,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (countElement) countElement.innerText = `${cachedTicket} 회`;
     }
 
-    // 2. 예약 페이지 진입 시 오늘 날짜 자동 선택 및 캘린더 동기화
     const today = getTodayString();
     window.setSelectedDate(today);
 
-    // 3. 캘린더 Input 변경 감지 리스너 추가
     const dateInput = document.querySelectorAll("input[type='date'], #reservationDate, #datePicker");
     dateInput.forEach(input => {
         input.addEventListener("change", (e) => {
