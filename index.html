@@ -233,35 +233,45 @@
         object-fit: cover;
     }
 
-      /* ─── [4] Event 버튼/카드 영역 (flex layout 개선) ─── */
+     /* ─── [4] Event 버튼/카드 영역 (반응형 적용) ─── */
+    .item-box {
+        display: grid;
+        /* 기본(모바일): 화면 폭에 맞춰 최소 140px 크기로 2칸 이상 자동 배치 */
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 12px; /* 모바일에서는 여백을 조금 줄여 공간 확보 */
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .items {
+        display: flex;
+        flex-direction: column; /* 카드 내부 콘텐츠 세로 정렬 */
+        justify-content: space-between;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 16px 12px; /* 모바일 여백 최적화 */
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    /* 태블릿 및 PC 화면 (화면 폭 600px 이상) */
+    @media (min-width: 600px) {
         .item-box {
-            display: flex;
-            justify-content: center;
-            align-items: stretch;
-            flex-wrap: wrap;
-            gap: 16px;
-            width: 100%;
+            gap: 16px; /* 큰 화면에서는 여백을 늘림 */
         }
-        
         .items {
-            display: flex;
-            /* 기본적으로 화면 너비 100%를 차지하도록 변경 (모바일 최적화) */
-            flex: 1 1 100%; 
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
             padding: 20px 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-        
-        /* 태블릿 이상 (600px 이상) 화면에서 2열 배치 */
-        @media (min-width: 600px) {
-            .items {
-                flex: 1 1 calc(50% - 16px);
-                max-width: calc(50% - 16px);
-            }
+    }
+    
+    /* 초소형 스마트폰 (화면 폭 320px 이하 아주 작은 기기) */
+    @media (max-width: 340px) {
+        .item-box {
+            /* 화면이 너무 좁은 기기에서는 글자가 깨지지 않도록 1열로 변경 */
+            grid-template-columns: 1fr; 
         }
+    }
 
         /* 카드 마우스 호버 효과 */
         .items:hover {
