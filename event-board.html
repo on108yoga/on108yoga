@@ -59,11 +59,8 @@
             border-radius: 20px;
             font-size: 12px;       
             transition: all 0.2s;
+            cursor: pointer;
         }
-          /* 
-        .role-toggle-btn:hover {
-          background-color: #2d3830;
-        } */
 
         h1 {
             background-color: #f4efe6;
@@ -393,9 +390,10 @@
         <table class="board-table">
             <thead>
                 <tr>
-                    <th style="width: 12%;">번호</th>
-                    <th style="width: 48%;">목록</th>
-                    <th style="width: 20%;">작성자</th>
+                    <th style="width: 8%;">번호</th>
+                    <th style="width: 38%;">목록</th>
+                    <th style="width: 18%;">작성자</th>
+                    <th style="width: 16%;">신청일</th>
                     <th style="width: 10%;">상태</th>
                     <th style="width: 10%; text-align: center;" id="adminColHeader">관리</th>
                 </tr>
@@ -415,6 +413,14 @@
 </footer>
 
 <script>
+    // 날짜 포맷 생성 함수 (YYYY.MM.DD)
+    function formatDate(date = new Date()) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}.${month}.${day}`;
+    }
+
     // 1. 관리자 설정 및 기본 변수
     const ADMIN_PASSWORD = "0093";
     let isAdmin = false;
@@ -424,13 +430,14 @@
     let currentPage = 1;
     const itemsPerPage = 10;
 
-    // 기본 샘플 데이터 정의
+    // 기본 샘플 데이터 정의 (createdAt 필드 추가)
     const defaultPosts = [
         {
             id: 1,
             phone: '010-1234-5678',
             actualTicket: '원데이 클래스 수강권',
             status: 'pending',
+            createdAt: '2026.09.11',
             comments: []
         }
     ];
@@ -448,6 +455,7 @@
             phone: newPhone,
             actualTicket: newTicket,
             status: 'pending',
+            createdAt: formatDate(), // 현재 날짜 자동 등록
             comments: []
         };
         
@@ -475,7 +483,7 @@
         tbody.innerHTML = '';
 
         if (postsData.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#999; padding:30px;">등록된 게시글이 없습니다.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#999; padding:30px;">등록된 게시글이 없습니다.</td></tr>`;
             renderPagination();
             return;
         }
@@ -494,8 +502,9 @@
                 : post.phone;
 
             const displayNum = postsData.length - (startIndex + index);
+            const postDate = post.createdAt || formatDate();
 
-          // 목록 행
+            // 목록 행
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${displayNum}</td>
@@ -505,6 +514,7 @@
                     </span>
                 </td>
                 <td>${maskedPhone}</td>
+                <td>${postDate}</td>
                 <td><span class="status-tag ${statusClass}">${statusText}</span></td>
                 <td style="text-align: center;">
                     ${isAdmin ? `<button class="btn-delete" onclick="deletePost(${post.id})">삭제</button>` : '-'}
@@ -539,9 +549,13 @@
             const ticketDisplayName = post.actualTicket || '수강권 미지정';
 
             detailTr.innerHTML = `
-                <td colspan="5" style="padding: 0;">
+                <td colspan="6" style="padding: 0;">
                     <div class="detail-container">
                         <table class="detail-info">
+                            <tr>
+                                <th>신청일자</th>
+                                <td>${postDate}</td>
+                            </tr>
                             <tr>
                                 <th>신청자 전화번호</th>
                                 <td>${post.phone}</td>
@@ -634,13 +648,10 @@
 
         const targetPost = postsData.find(p => p.id === postId);
         if (targetPost) {
-            const now = new Date();
-            const dateStr = now.toISOString().slice(0, 10);
-
             targetPost.comments.push({
                 id: Date.now(),
                 author: "ON108 YOGA 관리자",
-                date: dateStr,
+                date: formatDate(),
                 text: text
             });
 
