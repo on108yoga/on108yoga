@@ -390,9 +390,9 @@
         <table class="board-table">
             <thead>
                 <tr>
-                    <th style="width: 8%;">번호</th>
-                    <th style="width: 38%;">목록</th>
-                    <th style="width: 18%;">작성자</th>
+                    <th style="width: 12%;">번호</th>
+                    <th style="width: 48%;">목록</th>
+                    <th style="width: 20%;">작성자</th>
                     <th style="width: 10%;">상태</th>
                     <th style="width: 10%; text-align: center;" id="adminColHeader">관리</th>
                 </tr>
@@ -429,7 +429,7 @@
     let currentPage = 1;
     const itemsPerPage = 10;
 
-    // 기본 샘플 데이터 정의 (createdAt 필드 추가)
+    // 기본 샘플 데이터 정의
     const defaultPosts = [
         {
             id: 1,
@@ -454,7 +454,7 @@
             phone: newPhone,
             actualTicket: newTicket,
             status: 'pending',
-            createdAt: formatDate(), // 현재 날짜 자동 등록
+            createdAt: formatDate(),
             comments: []
         };
         
@@ -482,7 +482,7 @@
         tbody.innerHTML = '';
 
         if (postsData.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#999; padding:30px;">등록된 게시글이 없습니다.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#999; padding:30px;">등록된 게시글이 없습니다.</td></tr>`;
             renderPagination();
             return;
         }
@@ -513,7 +513,6 @@
                     </span>
                 </td>
                 <td>${maskedPhone}</td>
-                <td>${postDate}</td>
                 <td><span class="status-tag ${statusClass}">${statusText}</span></td>
                 <td style="text-align: center;">
                     ${isAdmin ? `<button class="btn-delete" onclick="deletePost(${post.id})">삭제</button>` : '-'}
@@ -548,7 +547,7 @@
             const ticketDisplayName = post.actualTicket || '수강권 미지정';
 
             detailTr.innerHTML = `
-                <td colspan="6" style="padding: 0;">
+                <td colspan="5" style="padding: 0;">
                     <div class="detail-container">
                         <table class="detail-info">
                             <tr>
