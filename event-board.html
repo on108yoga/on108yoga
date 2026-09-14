@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>이벤트 수강신청 게시판 - ON108 YOGA</title>
     
-    <!-- 구글 폰트 및 프리텐다드 -->
+    <!-- Google Fonts & Pretendard -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;300;400;500;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
     
     <style>
         * {
@@ -19,7 +18,7 @@
 
         body {
             margin: 0;
-            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: 'Pretendard', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: #fcfcfc;
             color: #333;
             min-height: 100vh;
@@ -33,16 +32,16 @@
             display: flex;
             align-items: center;
             background-color: #517e73;
-            padding: 10px 20px;
+            padding: 12px 20px;
             font-size: 14px;      
         }
 
         .navbar-links a {          
-            color: white;
+            color: #ffffff;
             text-decoration: none;
             font-weight: 500;
-            letter-spacing: 0.08em;
-            padding: 2px 8px;
+            letter-spacing: 0.05em;
+            padding: 4px 8px;
             transition: opacity 0.2s ease;            
         }
 
@@ -50,16 +49,23 @@
             opacity: 0.8;
         }
 
-        /* 관리자 전환 스위치 버튼 */
+        /* 관리자 전환 버튼 */
         .role-toggle-btn {
             background-color: #3f4e43;
-            color: #fff;
-            border: 1px solid #ffffff44;
-            padding: 6px 12px;
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 6px 14px;
             border-radius: 20px;
             font-size: 12px;       
             transition: all 0.2s;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .role-toggle-btn:hover {
+            background-color: #2d3830;
         }
 
         h1 {
@@ -68,10 +74,10 @@
             text-align: center;
             letter-spacing: 0.35em;
             margin: 0;
-            padding: 12px 0;
+            padding: 16px 0;
             font-family: 'Cormorant Garamond', 'Noto Sans KR', serif;
-            font-weight: 300;
-            font-size: 20px;
+            font-weight: 400;
+            font-size: 22px;
             text-transform: uppercase;
         }
 
@@ -96,11 +102,12 @@
             font-size: 18px;
             color: #3f4e43;
             margin: 0;
+            font-weight: 600;
         }
 
         .role-badge {
             display: inline-block;
-            padding: 4px 10px;
+            padding: 4px 12px;
             border-radius: 12px;
             font-size: 12px;
             font-weight: 600;
@@ -116,7 +123,7 @@
             color: #c62828;
         }
 
-        /* 3. 게시판 목록 테이블 스타일 */
+        /* 3. 게시판 목록 테이블 */
         .board-table-container {
             background: #ffffff;
             border-radius: 12px;
@@ -147,11 +154,10 @@
             transition: background-color 0.2s;
         }
 
-        .board-table tbody tr:hover {
+        .board-table tbody tr:not(.detail-row):hover {
             background-color: #faf8f5;
         }
 
-        /* 제목 클릭 연결 */
         .post-title-link {
             color: #333;
             font-weight: 500;
@@ -201,7 +207,7 @@
             color: #ffffff;
         }
 
-        /* 4. 상세보기 레이어 (아코디언 형태) */
+        /* 4. 상세보기 레이어 (아코디언) */
         .detail-row {
             display: none;
             background-color: #fafafa;
@@ -213,7 +219,7 @@
 
         .detail-container {
             padding: 20px;
-            border-left: 3px solid #517e73;
+            border-left: 4px solid #517e73;
         }
 
         .detail-info {
@@ -229,9 +235,10 @@
         }
 
         .detail-info th {
-            width: 20%;
+            width: 25%;
             color: #666;
             background-color: #f5f5f5;
+            font-weight: 500;
         }
 
         /* 댓글 영역 */
@@ -264,6 +271,7 @@
         .comment-header {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             font-size: 11px;
             color: #888;
             margin-bottom: 4px;
@@ -277,22 +285,29 @@
         .comment-body {
             font-size: 13px;
             color: #444;
+            line-height: 1.4;
+            white-space: pre-line;
         }
 
-        /* 관리자 댓글 작성 폼 */
+        /* 댓글 폼 */
         .admin-comment-form {
             margin-top: 12px;
         }
 
         .admin-comment-form textarea {
             width: 100%;
-            height: 60px;
-            padding: 8px;
+            height: 64px;
+            padding: 8px 10px;
             border: 1px solid #ddd;
             border-radius: 6px;
             font-size: 12px;
+            font-family: inherit;
             resize: vertical;
             outline: none;
+        }
+
+        .admin-comment-form textarea:focus {
+            border-color: #517e73;
         }
 
         .btn-comment-submit {
@@ -305,6 +320,7 @@
             font-size: 12px;
             cursor: pointer;
             float: right;
+            transition: background-color 0.2s;
         }
 
         .btn-comment-submit:hover {
@@ -317,7 +333,7 @@
             display: table;
         }
 
-        /* 페이지네이션 스타일 */
+        /* 페이지네이션 */
         .pagination-container {
             display: flex;
             justify-content: center;
@@ -356,7 +372,14 @@
             background-color: #f4efe6;
             border-top: 1px solid #eae6df;
             margin-top: auto;
-        }        
+        }
+
+        /* 반응형 스타일 */
+        @media (max-width: 600px) {
+            main { padding: 0 12px; margin: 20px auto; }
+            .board-table th, .board-table td { padding: 10px 8px; font-size: 13px; }
+            .detail-info th { width: 35%; }
+        }
     </style>
 </head>
 
@@ -368,7 +391,7 @@
             <a href="event-login.html">로그인/수강신청</a>
         </div>
         <button class="role-toggle-btn" onclick="toggleRole()">
-            🔑 : <span id="roleText">비공개 게시판</span>
+            🔑 <span id="roleText">비공개 게시판</span>
         </button>
     </nav>
     
@@ -383,27 +406,27 @@
 <main>
     <div class="status-header">
         <h2>전체 신청 목록</h2>
-        <span id="roleBadge" class="role-badge user">🔒</span>
+        <span id="roleBadge" class="role-badge user">🔒 일반 사용자</span>
     </div>
 
     <div class="board-table-container">
         <table class="board-table">
             <thead>
                 <tr>
-                    <th style="width: 12%;">번호</th>
-                    <th style="width: 48%;">목록</th>
+                    <th style="width: 10%;">번호</th>
+                    <th style="width: 50%;">목록</th>
                     <th style="width: 20%;">작성자</th>
                     <th style="width: 10%;">상태</th>
-                    <th style="width: 10%; text-align: center;" id="adminColHeader">관리</th>
+                    <th style="width: 10%; text-align: center;">관리</th>
                 </tr>
             </thead>
             <tbody id="boardTbody">
-                <!-- 자바스크립트로 동적 목록 구성 -->
+                <!-- 동적 게시물 로딩 -->
             </tbody>
         </table>
     </div>
 
-    <!-- 페이지 수 페이지네이션 영역 -->
+    <!-- 페이지네이션 -->
     <div id="pagination" class="pagination-container"></div>
 </main>
 
@@ -412,7 +435,7 @@
 </footer>
 
 <script>
-    // 날짜 포맷 생성 함수 (YYYY.MM.DD)
+    // 날짜 포맷 함수 (YYYY.MM.DD)
     function formatDate(date = new Date()) {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -420,16 +443,17 @@
         return `${year}.${month}.${day}`;
     }
 
-    // 1. 관리자 설정 및 기본 변수
+    // 1. 상태 및 상수 설정
     const ADMIN_PASSWORD = "0093";
     let isAdmin = false;
+    let openDetailId = null; // 현재 펼쳐져 있는 게시글 ID 저장
     const currentUserPhone = localStorage.getItem('userPhone') || '010-1234-5678';
 
-    // 페이지네이션 상태
+    // 페이지네이션
     let currentPage = 1;
     const itemsPerPage = 10;
 
-    // 기본 샘플 데이터 정의
+    // 기본 샘플 데이터
     const defaultPosts = [
         {
             id: 1,
@@ -441,10 +465,10 @@
         }
     ];
 
-    // 2. LocalStorage에서 저장된 데이터 가져오기
+    // 2. LocalStorage 데이터 동크
     let postsData = JSON.parse(localStorage.getItem('yogaPostsData')) || defaultPosts;
 
-    // 방금 새로 신청한 내역이 있다면 맨 앞에 추가
+    // 새 신청건 처리
     const newTicket = localStorage.getItem('selectedTicket');
     const newPhone = localStorage.getItem('userPhone');
 
@@ -463,18 +487,17 @@
         localStorage.removeItem('selectedTicket'); 
     }
 
-    // 초기화 함수
+    // 초기 실행
     window.onload = function() {
         renderBoard();
         updateRoleUI();
     };
 
-    // 변경된 데이터를 LocalStorage에 저장하는 함수
     function savePosts() {
         localStorage.setItem('yogaPostsData', JSON.stringify(postsData));
     }
 
-    // 게시판 목록 렌더링
+    // 게시판 렌더링
     function renderBoard() {
         const tbody = document.getElementById('boardTbody');
         if (!tbody) return;
@@ -482,7 +505,7 @@
         tbody.innerHTML = '';
 
         if (postsData.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#999; padding:30px;">등록된 게시글이 없습니다.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#999; padding:30px;">등록된 수강신청 내역이 없습니다.</td></tr>`;
             renderPagination();
             return;
         }
@@ -502,14 +525,15 @@
 
             const displayNum = postsData.length - (startIndex + index);
             const postDate = post.createdAt || formatDate();
+            const isOpen = openDetailId === post.id;
 
-            // 목록 행
+            // 1) 목록 트랜젝션 행
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${displayNum}</td>
                 <td>
                     <span class="post-title-link" onclick="toggleDetail(${post.id})">
-                        🔒 [신청] 비공개 글 입니다.
+                        🔒 [신청] 비공개 수강신청글 입니다.
                     </span>
                 </td>
                 <td>${maskedPhone}</td>
@@ -519,24 +543,24 @@
                 </td>
             `;
             
-            // 상세 내용 행
+            // 2) 상세 정보 행
             const detailTr = document.createElement('tr');
-            detailTr.className = 'detail-row';
+            detailTr.className = `detail-row ${isOpen ? 'active' : ''}`;
             detailTr.id = `detail-${post.id}`;
 
             let commentsHtml = '';
             if (!post.comments || post.comments.length === 0) {
-                commentsHtml = '<p style="font-size:12px; color:#999;">등록된 답변이 없습니다.</p>';
+                commentsHtml = '<p style="font-size:12px; color:#999; margin: 4px 0;">등록된 답변이 없습니다.</p>';
             } else {
                 post.comments.forEach(c => {
                     const commentDeleteBtn = isAdmin 
-                        ? `<button class="btn-delete" style="font-size:10px;" onclick="deleteComment(${post.id}, ${c.id})">삭제</button>` 
+                        ? `<button class="btn-delete" style="font-size:10px; margin-left: 6px;" onclick="deleteComment(${post.id}, ${c.id})">삭제</button>` 
                         : '';
                     commentsHtml += `
                         <div class="comment-item">
                             <div class="comment-header">
                                 <span class="comment-author">${c.author}</span>
-                                <div><span>${c.date}</span> ${commentDeleteBtn}</div>
+                                <div><span>${c.date}</span>${commentDeleteBtn}</div>
                             </div>
                             <div class="comment-body">${c.text}</div>
                         </div>
@@ -555,7 +579,7 @@
                                 <td>${postDate}</td>
                             </tr>
                             <tr>
-                                <th>신청자 전화번호</th>
+                                <th>신청자 연락처</th>
                                 <td>${post.phone}</td>
                             </tr>
                             <tr>
@@ -563,7 +587,7 @@
                                 <td style="color:#517e73; font-weight:bold;">${ticketDisplayName}</td>
                             </tr>
                             <tr>
-                                <th>입금 계좌</th>
+                                <th>입금 안내 계좌</th>
                                 <td>카카오뱅크 3333-3831-06944 (예금주: 김정순)</td>
                             </tr>
                         </table>
@@ -574,7 +598,7 @@
 
                             ${isAdmin ? `
                                 <div class="admin-comment-form clearfix">
-                                    <textarea id="comment-input-${post.id}" placeholder="답변 입력 (단어 '승인' 또는 '확인' 작성 시 자동 승인 처리)"></textarea>
+                                    <textarea id="comment-input-${post.id}" placeholder="답변을 입력하세요. ('승인' 또는 '확인' 포함 시 자동 승인 처리)"></textarea>
                                     <button class="btn-comment-submit" onclick="addAdminComment(${post.id})">답변 등록</button>
                                 </div>
                             ` : ''}
@@ -590,30 +614,30 @@
         renderPagination();
     }
 
-    // 상세 펼치기 / 열기
+    // 상세 토글 처리
     function toggleDetail(postId) {
         const targetPost = postsData.find(p => p.id === postId);
         const isOwner = targetPost && (targetPost.phone === currentUserPhone);
 
         if (!isOwner && !isAdmin) {
-            alert("비밀글 기능으로 작성자 본인만 확인하실 수 있습니다. 🌿");
+            alert("비공개글입니다. 작성자 본인만 확인하실 수 있습니다. 🌿");
             return;
         }
 
-        const targetRow = document.getElementById(`detail-${postId}`);
-        if (targetRow.classList.contains('active')) {
-            targetRow.classList.remove('active');
+        if (openDetailId === postId) {
+            openDetailId = null;
         } else {
-            document.querySelectorAll('.detail-row').forEach(row => row.classList.remove('active'));
-            targetRow.classList.add('active');
+            openDetailId = postId;
         }
+        renderBoard();
     }
 
     // 게시글 삭제
     function deletePost(postId) {
         if (!isAdmin) return;
-        if (confirm("이 게시글을 삭제하시겠습니까?")) {
+        if (confirm("정말 이 수강신청글을 삭제하시겠습니까?")) {
             postsData = postsData.filter(p => p.id !== postId);
+            if (openDetailId === postId) openDetailId = null;
             savePosts();
             renderBoard();
         }
@@ -628,24 +652,25 @@
                 targetPost.comments = targetPost.comments.filter(c => c.id !== commentId);
                 savePosts();
                 renderBoard();
-                document.getElementById(`detail-${postId}`)?.classList.add('active');
             }
         }
     }
 
-    // 관리자 답변 등록
+    // 답변 작성
     function addAdminComment(postId) {
         if (!isAdmin) return;
         const input = document.getElementById(`comment-input-${postId}`);
         const text = input ? input.value.trim() : '';
 
         if (!text) {
-            alert('답변을 입력해 주세요.');
+            alert('답변 내용을 입력해 주세요.');
             return;
         }
 
         const targetPost = postsData.find(p => p.id === postId);
         if (targetPost) {
+            if (!targetPost.comments) targetPost.comments = [];
+            
             targetPost.comments.push({
                 id: Date.now(),
                 author: "ON108 YOGA 관리자",
@@ -653,40 +678,40 @@
                 text: text
             });
 
+            // 키워드 자동 승인
             if (text.includes('확인') || text.includes('승인')) {
                 targetPost.status = 'approved';
             }
 
             savePosts();
+            openDetailId = postId; // 상세보기 열림 유지
             renderBoard();
-            document.getElementById(`detail-${postId}`)?.classList.add('active');
         }
     }
 
-    // 권한 변경 스위치
+    // 관리자 모드 전환
     function toggleRole() {
         if (!isAdmin) {
-            const password = prompt("관리자 비밀번호를 입력하세요.");
-            
+            const password = prompt("관리자 암호를 입력하세요.");
             if (password === null) return;
             
             if (password === ADMIN_PASSWORD) {
                 isAdmin = true;
-                alert("관리자 모드로 전환되었습니다.");
+                alert("관리자 권한으로 변경되었습니다.");
             } else {
                 alert("비밀번호가 올바르지 않습니다.");
                 return;
             }
         } else {
             isAdmin = false;
-            alert("일반 회원 모드로 전환되었습니다.");
+            alert("일반 사용자 모드로 전환되었습니다.");
         }
 
         updateRoleUI();
         renderBoard();
     }
 
-    // 권한 UI 업데이트
+    // UI 모드 표시 업데이트
     function updateRoleUI() {
         const roleText = document.getElementById('roleText');
         const roleBadge = document.getElementById('roleBadge');
@@ -694,11 +719,11 @@
         if (roleText && roleBadge) {
             if (isAdmin) {
                 roleText.innerText = '관리자';
-                roleBadge.innerText = '관리자 모드';
+                roleBadge.innerText = '🔓 관리자 모드';
                 roleBadge.className = 'role-badge admin';
             } else {
                 roleText.innerText = '비공개 게시판';
-                roleBadge.innerText = '🔒';
+                roleBadge.innerText = '🔒 일반 사용자';
                 roleBadge.className = 'role-badge user';
             }
         }
@@ -720,6 +745,7 @@
             btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
             btn.onclick = () => {
                 currentPage = i;
+                openDetailId = null; // 페이지 변경 시 토글 닫기
                 renderBoard();
             };
             paginationContainer.appendChild(btn);
