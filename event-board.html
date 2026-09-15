@@ -409,7 +409,34 @@
     <p>© ON108YOGA Reservation System</p>
 </footer>
 
-<script>
+<!-- Firebase SDK 연결 (Module 타입 사용) -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+        getDatabase, 
+        ref, 
+        push, 
+        onValue, 
+        remove, 
+        update 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // 1. Firebase 구성 설정 (발급받은 실제 키로 변경하세요)
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT_ID.appspot.com",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
+
+    // Firebase 초기화
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const postsRef = ref(db, 'posts');
+
     // 날짜 포맷 함수 (YYYY.MM.DD)
     function formatDate(date = new Date()) {
         const year = date.getFullYear();
@@ -418,62 +445,72 @@
         return `${year}.${month}.${day}`;
     }
 
-    // 1. 상태 및 상수 설정
+    // 2. 상태 및 상수 설정
     const ADMIN_PASSWORD = "0093";
     let isAdmin = false;
     let openDetailId = null;
     const currentUserPhone = localStorage.getItem('userPhone') || '010-1234-5678';
 
-    // 페이지네이션
     let currentPage = 1;
     const itemsPerPage = 10;
+    let postsData = [];
 
-    // 기본 샘플 데이터
-    const defaultPosts = [
-        {
-            id: 1,
-            phone: '010-1234-5678',
-            actualTicket: '원데이 클래스 수강권',
-            status: 'pending',
-            createdAt: '2026.09.11',
-            comments: []
-        }
-    ];
-
-    // 2. LocalStorage 데이터 동기화
-    let postsData = JSON.parse(localStorage.getItem('yogaPostsData')) || defaultPosts;
-
-    // 새 신청건 처리
+    // 3. 새 수강신청건 있을 시 Firebase DB에 즉시 등록
     const newTicket = localStorage.getItem('selectedTicket');
     const newPhone = localStorage.getItem('userPhone');
 
     if (newTicket && newPhone) {
         const newPost = {
-            id: Date.now(),
             phone: newPhone,
             actualTicket: newTicket,
             status: 'pending',
             createdAt: formatDate(),
-            comments: []
+            timestamp: Date.now(),
+            comments: {}
         };
         
-        postsData.unshift(newPost);
-        savePosts();
-        localStorage.removeItem('selectedTicket'); 
+        push(postsRef, newPost)
+            .then(() => {
+                localStorage.removeItem('selectedTicket');
+            })
+            .catch((err) => console.error("데이터 저장 실패:", err));
     }
 
-    // 초기 실행
-    window.onload = function() {
+    // 4. Realtime Database 실시간 이벤트 리스너
+    onValue(postsRef, (snapshot) => {
+        const data = snapshot.val();
+        postsData = [];
+
+        if (data) {
+            Object.keys(data).forEach((key) => {
+                const item = data[key];
+                
+                // comments 객체를 배열 형태로 호환되도록 변환
+                let commentsArr = [];
+                if (item.comments) {
+                    commentsArr = Object.keys(item.comments).map(cKey => ({
+                        id: cKey,
+                        ...item.comments[cKey]
+                    }));
+                }
+
+                postsData.push({
+                    id: key,
+                    ...item,
+                    comments: commentsArr
+                });
+            });
+
+            // 최신글 순으로 정렬 (timestamp 기준)
+            postsData.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        }
+
         renderBoard();
         updateRoleUI();
-    };
-
-    function savePosts() {
-        localStorage.setItem('yogaPostsData', JSON.stringify(postsData));
-    }
+    });
 
     // 게시판 렌더링
-    function renderBoard() {
+    window.renderBoard = function() {
         const tbody = document.getElementById('boardTbody');
         if (!tbody) return;
 
@@ -507,14 +544,14 @@
             tr.innerHTML = `
                 <td>${displayNum}</td>
                 <td>
-                    <span class="post-title-link" onclick="toggleDetail(${post.id})">
+                    <span class="post-title-link" onclick="toggleDetail('${post.id}')">
                         🔒 [신청] 비공개 수강신청글 입니다.
                     </span>
                 </td>
                 <td>${maskedPhone}</td>
                 <td><span class="status-tag ${statusClass}">${statusText}</span></td>
                 <td style="text-align: center;">
-                    ${isAdmin ? `<button class="btn-delete" onclick="deletePost(${post.id})">삭제</button>` : '-'}
+                    ${isAdmin ? `<button class="btn-delete" onclick="deletePost('${post.id}')">삭제</button>` : '-'}
                 </td>
             `;
             
@@ -529,7 +566,7 @@
             } else {
                 post.comments.forEach(c => {
                     const commentDeleteBtn = isAdmin 
-                        ? `<button class="btn-delete" style="font-size:10px; margin-left: 6px;" onclick="deleteComment(${post.id}, ${c.id})">삭제</button>` 
+                        ? `<button class="btn-delete" style="font-size:10px; margin-left: 6px;" onclick="deleteComment('${post.id}', '${c.id}')">삭제</button>` 
                         : '';
                     commentsHtml += `
                         <div class="comment-item">
@@ -574,7 +611,7 @@
                             ${isAdmin ? `
                                 <div class="admin-comment-form clearfix">
                                     <textarea id="comment-input-${post.id}" placeholder="답변을 입력하세요. ('승인' 또는 '확인' 포함 시 자동 승인 처리)"></textarea>
-                                    <button class="btn-comment-submit" onclick="addAdminComment(${post.id})">답변 등록</button>
+                                    <button class="btn-comment-submit" onclick="addAdminComment('${post.id}')">답변 등록</button>
                                 </div>
                             ` : ''}
                         </div>
@@ -587,10 +624,10 @@
         });
 
         renderPagination();
-    }
+    };
 
     // 상세 토글 처리
-    function toggleDetail(postId) {
+    window.toggleDetail = function(postId) {
         const targetPost = postsData.find(p => p.id === postId);
         
         const cleanPostPhone = targetPost ? targetPost.phone.replace(/[^0-9]/g, '') : '';
@@ -605,34 +642,32 @@
 
         openDetailId = (openDetailId === postId) ? null : postId;
         renderBoard();
-    }
+    };
 
     // 게시글 삭제
-    function deletePost(postId) {
+    window.deletePost = function(postId) {
         if (!isAdmin) return;
         if (confirm("정말 이 수강신청글을 삭제하시겠습니까?")) {
-            postsData = postsData.filter(p => p.id !== postId);
-            if (openDetailId === postId) openDetailId = null;
-            savePosts();
-            renderBoard();
+            const targetRef = ref(db, `posts/${postId}`);
+            remove(targetRef)
+                .then(() => {
+                    if (openDetailId === postId) openDetailId = null;
+                })
+                .catch(err => alert("삭제 실패: " + err.message));
         }
-    }
+    };
 
     // 댓글 삭제
-    function deleteComment(postId, commentId) {
+    window.deleteComment = function(postId, commentId) {
         if (!isAdmin) return;
         if (confirm("이 답변을 삭제하시겠습니까?")) {
-            const targetPost = postsData.find(p => p.id === postId);
-            if (targetPost) {
-                targetPost.comments = targetPost.comments.filter(c => c.id !== commentId);
-                savePosts();
-                renderBoard();
-            }
+            const commentRef = ref(db, `posts/${postId}/comments/${commentId}`);
+            remove(commentRef).catch(err => alert("답변 삭제 실패: " + err.message));
         }
-    }
+    };
 
     // 답변 작성
-    function addAdminComment(postId) {
+    window.addAdminComment = function(postId) {
         if (!isAdmin) return;
         const input = document.getElementById(`comment-input-${postId}`);
         const text = input ? input.value.trim() : '';
@@ -642,29 +677,24 @@
             return;
         }
 
-        const targetPost = postsData.find(p => p.id === postId);
-        if (targetPost) {
-            if (!targetPost.comments) targetPost.comments = [];
-            
-            targetPost.comments.push({
-                id: Date.now(),
-                author: "ON108 YOGA 관리자",
-                date: formatDate(),
-                text: text
-            });
+        const commentsRef = ref(db, `posts/${postId}/comments`);
+        const newComment = {
+            author: "ON108 YOGA 관리자",
+            date: formatDate(),
+            text: text
+        };
 
+        push(commentsRef, newComment).then(() => {
             if (text.includes('확인') || text.includes('승인')) {
-                targetPost.status = 'approved';
+                const statusRef = ref(db, `posts/${postId}`);
+                update(statusRef, { status: 'approved' });
             }
-
-            savePosts();
             openDetailId = postId;
-            renderBoard();
-        }
-    }
+        }).catch(err => alert("답변 등록 실패: " + err.message));
+    };
 
     // 관리자 모드 전환
-    function toggleRole() {
+    window.toggleRole = function() {
         if (!isAdmin) {
             const password = prompt("관리자 암호를 입력하세요.");
             if (password === null) return;
@@ -683,10 +713,10 @@
 
         updateRoleUI();
         renderBoard();
-    }
+    };
 
     // UI 모드 표시 업데이트
-    function updateRoleUI() {
+    window.updateRoleUI = function() {
         const roleText = document.getElementById('roleText');
         const roleBadge = document.getElementById('roleBadge');
 
@@ -701,7 +731,7 @@
                 roleBadge.className = 'role-badge user';
             }
         }
-    }
+    };
 
     // 페이지네이션 렌더링
     function renderPagination() {
@@ -724,13 +754,6 @@
             };
             paginationContainer.appendChild(btn);
         }
-    }
-
-    // 수강신청 페이지 제출 핸들러 예시 (참고용)
-    function submitForm(inputPhoneValue, inputTicketValue) {
-        localStorage.setItem('userPhone', inputPhoneValue);
-        localStorage.setItem('selectedTicket', inputTicketValue);
-        location.href = 'board.html';
     }
 </script>
 </body>
