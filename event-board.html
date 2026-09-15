@@ -43,7 +43,7 @@
             <a href="index.html">홈</a>
             <a href="event-login.html">로그인/수강신청</a>
         </div>
-        <button class="role-toggle-btn" id="adminLoginBtn">🔑 관리자 로그인</button>
+        <button class="role-toggle-btn" id="authBtn">📱 전화번호 로그인</button>
     </nav>
     <h1>ON108 YOGA<span style="display: block; font-size: 11px; color: #777;">수강 신청 게시판</span></h1>
 </header>
@@ -65,17 +65,20 @@
                 </tr>
             </thead>
             <tbody id="boardTbody">
-                <tr><td colspan="4" style="text-align:center; padding:30px;">신청 내역을 불러오는 중입니다...</td></tr>
+                <tr><td colspan="4" style="text-align:center; padding:30px;">로그인 상태를 확인하는 중입니다...</td></tr>
             </tbody>
         </table>
     </div>
 </main>
 
+<!-- 리캡차 렌더링용 임시 컨테이너 -->
+<div id="recaptcha-container"></div>
+
 <footer><p>© ON108YOGA Reservation System</p></footer>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -91,25 +94,48 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // 📌 관리자로 등록할 전화번호 설정 (국제번호 +82 형식)
+    const ADMIN_PHONE_NUMBER = "+821012345678"; // 본인 관리자 번호로 수정 (예: 010-1234-5678 -> +821012345678)
+
     let isAdmin = false;
 
-    // 관리자 버튼 클릭 시 처리
-    document.getElementById('adminLoginBtn').addEventListener('click', async () => {
-        if (isAdmin) {
+    // Recaptcha 초기화
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'invisible'
+    });
+
+    // 로그인 / 로그아웃 버튼 이벤트
+    document.getElementById('authBtn').addEventListener('click', async () => {
+        if (auth.currentUser) {
             await signOut(auth);
             alert("로그아웃 되었습니다.");
             location.reload();
         } else {
-            const email = prompt("관리자 이메일을 입력하세요:");
-            if (!email) return;
-            const password = prompt("비밀번호를 입력하세요:");
-            if (!password) return;
+            const rawPhone = prompt("전화번호를 입력하세요 (예: 01012345678):");
+            if (!rawPhone) return;
+
+            // 국가코드(+82) 변환 처리
+            let formattedPhone = rawPhone.replace(/[^0-9]/g, '');
+            if (formattedPhone.startsWith('0')) {
+                formattedPhone = '+82' + formattedPhone.substring(1);
+            } else if (!formattedPhone.startsWith('82')) {
+                formattedPhone = '+82' + formattedPhone;
+            } else {
+                formattedPhone = '+' + formattedPhone;
+            }
 
             try {
-                await signInWithEmailAndPassword(auth, email, password);
-                alert("관리자로 로그인되었습니다.");
-            } catch (err) {
-                alert("로그인 실패: " + err.message);
+                const appVerifier = window.recaptchaVerifier;
+                const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+                
+                const code = prompt("핸드폰으로 전송된 6자리 인증번호를 입력하세요:");
+                if (!code) return;
+
+                await confirmationResult.confirm(code);
+                alert("성공적으로 로그인되었습니다.");
+            } catch (error) {
+                console.error("인증 에러:", error);
+                alert("전화번호 인증 실패: " + error.message);
             }
         }
     });
@@ -118,16 +144,17 @@
     onAuthStateChanged(auth, async (user) => {
         const tbody = document.getElementById('boardTbody');
         const roleBadge = document.getElementById('roleBadge');
-        const adminBtn = document.getElementById('adminLoginBtn');
+        const authBtn = document.getElementById('authBtn');
         const boardTitle = document.getElementById('boardTitle');
 
         if (user) {
-            // 이메일 또는 커스텀 클레임/UID 기반 관리자 판별 (필요시 관리자 이메일 주소 수정)
-            if (user.email && user.email.includes("admin")) { 
+            authBtn.innerText = "🚪 로그아웃";
+            
+            // 로그인한 사용자의 전화번호 비교 (관리자 판별)
+            if (user.phoneNumber === ADMIN_PHONE_NUMBER) {
                 isAdmin = true;
                 roleBadge.innerText = "🔓 관리자 모드";
                 roleBadge.className = "role-badge admin";
-                adminBtn.innerText = "🚪 로그아웃";
                 boardTitle.innerText = "전체 회원 수강신청 목록 (관리자)";
                 await loadAllReservations();
             } else {
@@ -139,17 +166,18 @@
             }
         } else {
             isAdmin = false;
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px;">로그인이 필요합니다. <a href="event-login.html">로그인하기</a></td></tr>`;
+            authBtn.innerText = "📱 전화번호 로그인";
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px;">로그인이 필요합니다. 上端 [전화번호 로그인] 버튼을 이용해 주세요.</td></tr>`;
         }
     });
 
-    // 1. 일반 회원용 내 신청내역만 조회
+    // 일반 회원: 본인 uid 조회
     async function loadUserReservations(uid) {
         const q = query(collection(db, "reservations"), where("userId", "==", uid));
         await renderTableData(q);
     }
 
-    // 2. 관리자용 전체 신청내역 조회
+    // 관리자: 전체 목록 조회
     async function loadAllReservations() {
         const q = query(collection(db, "reservations"));
         await renderTableData(q);
@@ -207,7 +235,7 @@
             });
         } catch (error) {
             console.error("데이터 조회 오류:", error);
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red; padding:30px;">권한이 없거나 불러오기에 실패했습니다. (Firestore 규칙 확인)</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red; padding:30px;">데이터를 불러오는 중 오류가 발생했습니다. (Firestore 보안 규칙 확인 필요)</td></tr>`;
         }
     }
 </script>
