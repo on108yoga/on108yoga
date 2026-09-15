@@ -12,9 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
     
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             margin: 0;
@@ -45,9 +43,7 @@
             transition: opacity 0.2s ease;            
         }
 
-        .navbar-links a:hover {
-            opacity: 0.8;
-        }
+        .navbar-links a:hover { opacity: 0.8; }
 
         /* 관리자 전환 버튼 */
         .role-toggle-btn {
@@ -64,9 +60,7 @@
             gap: 4px;
         }
 
-        .role-toggle-btn:hover {
-            background-color: #2d3830;
-        }
+        .role-toggle-btn:hover { background-color: #2d3830; }
 
         h1 {
             background-color: #f4efe6;
@@ -90,7 +84,6 @@
             padding: 0 20px;
         }
 
-        /* 상태 요약 바 */
         .status-header {
             display: flex;
             justify-content: space-between;
@@ -150,13 +143,9 @@
             font-weight: 600;
         }
 
-        .board-table tbody tr {
-            transition: background-color 0.2s;
-        }
+        .board-table tbody tr { transition: background-color 0.2s; }
 
-        .board-table tbody tr:not(.detail-row):hover {
-            background-color: #faf8f5;
-        }
+        .board-table tbody tr:not(.detail-row):hover { background-color: #faf8f5; }
 
         .post-title-link {
             color: #333;
@@ -171,7 +160,6 @@
             text-decoration: underline;
         }
 
-        /* 상태 태그 */
         .status-tag {
             font-size: 11px;
             padding: 3px 8px;
@@ -190,7 +178,6 @@
             color: #155724;
         }
 
-        /* 관리자 삭제 버튼 */
         .btn-delete {
             background-color: #fff1f0;
             color: #e11d48;
@@ -213,9 +200,7 @@
             background-color: #fafafa;
         }
 
-        .detail-row.active {
-            display: table-row;
-        }
+        .detail-row.active { display: table-row; }
 
         .detail-container {
             padding: 20px;
@@ -289,10 +274,7 @@
             white-space: pre-line;
         }
 
-        /* 댓글 폼 */
-        .admin-comment-form {
-            margin-top: 12px;
-        }
+        .admin-comment-form { margin-top: 12px; }
 
         .admin-comment-form textarea {
             width: 100%;
@@ -306,9 +288,7 @@
             outline: none;
         }
 
-        .admin-comment-form textarea:focus {
-            border-color: #517e73;
-        }
+        .admin-comment-form textarea:focus { border-color: #517e73; }
 
         .btn-comment-submit {
             margin-top: 6px;
@@ -323,9 +303,7 @@
             transition: background-color 0.2s;
         }
 
-        .btn-comment-submit:hover {
-            background-color: #2d3830;
-        }
+        .btn-comment-submit:hover { background-color: #2d3830; }
 
         .clearfix::after {
             content: "";
@@ -352,9 +330,7 @@
             transition: all 0.2s;
         }
         
-        .page-btn:hover {
-            background-color: #f4efe6;
-        }
+        .page-btn:hover { background-color: #f4efe6; }
         
         .page-btn.active {
             background-color: #517e73;
@@ -374,7 +350,6 @@
             margin-top: auto;
         }
 
-        /* 반응형 스타일 */
         @media (max-width: 600px) {
             main { padding: 0 12px; margin: 20px auto; }
             .board-table th, .board-table td { padding: 10px 8px; font-size: 13px; }
@@ -446,7 +421,7 @@
     // 1. 상태 및 상수 설정
     const ADMIN_PASSWORD = "0093";
     let isAdmin = false;
-    let openDetailId = null; // 현재 펼쳐져 있는 게시글 ID 저장
+    let openDetailId = null;
     const currentUserPhone = localStorage.getItem('userPhone') || '010-1234-5678';
 
     // 페이지네이션
@@ -465,7 +440,7 @@
         }
     ];
 
-    // 2. LocalStorage 데이터 동크
+    // 2. LocalStorage 데이터 동기화
     let postsData = JSON.parse(localStorage.getItem('yogaPostsData')) || defaultPosts;
 
     // 새 신청건 처리
@@ -527,7 +502,7 @@
             const postDate = post.createdAt || formatDate();
             const isOpen = openDetailId === post.id;
 
-            // 1) 목록 트랜젝션 행
+            // 목록 행
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${displayNum}</td>
@@ -543,7 +518,7 @@
                 </td>
             `;
             
-            // 2) 상세 정보 행
+            // 상세 정보 행
             const detailTr = document.createElement('tr');
             detailTr.className = `detail-row ${isOpen ? 'active' : ''}`;
             detailTr.id = `detail-${post.id}`;
@@ -617,18 +592,18 @@
     // 상세 토글 처리
     function toggleDetail(postId) {
         const targetPost = postsData.find(p => p.id === postId);
-        const isOwner = targetPost && (targetPost.phone === currentUserPhone);
+        
+        const cleanPostPhone = targetPost ? targetPost.phone.replace(/[^0-9]/g, '') : '';
+        const cleanUserPhone = currentUserPhone.replace(/[^0-9]/g, '');
+        
+        const isOwner = cleanPostPhone && (cleanPostPhone === cleanUserPhone);
 
         if (!isOwner && !isAdmin) {
             alert("비공개글입니다. 작성자 본인만 확인하실 수 있습니다. 🌿");
             return;
         }
 
-        if (openDetailId === postId) {
-            openDetailId = null;
-        } else {
-            openDetailId = postId;
-        }
+        openDetailId = (openDetailId === postId) ? null : postId;
         renderBoard();
     }
 
@@ -678,13 +653,12 @@
                 text: text
             });
 
-            // 키워드 자동 승인
             if (text.includes('확인') || text.includes('승인')) {
                 targetPost.status = 'approved';
             }
 
             savePosts();
-            openDetailId = postId; // 상세보기 열림 유지
+            openDetailId = postId;
             renderBoard();
         }
     }
@@ -745,11 +719,18 @@
             btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
             btn.onclick = () => {
                 currentPage = i;
-                openDetailId = null; // 페이지 변경 시 토글 닫기
+                openDetailId = null;
                 renderBoard();
             };
             paginationContainer.appendChild(btn);
         }
+    }
+
+    // 수강신청 페이지 제출 핸들러 예시 (참고용)
+    function submitForm(inputPhoneValue, inputTicketValue) {
+        localStorage.setItem('userPhone', inputPhoneValue);
+        localStorage.setItem('selectedTicket', inputTicketValue);
+        location.href = 'board.html';
     }
 </script>
 </body>
