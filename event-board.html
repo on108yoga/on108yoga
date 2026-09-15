@@ -4,19 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>이벤트 수강신청 게시판 - ON108 YOGA</title>
-    
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
-    
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; font-family: 'Pretendard', sans-serif; background-color: #fcfcfc; color: #333; min-height: 100vh; display: flex; flex-direction: column; }
         .navbar { justify-content: space-between; display: flex; align-items: center; background-color: #517e73; padding: 12px 20px; font-size: 14px; }
         .navbar-links a { color: #ffffff; text-decoration: none; font-weight: 500; padding: 4px 8px; }
         .role-toggle-btn { background-color: #3f4e43; color: #ffffff; border: 1px solid rgba(255,255,255,0.3); padding: 6px 14px; border-radius: 20px; font-size: 12px; cursor: pointer; }
-        h1 { background-color: #f4efe6; color: #3f4e43; text-align: center; margin: 0; padding: 16px 0; font-family: 'Cormorant Garamond', serif; font-size: 22px; text-transform: uppercase; }
+        h1 { background-color: #f4efe6; color: #3f4e43; text-align: center; margin: 0; padding: 16px 0; font-size: 22px; text-transform: uppercase; }
         main { flex: 1; max-width: 860px; width: 100%; margin: 30px auto; padding: 0 20px; }
         .status-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
         .role-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
@@ -48,14 +43,14 @@
             <a href="index.html">홈</a>
             <a href="event-login.html">로그인/수강신청</a>
         </div>
-        <button class="role-toggle-btn" id="roleToggleBtn">🔑 비공개 게시판</button>
+        <button class="role-toggle-btn" id="adminLoginBtn">🔑 관리자 로그인</button>
     </nav>
     <h1>ON108 YOGA<span style="display: block; font-size: 11px; color: #777;">수강 신청 게시판</span></h1>
 </header>
 
 <main>
     <div class="status-header">
-        <h2>내 수강신청 목록</h2>
+        <h2 id="boardTitle">내 수강신청 목록</h2>
         <span id="roleBadge" class="role-badge user">🔒 일반 사용자</span>
     </div>
 
@@ -78,13 +73,11 @@
 
 <footer><p>© ON108YOGA Reservation System</p></footer>
 
-<!-- Firebase SDK v9+ (모듈 방식) -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // 1. 본인의 Firebase 프로젝트 Config 설정
     const firebaseConfig = {
         apiKey: "YOUR_API_KEY",
         authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -98,38 +91,79 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    let currentUser = null;
-    let openDetailId = null;
+    let isAdmin = false;
 
-    // 2. 인증 상태 감지 및 내 신청 목록 불러오기
+    // 관리자 버튼 클릭 시 처리
+    document.getElementById('adminLoginBtn').addEventListener('click', async () => {
+        if (isAdmin) {
+            await signOut(auth);
+            alert("로그아웃 되었습니다.");
+            location.reload();
+        } else {
+            const email = prompt("관리자 이메일을 입력하세요:");
+            if (!email) return;
+            const password = prompt("비밀번호를 입력하세요:");
+            if (!password) return;
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                alert("관리자로 로그인되었습니다.");
+            } catch (err) {
+                alert("로그인 실패: " + err.message);
+            }
+        }
+    });
+
+    // 인증 상태 감지
     onAuthStateChanged(auth, async (user) => {
         const tbody = document.getElementById('boardTbody');
-        
+        const roleBadge = document.getElementById('roleBadge');
+        const adminBtn = document.getElementById('adminLoginBtn');
+        const boardTitle = document.getElementById('boardTitle');
+
         if (user) {
-            currentUser = user;
-            await loadUserReservations(user.uid);
+            // 이메일 또는 커스텀 클레임/UID 기반 관리자 판별 (필요시 관리자 이메일 주소 수정)
+            if (user.email && user.email.includes("admin")) { 
+                isAdmin = true;
+                roleBadge.innerText = "🔓 관리자 모드";
+                roleBadge.className = "role-badge admin";
+                adminBtn.innerText = "🚪 로그아웃";
+                boardTitle.innerText = "전체 회원 수강신청 목록 (관리자)";
+                await loadAllReservations();
+            } else {
+                isAdmin = false;
+                roleBadge.innerText = "🔒 일반 사용자";
+                roleBadge.className = "role-badge user";
+                boardTitle.innerText = "내 수강신청 목록";
+                await loadUserReservations(user.uid);
+            }
         } else {
-            currentUser = null;
+            isAdmin = false;
             tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px;">로그인이 필요합니다. <a href="event-login.html">로그인하기</a></td></tr>`;
         }
     });
 
-    // 3. Firestore에서 해당 회원의 예약(수강신청) 데이터 가져오기
+    // 1. 일반 회원용 내 신청내역만 조회
     async function loadUserReservations(uid) {
+        const q = query(collection(db, "reservations"), where("userId", "==", uid));
+        await renderTableData(q);
+    }
+
+    // 2. 관리자용 전체 신청내역 조회
+    async function loadAllReservations() {
+        const q = query(collection(db, "reservations"));
+        await renderTableData(q);
+    }
+
+    async function renderTableData(q) {
         const tbody = document.getElementById('boardTbody');
         tbody.innerHTML = '';
 
         try {
-            // reservations 컬렉션에서 userId가 현재 로그인 사용자와 일치하는 문서 조회
-            const q = query(
-                collection(db, "reservations"),
-                where("userId", "==", uid)
-            );
-            
             const querySnapshot = await getDocs(q);
 
             if (querySnapshot.empty) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#999; padding:30px;">신청하신 수강 내역이 없습니다.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#999; padding:30px;">신청 내역이 없습니다.</td></tr>`;
                 return;
             }
 
@@ -137,7 +171,6 @@
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 const docId = doc.id;
-                
                 const isApproved = data.status === 'approved';
                 const statusClass = isApproved ? 'status-approved' : 'status-pending';
                 const statusText = isApproved ? '승인' : '대기중';
@@ -145,12 +178,8 @@
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${index--}</td>
-                    <td>
-                        <span class="post-title-link" data-id="${docId}">
-                            🔒 [신청] ${data.ticketName || '수강신청 내역'}
-                        </span>
-                    </td>
-                    <td>${data.userName || '본인'}</td>
+                    <td><span class="post-title-link" data-id="${docId}">🔒 [신청] ${data.ticketName || '수강신청'}</span></td>
+                    <td>${data.userName || '신청자'}</td>
                     <td><span class="status-tag ${statusClass}">${statusText}</span></td>
                 `;
 
@@ -163,8 +192,7 @@
                             <table class="detail-info">
                                 <tr><th>신청 일자</th><td>${data.createdAt || '-'}</td></tr>
                                 <tr><th>연락처</th><td>${data.phone || '-'}</td></tr>
-                                <tr><th>선택 수강권</th><td style="color:#517e73; font-weight:bold;">${data.ticketName || '-'}</td></tr>
-                                <tr><th>입금 안내 계좌</th><td>카카오뱅크 3333-3831-06944 (예금주: 김정순)</td></tr>
+                                <tr><th>수강권명</th><td style="color:#517e73; font-weight:bold;">${data.ticketName || '-'}</td></tr>
                             </table>
                         </div>
                     </td>
@@ -173,16 +201,13 @@
                 tbody.appendChild(tr);
                 tbody.appendChild(detailTr);
 
-                // 제목 클릭 시 토글 이벤트 추가
                 tr.querySelector('.post-title-link').addEventListener('click', () => {
-                    const targetDetail = document.getElementById(`detail-${docId}`);
-                    targetDetail.classList.toggle('active');
+                    document.getElementById(`detail-${docId}`).classList.toggle('active');
                 });
             });
-
         } catch (error) {
             console.error("데이터 조회 오류:", error);
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red; padding:30px;">목록을 불러오는 중 오류가 발생했습니다.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red; padding:30px;">권한이 없거나 불러오기에 실패했습니다. (Firestore 규칙 확인)</td></tr>`;
         }
     }
 </script>
