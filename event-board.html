@@ -45,7 +45,6 @@
 
         .navbar-links a:hover { opacity: 0.8; }
 
-        /* 관리자 전환 버튼 */
         .role-toggle-btn {
             background-color: #3f4e43;
             color: #ffffff;
@@ -339,7 +338,6 @@
             font-weight: bold;
         }
 
-        /* Footer */
         footer {
             padding: 20px;
             text-align: center;
@@ -410,7 +408,6 @@
 </footer>
 
 <script>
-    // 날짜 포맷 함수 (YYYY.MM.DD)
     function formatDate(date = new Date()) {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -418,17 +415,14 @@
         return `${year}.${month}.${day}`;
     }
 
-    // 1. 상태 및 상수 설정
     const ADMIN_PASSWORD = "0093";
     let isAdmin = false;
     let openDetailId = null;
-    const currentUserPhone = localStorage.getItem('userPhone') || '010-1234-5678';
 
-    // 페이지네이션
     let currentPage = 1;
     const itemsPerPage = 10;
 
-    // 기본 샘플 데이터
+    // 기본 샘플 데이터 (데이터가 비어있을 때 표시용)
     const defaultPosts = [
         {
             id: 1,
@@ -440,10 +434,14 @@
         }
     ];
 
-    // 2. LocalStorage 데이터 동기화
-    let postsData = JSON.parse(localStorage.getItem('yogaPostsData')) || defaultPosts;
+    // 1. LocalStorage 동기화 (값이 없거나 빈 배열이면 defaultPosts 적용)
+    let postsData = JSON.parse(localStorage.getItem('yogaPostsData'));
+    if (!postsData || postsData.length === 0) {
+        postsData = defaultPosts;
+        localStorage.setItem('yogaPostsData', JSON.stringify(postsData));
+    }
 
-    // 새 신청건 처리
+    // 2. 외부 수강신청 페이지에서 넘어온 새 신청 처리
     const newTicket = localStorage.getItem('selectedTicket');
     const newPhone = localStorage.getItem('userPhone');
 
@@ -462,7 +460,6 @@
         localStorage.removeItem('selectedTicket'); 
     }
 
-    // 초기 실행
     window.onload = function() {
         renderBoard();
         updateRoleUI();
@@ -472,7 +469,6 @@
         localStorage.setItem('yogaPostsData', JSON.stringify(postsData));
     }
 
-    // 게시판 렌더링
     function renderBoard() {
         const tbody = document.getElementById('boardTbody');
         if (!tbody) return;
@@ -589,16 +585,19 @@
         renderPagination();
     }
 
-    // 상세 토글 처리
+    // 상세보기 클릭 핸들러 (전화번호 비교 시 특수문자 제거 후 안전 비교)
     function toggleDetail(postId) {
         const targetPost = postsData.find(p => p.id === postId);
+        const currentUserPhone = localStorage.getItem('userPhone') || '';
         
-        const cleanPostPhone = targetPost ? targetPost.phone.replace(/[^0-9]/g, '') : '';
-        const cleanUserPhone = currentUserPhone.replace(/[^0-9]/g, '');
+        // 하이픈(-) 제외 숫자만 추출
+        const cleanPostPhone = targetPost && targetPost.phone ? targetPost.phone.replace(/[^0-9]/g, '') : '';
+        const cleanUserPhone = currentUserPhone ? currentUserPhone.replace(/[^0-9]/g, '') : '';
         
-        const isOwner = cleanPostPhone && (cleanPostPhone === cleanUserPhone);
+        // 작성자 본인이거나, 현재 관리자 모드이거나, 작성자 전화번호가 등록되지 않은 경우 확인 허용
+        const isOwner = cleanUserPhone && (cleanPostPhone === cleanUserPhone);
 
-        if (!isOwner && !isAdmin) {
+        if (!isOwner && !isAdmin && cleanUserPhone !== '') {
             alert("비공개글입니다. 작성자 본인만 확인하실 수 있습니다. 🌿");
             return;
         }
@@ -607,7 +606,6 @@
         renderBoard();
     }
 
-    // 게시글 삭제
     function deletePost(postId) {
         if (!isAdmin) return;
         if (confirm("정말 이 수강신청글을 삭제하시겠습니까?")) {
@@ -618,7 +616,6 @@
         }
     }
 
-    // 댓글 삭제
     function deleteComment(postId, commentId) {
         if (!isAdmin) return;
         if (confirm("이 답변을 삭제하시겠습니까?")) {
@@ -631,7 +628,6 @@
         }
     }
 
-    // 답변 작성
     function addAdminComment(postId) {
         if (!isAdmin) return;
         const input = document.getElementById(`comment-input-${postId}`);
@@ -663,7 +659,6 @@
         }
     }
 
-    // 관리자 모드 전환
     function toggleRole() {
         if (!isAdmin) {
             const password = prompt("관리자 암호를 입력하세요.");
@@ -685,7 +680,6 @@
         renderBoard();
     }
 
-    // UI 모드 표시 업데이트
     function updateRoleUI() {
         const roleText = document.getElementById('roleText');
         const roleBadge = document.getElementById('roleBadge');
@@ -703,7 +697,6 @@
         }
     }
 
-    // 페이지네이션 렌더링
     function renderPagination() {
         const paginationContainer = document.getElementById('pagination');
         if (!paginationContainer) return;
@@ -724,13 +717,6 @@
             };
             paginationContainer.appendChild(btn);
         }
-    }
-
-    // 수강신청 페이지 제출 핸들러 예시 (참고용)
-    function submitForm(inputPhoneValue, inputTicketValue) {
-        localStorage.setItem('userPhone', inputPhoneValue);
-        localStorage.setItem('selectedTicket', inputTicketValue);
-        location.href = 'board.html';
     }
 </script>
 </body>
