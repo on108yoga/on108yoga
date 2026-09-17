@@ -409,7 +409,8 @@
     <p>© ON108YOGA Reservation System</p>
 </footer>
 
-<!-- Firebase SDK 연결 (Cloud Firestore 전용) -->
+    
+<!-- Firebase SDK 연결 및 설정 -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { 
@@ -422,22 +423,21 @@
         updateDoc 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // 1. Firebase 구성 설정 (콘솔의 실제 키 정보로 입력하세요)
+    // 1. 발급받으신 실제 Firebase 구성 설정
     const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_PROJECT_ID.appspot.com",
-        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-        appId: "YOUR_APP_ID"
+        apiKey: "AIzaSyBKdaTk43A3Hp00b7gURWl7fejoAYzOkBI",
+        authDomain: "on108-yoga.firebaseapp.com",
+        projectId: "on108-yoga",
+        storageBucket: "on108-yoga.firebasestorage.app",
+        messagingSenderId: "852225153853",
+        appId: "1:852225153853:web:e61f918ff4e0dacfac4354",
+        measurementId: "G-7X1ELMNKXC"
     };
 
-    // Firebase 초기화
+    // Firebase 및 Firestore 초기화
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    // Firestore 컬렉션 참조 (이미지 속 컬렉션 이름인 'reservations' 사용)
-    // JS 코드 내 기존 컬렉션 참조 부분
-    const reservationsRef = collection(db, 'posts'); // 'reservations' 대신 'posts' 사용// const reservationsRef = collection(db, 'reservations');
+    const reservationsRef = collection(db, 'reservations');
 
     // 날짜 포맷 함수 (YYYY.MM.DD)
     function formatDate(date = new Date()) {
@@ -457,7 +457,7 @@
     const itemsPerPage = 10;
     let postsData = [];
 
-    // 3. 새 수강신청건 있을 시 Firestore에 즉시 등록
+    // 3. 새 수강신청건 있을 시 Firestore에 자동 등록
     const newTicket = localStorage.getItem('selectedTicket');
     const newPhone = localStorage.getItem('userPhone');
 
@@ -478,7 +478,7 @@
             .catch((err) => console.error("데이터 저장 실패:", err));
     }
 
-    // 4. Firestore 실시간 리스너 (onSnapshot 사용)
+    // 4. Firestore 실시간 감지 (onSnapshot)
     onSnapshot(reservationsRef, (snapshot) => {
         postsData = [];
 
@@ -491,7 +491,7 @@
             });
         });
 
-        // 최신글 순으로 정렬 (timestamp 기준)
+        // 최신글 순 정렬 (timestamp 기준)
         postsData.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
         renderBoard();
