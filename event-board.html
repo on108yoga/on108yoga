@@ -457,23 +457,25 @@
     const itemsPerPage = 10;
     let postsData = [];
 
-    // 3. 새 수강신청건 있을 시 Firestore에 자동 등록
+// 3. 새 수강신청건 있을 시 Firestore에 자동 등록
     const newTicket = localStorage.getItem('selectedTicket');
     const newPhone = localStorage.getItem('userPhone');
 
-    if (newTicket && newPhone) {
+    if (newTicket) {
         const newPost = {
-            phone: newPhone,
+            // 연락처가 없는 경우 기본 표기값 설정
+            phone: newPhone ? newPhone : '연락처 미입력', 
             actualTicket: newTicket,
             status: 'pending',
-            createdAt: formatDate(),
-            timestamp: Date.now(),
+            createdAt: formatDate(), // 저장 시점의 날짜 (YYYY.MM.DD)
+            timestamp: Date.now(),    // 정렬용 타임스탬프
             comments: []
         };
         
         addDoc(reservationsRef, newPost)
             .then(() => {
                 localStorage.removeItem('selectedTicket');
+                // 필요시 연락처도 삭제: localStorage.removeItem('userPhone');
             })
             .catch((err) => console.error("데이터 저장 실패:", err));
     }
