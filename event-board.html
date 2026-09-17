@@ -436,7 +436,8 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     // Firestore 컬렉션 참조 (이미지 속 컬렉션 이름인 'reservations' 사용)
-    const reservationsRef = collection(db, 'reservations');
+    // JS 코드 내 기존 컬렉션 참조 부분
+    const reservationsRef = collection(db, 'posts'); // 'reservations' 대신 'posts' 사용// const reservationsRef = collection(db, 'reservations');
 
     // 날짜 포맷 함수 (YYYY.MM.DD)
     function formatDate(date = new Date()) {
