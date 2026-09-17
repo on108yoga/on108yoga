@@ -409,6 +409,7 @@
     <p>© ON108YOGA Reservation System</p>
 </footer>
 
+
     
 <!-- Firebase SDK 연결 및 설정 -->
 <script type="module">
@@ -423,7 +424,7 @@
         updateDoc 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // 1. 발급받으신 실제 Firebase 구성 설정
+    // 1. 실제 Firebase 구성 설정
     const firebaseConfig = {
         apiKey: "AIzaSyBKdaTk43A3Hp00b7gURWl7fejoAYzOkBI",
         authDomain: "on108-yoga.firebaseapp.com",
@@ -451,19 +452,18 @@
     const ADMIN_PASSWORD = "0093";
     let isAdmin = false;
     let openDetailId = null;
-    const currentUserPhone = localStorage.getItem('userPhone') || '010-1234-5678';
+    const currentUserPhone = localStorage.getItem('userPhone') || '';
 
     let currentPage = 1;
     const itemsPerPage = 10;
     let postsData = [];
 
-// 3. 새 수강신청건 있을 시 Firestore에 자동 등록
+    // 3. 새 수강신청건 있을 시 Firestore에 자동 등록
     const newTicket = localStorage.getItem('selectedTicket');
     const newPhone = localStorage.getItem('userPhone');
 
     if (newTicket) {
         const newPost = {
-            // 연락처가 없는 경우 기본 표기값 설정
             phone: newPhone ? newPhone : '연락처 미입력', 
             actualTicket: newTicket,
             status: 'pending',
@@ -475,7 +475,6 @@
         addDoc(reservationsRef, newPost)
             .then(() => {
                 localStorage.removeItem('selectedTicket');
-                // 필요시 연락처도 삭제: localStorage.removeItem('userPhone');
             })
             .catch((err) => console.error("데이터 저장 실패:", err));
     }
@@ -502,7 +501,7 @@
         console.error("Firestore 수신 에러:", error);
     });
 
-    // 게시판 렌더링
+    // 5. 게시판 렌더링
     window.renderBoard = function() {
         const tbody = document.getElementById('boardTbody');
         if (!tbody) return;
@@ -524,15 +523,36 @@
             const statusClass = isApproved ? 'status-approved' : 'status-pending';
             const statusText = isApproved ? '승인' : '대기중';
 
-            const maskedPhone = post.phone && post.phone.length >= 11 
-                ? post.phone.substring(0, 3) + "-****-" + post.phone.substring(7)
-                : (post.phone || '연락처 없음');
+            // [호환 로직 1] 날짜 처리 (date, createdAt, Timestamp 모두 지원)
+            let postDate = post.date || '';
+            if (!postDate && post.createdAt) {
+                if (typeof post.createdAt.toDate === 'function') {
+                    postDate = formatDate(post.createdAt.toDate());
+                } else if (typeof post.createdAt === 'string') {
+                    postDate = post.createdAt;
+                }
+            }
+            if (!postDate) postDate = formatDate();
+
+            // [호환 로직 2] 작성자 / 연락처 마스킹 처리
+            const userIdentifier = post.phone || post.name || '신청자';
+            let maskedUser = userIdentifier;
+
+            if (post.phone && post.phone.length >= 11) {
+                maskedUser = post.phone.substring(0, 3) + "-****-" + post.phone.substring(7);
+            } else if (post.name) {
+                maskedUser = post.name.length > 1 
+                    ? post.name[0] + "*".repeat(post.name.length - 1) 
+                    : post.name;
+            }
+
+            // [호환 로직 3] 선택 수강권 / 수업시간 통합 처리
+            const ticketDisplayName = post.actualTicket || post.eventOption || post.time || '수강권 미지정';
 
             const displayNum = postsData.length - (startIndex + index);
-            const postDate = post.createdAt || formatDate();
             const isOpen = openDetailId === post.id;
 
-            // 목록 행
+            // 목록 행 렌더링
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${displayNum}</td>
@@ -541,14 +561,14 @@
                         🔒 [신청] 비공개 수강신청글 입니다.
                     </span>
                 </td>
-                <td>${maskedPhone}</td>
+                <td>${maskedUser}</td>
                 <td><span class="status-tag ${statusClass}">${statusText}</span></td>
                 <td style="text-align: center;">
                     ${isAdmin ? `<button class="btn-delete" onclick="deletePost('${post.id}')">삭제</button>` : '-'}
                 </td>
             `;
             
-            // 상세 정보 행
+            // 상세 정보 행 렌더링
             const detailTr = document.createElement('tr');
             detailTr.className = `detail-row ${isOpen ? 'active' : ''}`;
             detailTr.id = `detail-${post.id}`;
@@ -573,8 +593,6 @@
                 });
             }
 
-            const ticketDisplayName = post.actualTicket || '수강권 미지정';
-
             detailTr.innerHTML = `
                 <td colspan="5" style="padding: 0;">
                     <div class="detail-container">
@@ -584,11 +602,11 @@
                                 <td>${postDate}</td>
                             </tr>
                             <tr>
-                                <th>신청자 연락처</th>
-                                <td>${post.phone || '-'}</td>
+                                <th>신청자 정보</th>
+                                <td>${post.name ? post.name : ''} ${post.phone ? `(${post.phone})` : ''}</td>
                             </tr>
                             <tr>
-                                <th>선택 수강권</th>
+                                <th>선택 수강권/수업</th>
                                 <td style="color:#517e73; font-weight:bold;">${ticketDisplayName}</td>
                             </tr>
                             <tr>
@@ -624,8 +642,9 @@
         const targetPost = postsData.find(p => p.id === postId);
         
         const cleanPostPhone = targetPost && targetPost.phone ? targetPost.phone.replace(/[^0-9]/g, '') : '';
-        const cleanUserPhone = currentUserPhone.replace(/[^0-9]/g, '');
+        const cleanUserPhone = currentUserPhone ? currentUserPhone.replace(/[^0-9]/g, '') : '';
         
+        // 작성자 본인 확인 (전화번호 일치 여부)
         const isOwner = cleanPostPhone && (cleanPostPhone === cleanUserPhone);
 
         if (!isOwner && !isAdmin) {
