@@ -4,12 +4,15 @@ import {
     collection,
     query,
     where,
+    orderBy,
+    limit,
+    onSnapshot,
     getDocs,
     doc,
     getDoc
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
-// 한국 표준시(KST YYYY-MM-DD) 반환 함수
+// ─── [1] 한국 표준시(KST YYYY-MM-DD) 반환 함수 ───
 function getTodayKST() {
     const now = new Date();
     const offset = now.getTimezoneOffset() * 60000;
@@ -17,8 +20,9 @@ function getTodayKST() {
     return dateKST.toISOString().split('T')[0];
 }
 
-// 오늘 날짜 기본값 세팅
+// ─── [2] DOM 로드 완료 후 초기화 ───
 document.addEventListener("DOMContentLoaded", () => {
+    // 1. 날짜별 예약 현황 초기화
     const today = getTodayKST();
     const dateInput = document.getElementById("searchDate");
     
@@ -32,26 +36,33 @@ document.addEventListener("DOMContentLoaded", () => {
             loadAdminReservations(dateInput.value);
         }
     });
+
+    // 2. 실시간 최근 수강신청 데이터 감시
+    initRecentReservations();
 });
 
-// Firestore에서 최근 신청 내역 가져오기 예시
-import { db } from './firebase-init.js'; // firebase 초기화 파일
-import { collection, query, orderBy, limit, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+// ─── [3] 실시간 최근 수강신청 표(최신 5건) 출력 ───
+function initRecentReservations() {
+    const recentTbody = document.getElementById('recentTbody');
+    if (!recentTbody) return;
 
-const recentTbody = document.getElementById('recentTbody');
-
-if (recentTbody) {
-    const q = query(collection(db, 'event_reservations'), orderBy('timestamp', 'desc'), limit(5));
+    // 최신순(timestamp 내림차순)으로 상위 5개 실시간 수신
+    const q = query(
+        collection(db, 'event_reservations'), 
+        orderBy('timestamp', 'desc'), 
+        limit(5)
+    );
     
     onSnapshot(q, (snapshot) => {
         recentTbody.innerHTML = '';
+        
         if (snapshot.empty) {
             recentTbody.innerHTML = `<tr><td colspan="4" class="empty-msg">최근 신청 건이 없습니다.</td></tr>`;
             return;
         }
 
-        snapshot.forEach((doc) => {
-            const item = doc.data();
+        snapshot.forEach((docSnap) => {
+            const item = docSnap.data();
             const statusBadge = item.status === 'approved' 
                 ? `<span class="badge badge-approved">승인</span>` 
                 : `<span class="badge badge-pending">대기중</span>`;
@@ -65,11 +76,13 @@ if (recentTbody) {
             `;
             recentTbody.appendChild(tr);
         });
+    }, (error) => {
+        console.error("최근 신청 내역 수신 실패:", error);
+        recentTbody.innerHTML = `<tr><td colspan="4" class="empty-msg" style="color:red;">데이터를 불러오지 못했습니다.</td></tr>`;
     });
 }
 
-
-// 관리자용 특정 날짜 예약 목록 조회 함수
+// ─── [4] 관리자용 특정 날짜 수업 예약 목록 조회 ───
 async function loadAdminReservations(selectedDate) {
     const container = document.getElementById("reservationContainer");
     if (!container) return;
@@ -89,7 +102,7 @@ async function loadAdminReservations(selectedDate) {
             return;
         }
 
-        // 2. 시간대별로 데이터 정리 (그룹핑)
+        // 2. 시간대별로 데이터 그룹핑
         const groupedByTime = {};
 
         snapshot.forEach(docSnap => {
@@ -119,34 +132,32 @@ async function loadAdminReservations(selectedDate) {
 
             let membersHtml = "";
 
-            // 회원의 최신 정보(사용/남은 횟수)를 users 컬렉션에서 순차적으로 조회
-            // booking-list.js 중 회원 정보 조회 반복문 부분 수정
-            
+            // 회원의 최신 정보(사용/남은 횟수) 조회
             for (let idx = 0; idx < members.length; idx++) {
                 const m = members[idx];
                 let usedCount = 0;
                 let remainingCount = 0;
-            
+
                 if (m.uid) {
                     try {
                         const userSnap = await getDoc(doc(db, "users", m.uid));
                         if (userSnap.exists()) {
                             const uData = userSnap.data();
                             
-                            // 사용 횟수 필드명 체크 (usedCount, usedTickets, used)
+                            // 사용 횟수 필드 체크
                             usedCount = uData.usedCount ?? uData.usedTickets ?? uData.used ?? 0;
                             
-                            // 남은 횟수 필드명 체크
+                            // 남은 횟수 필드 체크
                             remainingCount = uData.remainingCount ?? uData.ticketCount ?? uData.remCount ?? 0;
                         }
                     } catch (e) {
                         console.error(`회원(${m.uid}) 정보 조회 실패:`, e);
                     }
                 }
-            
+
                 const name = m.userName || m.name || '회원';
                 const phoneText = m.phone ? ` / 📞 ${m.phone}` : "";
-            
+
                 membersHtml += `
                     <li class="member-item">
                         <div>
@@ -161,6 +172,7 @@ async function loadAdminReservations(selectedDate) {
                     </li>
                 `;
             }
+
             card.innerHTML = `
                 <div class="slot-header">
                     <span>⏰ ${time} 수업</span>
@@ -180,8 +192,7 @@ async function loadAdminReservations(selectedDate) {
     }
 }
 
-
-// 관리자 페이지 접근 권한 체크
+// ─── [5] 관리자 접근 권한 검증 ───
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
         alert("로그인이 필요합니다.");
