@@ -438,7 +438,9 @@
     // Firebase 및 Firestore 초기화
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const reservationsRef = collection(db, 'reservations');
+    
+    // 이벤트 전용 독립 컬렉션 사용 ('event_reservations')
+    const reservationsRef = collection(db, 'event_reservations');
 
     // 날짜 포맷 함수 (YYYY.MM.DD)
     function formatDate(date = new Date()) {
@@ -458,7 +460,7 @@
     const itemsPerPage = 10;
     let postsData = [];
 
-    // 3. event-login.html에서 넘어온 새 수강신청건 Firestore에 자동으로 저장
+    // 3. event-login.html에서 넘어온 새 수강신청건 Firestore에 자동 저장
     const newTicket = localStorage.getItem('selectedTicket');
     const newPhone = localStorage.getItem('userPhone');
 
@@ -466,17 +468,15 @@
         const newPost = {
             phone: newPhone ? newPhone : '연락처 미입력', 
             actualTicket: newTicket,
-            eventOption: newTicket, // 구버전/신버전 필드 동시 보완
             status: 'pending',
-            date: formatDate(),      // 기존 데이터 포맷 지원
-            createdAt: formatDate(), // 신규 데이터 포맷 지원
-            timestamp: Date.now(),   // 정렬용 타임스탬프
+            createdAt: formatDate(), // 신청 날짜
+            timestamp: Date.now(),    // 최신순 정렬용
             comments: []
         };
         
         addDoc(reservationsRef, newPost)
             .then(() => {
-                // 저장 완료 후 localStorage 임시 데이터 삭제 (새로고침 시 중복 저장 방지)
+                // 저장 완료 후 localStorage 임시 티켓 데이터 삭제 (새로고침 시 중복 저장 방지)
                 localStorage.removeItem('selectedTicket');
             })
             .catch((err) => console.error("Firestore 데이터 저장 실패:", err));
@@ -495,12 +495,8 @@
             });
         });
 
-        // 최신순 정렬 (timestamp가 없으면 createdAt 또는 date 기준으로 정렬)
-        postsData.sort((a, b) => {
-            const timeA = a.timestamp || (a.createdAt ? new Date(a.createdAt).getTime() : 0);
-            const timeB = b.timestamp || (b.createdAt ? new Date(b.createdAt).getTime() : 0);
-            return timeB - timeA;
-        });
+        // 최신순 정렬 (timestamp 기준)
+        postsData.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
         renderBoard();
         updateRoleUI();
@@ -530,35 +526,22 @@
             const statusClass = isApproved ? 'status-approved' : 'status-pending';
             const statusText = isApproved ? '승인' : '대기중';
 
-            // [호환 로직 1] 날짜 (date, createdAt, Timestamp 변환)
-            let postDate = post.date || '';
-            if (!postDate && post.createdAt) {
-                if (typeof post.createdAt.toDate === 'function') {
-                    postDate = formatDate(post.createdAt.toDate());
-                } else if (typeof post.createdAt === 'string') {
-                    postDate = post.createdAt;
-                }
-            }
-            if (!postDate) postDate = formatDate();
+            // 날짜 변환
+            let postDate = post.createdAt || formatDate();
 
-            // [호환 로직 2] 이름 / 전화번호 마스킹 (010-****-1234 또는 이름 마스킹)
+            // 전화번호 마스킹 (010-****-1234)
             const rawPhone = post.phone || '';
-            const rawName = post.name || '';
             let maskedUser = '신청자';
 
             if (rawPhone && rawPhone.length >= 11) {
                 const cleanPhone = rawPhone.replace(/[^0-9]/g, '');
                 maskedUser = cleanPhone.substring(0, 3) + "-****-" + cleanPhone.substring(7);
-            } else if (rawName) {
-                maskedUser = rawName.length > 1 
-                    ? rawName[0] + "*".repeat(rawName.length - 1) 
-                    : rawName;
             } else if (rawPhone) {
                 maskedUser = rawPhone;
             }
 
-            // [호환 로직 3] 선택 수강권 / 수업 (actualTicket, eventOption, time 중 있는 값 사용)
-            const ticketDisplayName = post.actualTicket || post.eventOption || post.time || '수강권 미지정';
+            // 선택 수강권명
+            const ticketDisplayName = post.actualTicket || '수강권 미지정';
 
             const displayNum = postsData.length - (startIndex + index);
             const isOpen = openDetailId === post.id;
@@ -614,15 +597,11 @@
                                 <td>${postDate}</td>
                             </tr>
                             <tr>
-                                <th>신청자 정보</th>
-                                <td>
-                                    ${rawName ? `성함: ${rawName}` : ''} 
-                                    ${rawPhone ? `연락처: ${rawPhone}` : ''}
-                                    ${!rawName && !rawPhone ? '정보 없음' : ''}
-                                </td>
+                                <th>신청자 연락처</th>
+                                <td>${rawPhone ? rawPhone : '정보 없음'}</td>
                             </tr>
                             <tr>
-                                <th>선택 수강권 / 수업</th>
+                                <th>선택 수강권</th>
                                 <td style="color:#517e73; font-weight:bold;">${ticketDisplayName}</td>
                             </tr>
                             <tr>
@@ -676,7 +655,7 @@
     window.deletePost = function(postId) {
         if (!isAdmin) return;
         if (confirm("정말 이 수강신청글을 삭제하시겠습니까?")) {
-            const targetDoc = doc(db, 'reservations', postId);
+            const targetDoc = doc(db, 'event_reservations', postId);
             deleteDoc(targetDoc)
                 .then(() => {
                     if (openDetailId === postId) openDetailId = null;
@@ -693,7 +672,7 @@
 
         if (confirm("이 답변을 삭제하시겠습니까?")) {
             const updatedComments = targetPost.comments.filter((_, idx) => idx !== commentIndex);
-            const targetDoc = doc(db, 'reservations', postId);
+            const targetDoc = doc(db, 'event_reservations', postId);
             
             updateDoc(targetDoc, { comments: updatedComments })
                 .catch(err => alert("답변 삭제 실패: " + err.message));
@@ -727,7 +706,7 @@
             updateData.status = 'approved';
         }
 
-        const targetDoc = doc(db, 'reservations', postId);
+        const targetDoc = doc(db, 'event_reservations', postId);
         updateDoc(targetDoc, updateData)
             .then(() => {
                 openDetailId = postId;
