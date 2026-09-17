@@ -34,6 +34,41 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+// Firestore에서 최근 신청 내역 가져오기 예시
+import { db } from './firebase-init.js'; // firebase 초기화 파일
+import { collection, query, orderBy, limit, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+const recentTbody = document.getElementById('recentTbody');
+
+if (recentTbody) {
+    const q = query(collection(db, 'event_reservations'), orderBy('timestamp', 'desc'), limit(5));
+    
+    onSnapshot(q, (snapshot) => {
+        recentTbody.innerHTML = '';
+        if (snapshot.empty) {
+            recentTbody.innerHTML = `<tr><td colspan="4" class="empty-msg">최근 신청 건이 없습니다.</td></tr>`;
+            return;
+        }
+
+        snapshot.forEach((doc) => {
+            const item = doc.data();
+            const statusBadge = item.status === 'approved' 
+                ? `<span class="badge badge-approved">승인</span>` 
+                : `<span class="badge badge-pending">대기중</span>`;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${item.createdAt || '-'}</td>
+                <td>${item.phone || item.name || '미입력'}</td>
+                <td style="font-weight:500; color:#517e73;">${item.actualTicket || item.eventOption || '-'}</td>
+                <td>${statusBadge}</td>
+            `;
+            recentTbody.appendChild(tr);
+        });
+    });
+}
+
+
 // 관리자용 특정 날짜 예약 목록 조회 함수
 async function loadAdminReservations(selectedDate) {
     const container = document.getElementById("reservationContainer");
@@ -144,6 +179,7 @@ async function loadAdminReservations(selectedDate) {
         container.innerHTML = "<p class='empty-msg' style='color:red;'>예약 목록을 불러오지 못했습니다.</p>";
     }
 }
+
 
 // 관리자 페이지 접근 권한 체크
 onAuthStateChanged(auth, async (user) => {
