@@ -1,10 +1,9 @@
-// calendar.js
 console.log("calendar.js 실행 (주간 달력)");
 
 let currentDate = new Date();
 let selectedDate = "";
 
-/* 매년 반복되는 공휴일 */
+/* 매년 동일한 날짜의 고정 공휴일 (MM-DD) */
 const fixedHolidays = [
     "01-01", // 신정
     "03-01", // 삼일절
@@ -14,6 +13,13 @@ const fixedHolidays = [
     "10-03", // 개천절
     "10-09", // 한글날
     "12-25"  // 크리스마스
+];
+
+/* 매년 날짜가 바뀌는 음력 공휴일/대체공휴일 (YYYY-MM-DD) */
+const variableHolidays = [
+    "2026-09-24", // 2026 추석 연휴 첫날
+    "2026-09-25", // 2026 추석 당일
+    "2026-09-26"  // 2026 추석 연휴 마지막날
 ];
 
 const weekCalendar = document.getElementById("weekCalendar");
@@ -54,21 +60,24 @@ function renderWeek() {
         // 2. 날짜 텍스트
         dateBox.innerHTML = `<span>${date.getDate()}</span>`;
 
-        // 3. 날짜 문자열 구성 (YYYY-MM-DD)
+        // 3. 날짜 문자열 구성 (YYYY-MM-DD / MM-DD)
         let yyyy = date.getFullYear();
         let mm = String(date.getMonth() + 1).padStart(2, "0");
         let dd = String(date.getDate()).padStart(2, "0");
         let dateString = `${yyyy}-${mm}-${dd}`;
         let monthDay = `${mm}-${dd}`;
 
-        // 4. 주말 및 공휴일 처리
+        // 공휴일 여부 체크 (고정 공휴일 OR 변동 공휴일/추석)
+        const isHoliday = fixedHolidays.includes(monthDay) || variableHolidays.includes(dateString);
+
+        // 4. 주말 및 공휴일 스타일 적용
         if (date.getDay() === 0) {
             dateBox.classList.add("sunday");
         } else if (date.getDay() === 6) {
             dateBox.classList.add("saturday");
         }
 
-        if (fixedHolidays.includes(monthDay)) {
+        if (isHoliday) {
             dateBox.classList.add("holiday");
         }
 
@@ -76,7 +85,7 @@ function renderWeek() {
         if (targetDate.getTime() === today.getTime()) {
             dateBox.classList.add("today"); // 오늘 날짜
         } else if (targetDate < today) {
-            dateBox.classList.add("past"); // 지난 날짜 (톤다운 & 클릭 안됨)
+            dateBox.classList.add("past"); // 지난 날짜
         }
 
         // 이전 선택된 날짜 유지 표시
@@ -84,10 +93,11 @@ function renderWeek() {
             dateBox.classList.add("selected");
         }
 
-        /* 6. 날짜 클릭 이벤트 (지난 날짜는 클릭 불가) */
-        if (targetDate < today) {
-            // 지난 날짜는 클릭 이벤트 등록 안 함 & 커서 금지
+        /* 6. 날짜 클릭 이벤트 처리 (지난 날짜 및 공휴일/추석은 예약 불가) */
+        if (targetDate < today || isHoliday) {
+            // 지난 날짜나 공휴일(추석 포함)은 클릭 불가 및 선택 안 됨 처리
             dateBox.style.pointerEvents = "none";
+            dateBox.classList.add("disabled"); // 선택 불가 CSS 스타일용 class (필요시 사용)
         } else {
             dateBox.onclick = () => {
                 document.querySelectorAll(".day-box").forEach(el =>
