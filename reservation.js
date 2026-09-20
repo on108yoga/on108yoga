@@ -68,21 +68,25 @@ async function getUserDocRef(user) {
 
     const phone = user.email ? user.email.split("@")[0] : "";
 
-    if (phone) {
-        const phoneRef = doc(db, "users", phone);
-        const phoneSnap = await getDoc(phoneRef);
-        if (phoneSnap.exists()) {
-            return phoneRef;
+    try {
+        if (phone) {
+            const phoneRef = doc(db, "users", phone);
+            const phoneSnap = await getDoc(phoneRef);
+            if (phoneSnap.exists()) {
+                return phoneRef;
+            }
         }
+
+        const uidRef = doc(db, "users", user.uid);
+        const uidSnap = await getDoc(uidRef);
+        if (uidSnap.exists()) {
+            return uidRef;
+        }
+    } catch (err) {
+        console.warn("문서 조회 중 권한 또는 네트워크 오류 발생 (기본 경로 사용):", err);
     }
 
-    const uidRef = doc(db, "users", user.uid);
-    const uidSnap = await getDoc(uidRef);
-    if (uidSnap.exists()) {
-        return uidRef;
-    }
-
-    return phone ? doc(db, "users", phone) : uidRef;
+    return phone ? doc(db, "users", phone) : doc(db, "users", user.uid);
 }
 
 // 2. 사용자 프로필 실시간 수신
