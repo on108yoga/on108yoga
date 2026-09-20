@@ -24,9 +24,8 @@ let isReserving = false;
 let isCanceling = false;
 
 const MAX_PEOPLE = 10;
-const DEFAULT_INITIAL_TICKETS = 0; // auth.js 기준 기본 회원가입 티켓 수
+const DEFAULT_INITIAL_TICKETS = 0; // 기본 회원가입 티켓 수
 
-// 💡 [수정] 3번 항목 끝에 누락되었던 쉼표(,) 추가
 const weeklySchedule = {
     0: [],
     1: ["10:00 힐링빈야사", "18:00 힐링빈야사", "19:30 힐링반야사"],
@@ -69,7 +68,6 @@ async function getUserDocRef(user) {
 
     const phone = user.email ? user.email.split("@")[0] : "";
 
-    // ① members.html에서 수정하는 전화번호 문서를 최우선 확인
     if (phone) {
         const phoneRef = doc(db, "users", phone);
         const phoneSnap = await getDoc(phoneRef);
@@ -78,18 +76,16 @@ async function getUserDocRef(user) {
         }
     }
 
-    // ② 전화번호 문서가 없을 경우 UID 문서 확인
     const uidRef = doc(db, "users", user.uid);
     const uidSnap = await getDoc(uidRef);
     if (uidSnap.exists()) {
         return uidRef;
     }
 
-    // 문서가 모두 없는 신규 회원용 기본값 반환 (전화번호 우선)
     return phone ? doc(db, "users", phone) : uidRef;
 }
 
-// 2. 사용자 프로필 실시간 수신 (remainingCount 1순위 조회)
+// 2. 사용자 프로필 실시간 수신
 async function listenUserProfile(user) {
     if (!user) return;
     if (unsubscribeUser) unsubscribeUser();
@@ -97,7 +93,7 @@ async function listenUserProfile(user) {
     const userDocRef = await getUserDocRef(user);
 
     unsubscribeUser = onSnapshot(userDocRef, (userSnap) => {
-        let userName = user.displayName || "회원";
+        let userName = user.displayName || "일반회원";
         let remCount = DEFAULT_INITIAL_TICKETS;
 
         if (userSnap.exists()) {
@@ -109,11 +105,9 @@ async function listenUserProfile(user) {
             );
         }
 
-        // 로컬 스토리지 캐시 최신화
         localStorage.setItem("cached_userName", userName);
         localStorage.setItem("cached_ticketCount", String(remCount));
 
-        // 실시간 DOM 업데이트
         const nameElement = document.getElementById("myUserName");
         const countElement = document.getElementById("myTicketCount");
 
@@ -124,7 +118,7 @@ async function listenUserProfile(user) {
     });
 }
 
-// 📌 캘린더 및 선택 UI와 완벽 동기화하는 setSelectedDate
+// 📌 캘린더 및 선택 UI 동기화
 window.setSelectedDate = function(date) {
     selectedDate = date;
     selectedTime = "";
@@ -334,6 +328,7 @@ async function handleReservation() {
             reserveBtn.innerText = "예약 처리 중...";
         }
 
+        // 중복 예약 검사
         const dupQuery = query(
             collection(db, "reservations"),
             where("uid", "==", user.uid),
@@ -346,6 +341,7 @@ async function handleReservation() {
             return;
         }
 
+        // 정원 초과 검사
         const timeSlotQuery = query(
             collection(db, "reservations"),
             where("date", "==", selectedDate),
@@ -362,14 +358,22 @@ async function handleReservation() {
         await runTransaction(db, async (transaction) => {
             const userSnap = await transaction.get(userDocRef);
 
+            let userData = {};
+            let isNewMemberDoc = false;
+
+            // 💡 [수정 핵심]: 문서가 없는 유저(등록되지 않은 멤버)는 기본 문서 구조 자동 적용
             if (!userSnap.exists()) {
-                throw new Error("사용자 정보를 찾을 수 없습니다. 관리자에게 문의하세요.");
+                isNewMemberDoc = true;
+                userData = {
+                    name: user.displayName || "회원",
+                    remainingCount: DEFAULT_INITIAL_TICKETS,
+                    ticketCount: DEFAULT_INITIAL_TICKETS,
+                    usedCount: 0,
+                    createdAt: serverTimestamp()
+                };
+            } else {
+                userData = userSnap.data();
             }
-
-            const userData = userSnap.data();
-
-            console.log("🔍 [예약 시도] 읽어온 문서 ID:", userDocRef.id);
-            console.log("🔍 [예약 시도] 문서 전체 데이터:", userData);
 
             let userName = userData.name || user.displayName || "회원";
             
@@ -384,8 +388,9 @@ async function handleReservation() {
 
             let currentUsedCount = Number(userData.usedCount ?? userData.usedTickets ?? userData.used ?? 0);
 
+            // 잔여 횟수 없으면 차단
             if (remCount <= 0) {
-                throw new Error(`NO_TICKETS:남은 이용권 횟수가 없습니다. (현재 잔여: ${remCount}회)`);
+                throw new Error(`NO_TICKETS:남은 이용권 횟수가 없습니다. (현재 잔여: ${remCount}회)\n센터 관리자에게 수강권 등록을 요청해주세요.`);
             }
 
             const newResRef = doc(collection(db, "reservations"));
@@ -399,7 +404,6 @@ async function handleReservation() {
             });
 
             const newCount = remCount - 1;
-            
             const userUpdates = {
                 remainingCount: newCount,
                 ticketCount: newCount,
@@ -407,7 +411,11 @@ async function handleReservation() {
                 usedCount: currentUsedCount + 1
             };
 
-            transaction.update(userDocRef, userUpdates);
+            if (isNewMemberDoc) {
+                transaction.set(userDocRef, { ...userData, ...userUpdates });
+            } else {
+                transaction.update(userDocRef, userUpdates);
+            }
         });
 
         alert("🎉 예약이 완벽하게 완료되었습니다!");
@@ -417,8 +425,6 @@ async function handleReservation() {
         
         if (err.message && err.message.startsWith("NO_TICKETS:")) {
             alert(`⚠️ ${err.message.replace("NO_TICKETS:", "")}`);
-        } else if (err.message && err.message.includes("사용자 정보")) {
-            alert(err.message);
         } else {
             alert(`예약 중 오류가 발생했습니다.\n(${err.message})`);
         }
