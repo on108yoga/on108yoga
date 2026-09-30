@@ -17,9 +17,9 @@ const fixedHolidays = [
 
 /* 매년 날짜가 바뀌는 음력 공휴일/대체공휴일 (YYYY-MM-DD) */
 const variableHolidays = [
-    "2026-09-24", // 2026 추석 연휴 첫날
-    "2026-09-25", // 2026 추석 당일
-    "2026-09-26"  // 2026 추석 연휴 마지막날
+    "2026-10-05", // 2026 추석 연휴 첫날
+    "2026-10-09", // 2026 추석 당일
+    "2026-12-24"  // 2026 추석 연휴 마지막날
 ];
 
 const weekCalendar = document.getElementById("weekCalendar");
