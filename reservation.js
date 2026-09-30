@@ -55,13 +55,6 @@ function getTodayString() {
     return `${year}-${month}-${day}`;
 }
 
-function getCurrentTimeString() {
-    const now = new Date();
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    return `${hours}:${minutes}`;
-}
-
 // 1. 사용자 문서 탐색 (전화번호 문서 최우선 탐색 -> members.html과 동기화)
 async function getUserDocRef(user) {
     if (!user) return null;
@@ -139,6 +132,7 @@ window.setSelectedDate = function(date) {
     loadReservationCounts();
 };
 
+// 💡 시간 버튼 생성 (수업 시작 1시간 30분/90분 전 마감 처리)
 function renderTimeButtons(selectedDateStr) {
     const container = document.getElementById('timeButtons');
     if (!container || !selectedDateStr) return;
@@ -154,8 +148,7 @@ function renderTimeButtons(selectedDateStr) {
         return;
     }
 
-    const todayStr = getTodayString();
-    const currentTimeStr = getCurrentTimeString();
+    const now = new Date();
 
     availableTimes.forEach(time => {
         const timeId = time.replace(":", "").replace(/\s+/g, "");
@@ -165,13 +158,19 @@ function renderTimeButtons(selectedDateStr) {
         button.dataset.time = time;
         button.innerHTML = `${time} (예약 <span id="count${timeId}">0</span> / ${MAX_PEOPLE}명)`;
 
-        const timeOnly = time.split(" ")[0];
-        const formattedTime = timeOnly.length === 4 ? `0${timeOnly}` : timeOnly;
-        const isPast = (selectedDateStr === todayStr && formattedTime <= currentTimeStr);
+        // 수업 시작 시각 계산
+        const timeOnly = time.split(" ")[0]; // 예: "10:00"
+        const [hours, minutes] = timeOnly.split(":").map(Number);
+        const classTime = new Date(year, month - 1, day, hours, minutes, 0);
 
-        if (isPast) {
+        // 수업 시작 90분 전 마감 시각
+        const cutoffTime = new Date(classTime.getTime() - (90 * 60 * 1000));
+        const isPastCutoff = now >= cutoffTime;
+
+        if (isPastCutoff) {
             button.classList.add('disabled');
             button.disabled = true;
+            button.innerHTML = `${time} (예약 마감)`;
             button.style.cssText = "background-color: #e5e7eb; color: #9ca3af; border-color: #d1d5db; cursor: not-allowed; opacity: 0.7;";
         } else {
             button.addEventListener('click', () => {
@@ -232,22 +231,23 @@ function loadMyReservation() {
     );
 
     unsubscribeMyRes = onSnapshot(q, (snapshot) => {
-        box.innerHTML = `<h3 style="font-size:16px; font-weight:bold; margin-bottom:10px; color:#111827;">🗓️ 내 예약 현황</h3>`;
+        box.innerHTML = `<h3 style="font-size:16px; font-weight:bold; margin-bottom:10px; color:#111827;">🗓️️ 내 예약 현황</h3>`;
 
-        const todayStr = getTodayString();
-        const currentTimeStr = getCurrentTimeString();
+        const now = new Date();
         let validReservations = [];
 
         snapshot.forEach(item => {
             const data = item.data();
-            const timeOnly = data.time ? data.time.split(" ")[0] : "";
-            const formattedTime = timeOnly.length === 4 ? `0${timeOnly}` : timeOnly;
+            if (data.date && data.time) {
+                const [year, month, day] = data.date.split('-').map(Number);
+                const timeOnly = data.time.split(" ")[0];
+                const [hours, minutes] = timeOnly.split(":").map(Number);
+                const classTime = new Date(year, month - 1, day, hours, minutes, 0);
 
-            const isFutureDate = data.date > todayStr;
-            const isTodayUpcoming = (data.date === todayStr && formattedTime >= currentTimeStr);
-
-            if (isFutureDate || isTodayUpcoming) {
-                validReservations.push({ id: item.id, ...data });
+                // 이미 진행 중이거나 지난 수업은 목록에서 숨김
+                if (classTime >= now) {
+                    validReservations.push({ id: item.id, ...data });
+                }
             }
         });
 
@@ -312,14 +312,17 @@ async function handleReservation() {
         return;
     }
 
-    const todayStr = getTodayString();
-    const currentTimeStr = getCurrentTimeString();
-    
-    const selectedTimeOnly = selectedTime.split(" ")[0];
-    const formattedSelectedTime = selectedTimeOnly.length === 4 ? `0${selectedTimeOnly}` : selectedTimeOnly;
-    
-    if (selectedDate === todayStr && formattedSelectedTime <= currentTimeStr) {
-        alert("이미 지나간 시간은 예약할 수 없습니다.");
+    // 💡 예약 버튼 클릭 시 수업 시작 1시간 30분 전 마감 조건 검증
+    const [year, month, day] = selectedDate.split('-').map(Number);
+    const timeOnly = selectedTime.split(" ")[0];
+    const [hours, minutes] = timeOnly.split(":").map(Number);
+
+    const classTime = new Date(year, month - 1, day, hours, minutes, 0);
+    const cutoffTime = new Date(classTime.getTime() - (90 * 60 * 1000));
+    const now = new Date();
+
+    if (now >= cutoffTime) {
+        alert("⚠️ 수업 시작 1시간 30분 전까지만 예약이 가능합니다.");
         return;
     }
 
@@ -365,7 +368,6 @@ async function handleReservation() {
             let userData = {};
             let isNewMemberDoc = false;
 
-            // 💡 [수정 핵심]: 문서가 없는 유저(등록되지 않은 멤버)는 기본 문서 구조 자동 적용
             if (!userSnap.exists()) {
                 isNewMemberDoc = true;
                 userData = {
