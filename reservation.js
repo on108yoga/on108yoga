@@ -132,7 +132,7 @@ window.setSelectedDate = function(date) {
     loadReservationCounts();
 };
 
-// 💡 시간 버튼 생성 (수업 시작 1시간 30분/90분 전 마감 처리)
+// 💡 시간 버튼 생성 (수업 시작 80분 전 마감 처리)
 function renderTimeButtons(selectedDateStr) {
     const container = document.getElementById('timeButtons');
     if (!container || !selectedDateStr) return;
@@ -163,8 +163,8 @@ function renderTimeButtons(selectedDateStr) {
         const [hours, minutes] = timeOnly.split(":").map(Number);
         const classTime = new Date(year, month - 1, day, hours, minutes, 0);
 
-        // 수업 시작 90분 전 마감 시각
-        const cutoffTime = new Date(classTime.getTime() - (90 * 60 * 1000));
+        // 수업 시작 80분 전 마감 시각
+        const cutoffTime = new Date(classTime.getTime() - (80 * 60 * 1000));
         const isPastCutoff = now >= cutoffTime;
 
         if (isPastCutoff) {
@@ -231,7 +231,7 @@ function loadMyReservation() {
     );
 
     unsubscribeMyRes = onSnapshot(q, (snapshot) => {
-        box.innerHTML = `<h3 style="font-size:16px; font-weight:bold; margin-bottom:10px; color:#111827;">🗓️️ 내 예약 현황</h3>`;
+        box.innerHTML = `<h3 style="font-size:16px; font-weight:bold; margin-bottom:10px; color:#111827;">🗓 내 예약 현황</h3>`;
 
         const now = new Date();
         let validReservations = [];
@@ -312,17 +312,17 @@ async function handleReservation() {
         return;
     }
 
-    // 💡 예약 버튼 클릭 시 수업 시작 1시간 30분 전 마감 조건 검증
+    // 💡 예약 버튼 클릭 시 수업 시작 80분 전 마감 조건 검증
     const [year, month, day] = selectedDate.split('-').map(Number);
     const timeOnly = selectedTime.split(" ")[0];
     const [hours, minutes] = timeOnly.split(":").map(Number);
 
     const classTime = new Date(year, month - 1, day, hours, minutes, 0);
-    const cutoffTime = new Date(classTime.getTime() - (90 * 60 * 1000));
+    const cutoffTime = new Date(classTime.getTime() - (80 * 60 * 1000));
     const now = new Date();
 
     if (now >= cutoffTime) {
-        alert("⚠️ 수업 시작 1시간 30분 전까지만 예약이 가능합니다.");
+        alert("⚠️ 수업 시작 80분 전까지만 예약이 가능합니다.");
         return;
     }
 
