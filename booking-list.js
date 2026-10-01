@@ -5,14 +5,15 @@ import {
     query,
     where,
     orderBy,
-    limit,
     onSnapshot,
     getDocs,
     doc,
-    getDoc,
-    deleteDoc,
-    updateDoc
+    getDoc
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+const RECENT_ITEMS_PER_PAGE = 7;
+let currentRecentPage = 1;
+let allRecentReservations = [];
 
 // ─── [1] 한국 표준시(KST YYYY-MM-DD) 반환 함수 ───
 function getTodayKST() {
@@ -24,7 +25,6 @@ function getTodayKST() {
 
 // ─── [2] DOM 로드 완료 후 초기화 ───
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. 날짜별 예약 현황 초기화
     const today = getTodayKST();
     const dateInput = document.getElementById("searchDate");
     
@@ -39,67 +39,119 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // 2. 실시간 최근 수업 예약 데이터 감시
     initRecentReservations();
 });
 
-// ─── [3] 실시간 최근 수업 예약 표(최신 5건) 출력 ───
+// ─── [3] 실시간 최근 수업 예약 수신 ───
 function initRecentReservations() {
     const recentTbody = document.getElementById('recentTbody');
     if (!recentTbody) return;
 
-    // 🎯 reservations 컬렉션에서 최근 예약 신청건 최신순 5개 수신
     const q = query(
-        collection(db, 'reservations'), 
-        orderBy('createdAt', 'desc'), 
-        limit(5)
+        collection(db, 'reservations'),
+        orderBy('createdAt', 'desc')
     );
     
-    onSnapshot(q, async (snapshot) => {
-        recentTbody.innerHTML = '';
-        
-        if (snapshot.empty) {
-            recentTbody.innerHTML = `<tr><td colspan="4" class="empty-msg">최근 수업 예약 건이 없습니다.</td></tr>`;
-            return;
-        }
+    onSnapshot(q, (snapshot) => {
+        allRecentReservations = snapshot.docs.map(docSnap => ({
+            id: docSnap.id,
+            ...docSnap.data()
+        }));
 
-        for (const docSnap of snapshot.docs) {
-            const item = docSnap.data();
-
-            // 신청 시각 포맷팅
-            let createdTimeStr = item.date || '-';
-            if (item.createdAt?.toDate) {
-                const d = item.createdAt.toDate();
-                createdTimeStr = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-            }
-
-            // 회원의 이름/연락처
-            const userName = item.name || item.userName || '회원';
-            const userPhone = item.phone ? ` (${item.phone})` : '';
-
-            // 예약된 수업 날짜 및 시간
-            const classInfo = `${item.date} [${item.time || '시간미지정'}]`;
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${createdTimeStr}</td>
-                <td>${userName}${userPhone}</td>
-                <td style="font-weight:500; color:#517e73;">${classInfo}</td>
-                <td><span class="badge badge-approved">예약완료</span></td>
-            `;
-            recentTbody.appendChild(tr);
-        }
+        renderRecentTablePage(currentRecentPage);
     }, (error) => {
         console.error("최근 수업 예약 수신 실패:", error);
         recentTbody.innerHTML = `<tr><td colspan="4" class="empty-msg" style="color:red;">데이터를 불러오지 못했습니다.</td></tr>`;
     });
 }
 
-// ─── 유저 데이터 검색 헬퍼 (UID -> 전화번호 문서 순서로 교차 조회) ───
+// ─── [4] 최근 수업 예약 표 7개씩 페이지네이션 출력 ───
+function renderRecentTablePage(page = 1) {
+    const recentTbody = document.getElementById('recentTbody');
+    if (!recentTbody) return;
+
+    recentTbody.innerHTML = '';
+
+    if (allRecentReservations.length === 0) {
+        recentTbody.innerHTML = `<tr><td colspan="4" class="empty-msg">최근 수업 예약 건이 없습니다.</td></tr>`;
+        renderRecentPagination(0);
+        return;
+    }
+
+    const startIndex = (page - 1) * RECENT_ITEMS_PER_PAGE;
+    const endIndex = startIndex + RECENT_ITEMS_PER_PAGE;
+    const paginatedItems = allRecentReservations.slice(startIndex, endIndex);
+
+    paginatedItems.forEach((item) => {
+        let createdTimeStr = item.date || '-';
+        if (item.createdAt?.toDate) {
+            const d = item.createdAt.toDate();
+            createdTimeStr = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        }
+
+        const userName = item.name || item.userName || '회원';
+        const userPhone = item.phone ? ` (${item.phone})` : '';
+        const classInfo = `${item.date} [${item.time || '시간미지정'}]`;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${createdTimeStr}</td>
+            <td>${userName}${userPhone}</td>
+            <td style="font-weight:500; color:#517e73;">${classInfo}</td>
+            <td><span class="badge badge-approved">예약완료</span></td>
+        `;
+        recentTbody.appendChild(tr);
+    });
+
+    renderRecentPagination(allRecentReservations.length);
+}
+
+// ─── [5] 페이지네이션 버튼 생성 ───
+function renderRecentPagination(totalItems) {
+    let paginationBox = document.getElementById('recentPagination');
+    const tableBox = document.querySelector('.recent-table-box');
+
+    if (!paginationBox && tableBox) {
+        paginationBox = document.createElement('div');
+        paginationBox.id = 'recentPagination';
+        paginationBox.style.cssText = "display:flex; justify-content:center; gap:6px; margin-top:10px; margin-bottom:25px;";
+        tableBox.after(paginationBox);
+    }
+
+    if (!paginationBox) return;
+    paginationBox.innerHTML = '';
+
+    const totalPages = Math.ceil(totalItems / RECENT_ITEMS_PER_PAGE);
+    if (totalPages <= 1) return;
+
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.innerText = i;
+        btn.type = 'button';
+        btn.style.cssText = `
+            padding: 5px 10px; 
+            font-size: 13px; 
+            border: 1px solid #cbd5e1; 
+            border-radius: 4px; 
+            cursor: pointer;
+            background-color: ${i === currentRecentPage ? '#517e73' : '#ffffff'};
+            color: ${i === currentRecentPage ? '#ffffff' : '#334155'};
+            font-weight: ${i === currentRecentPage ? 'bold' : 'normal'};
+        `;
+
+        btn.onclick = () => {
+            currentRecentPage = i;
+            renderRecentTablePage(currentRecentPage);
+        };
+
+        paginationBox.appendChild(btn);
+    }
+}
+
+// ─── [6] 회원의 사용/잔여 횟수 정보 조회 ───
 async function fetchUserData(member) {
     let uData = null;
 
-    // 1. UID 기반 문서 확인
     if (member.uid) {
         try {
             const uidSnap = await getDoc(doc(db, "users", member.uid));
@@ -107,7 +159,6 @@ async function fetchUserData(member) {
         } catch (e) { console.warn("UID 조회 패스:", e); }
     }
 
-    // 2. 전화번호 기반 문서 확인
     if (!uData && member.phone) {
         const cleanPhone = member.phone.replace(/[^0-9]/g, '');
         if (cleanPhone) {
@@ -121,7 +172,7 @@ async function fetchUserData(member) {
     return uData;
 }
 
-// ─── [4] 관리자용 특정 날짜 수업 예약 목록 조회 ───
+// ─── [7] 일자별 수업 회원 명단 출력 ───
 async function loadAdminReservations(selectedDate) {
     const container = document.getElementById("reservationContainer");
     if (!container) return;
@@ -183,24 +234,14 @@ async function loadAdminReservations(selectedDate) {
 
                 membersHtml += `
                     <li class="member-item">
-                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                            <div>
-                                <strong>${idx + 1}. ${name}</strong> 
-                                <span style="font-size: 13px; color: #2563eb; font-weight: 600; margin-left: 6px;">
-                                    (${usedCount}회 사용 / ${remainingCount}회 남음)
-                                </span>
-                                <span style="font-size: 12px; color: #6b7280; margin-left: 8px;">
-                                    ${phoneText}
-                                </span>
-                            </div>
-                            <!-- 버튼 -->
-                                                        <button type="button" 
-                                    onclick="window.cancelByAdmin('${m.id}', '${name}', '${selectedDate}', '${time}', '${m.uid || ''}', '${phone}')"
-                                    style="background: #fee2e2; border: 1px solid #fca5a5; color: #ef4444; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer;">
-                                예약 취소 (+1회)
-                            </button>
-
-                            
+                        <div>
+                            <strong>${idx + 1}. ${name}</strong> 
+                            <span style="font-size: 13px; color: #2563eb; font-weight: 600; margin-left: 6px;">
+                                (${usedCount}회 사용 / ${remainingCount}회 남음)
+                            </span>
+                            <span style="font-size: 12px; color: #6b7280; margin-left: 8px;">
+                                ${phoneText}
+                            </span>
                         </div>
                     </li>
                 `;
@@ -225,54 +266,7 @@ async function loadAdminReservations(selectedDate) {
     }
 }
 
-// ─── [5] 관리자 단에서 직관적 예약 취소 및 1회 환불 ───
-window.cancelByAdmin = async (resId, name, dateStr, timeStr, uid, phone) => {
-    if (!confirm(`[${dateStr} ${timeStr}] ${name} 회원님의 예약을 취소하고 수강권 1회를 복구하시겠습니까?`)) return;
-
-    try {
-        await deleteDoc(doc(db, 'reservations', resId));
-
-        let userDocRef = null;
-
-        if (uid) {
-            const uidSnap = await getDoc(doc(db, 'users', uid));
-            if (uidSnap.exists()) userDocRef = doc(db, 'users', uid);
-        }
-
-        if (!userDocRef && phone) {
-            const cleanPhone = phone.replace(/[^0-9]/g, '');
-            if (cleanPhone) {
-                const phoneSnap = await getDoc(doc(db, 'users', cleanPhone));
-                if (phoneSnap.exists()) userDocRef = doc(db, 'users', cleanPhone);
-            }
-        }
-
-        if (userDocRef) {
-            const uSnap = await getDoc(userDocRef);
-            if (uSnap.exists()) {
-                const uData = uSnap.data();
-                const curRem = Number(uData.remainingCount ?? uData.ticketCount ?? uData.remCount ?? 0);
-                const curUsed = Number(uData.usedCount ?? uData.usedTickets ?? uData.used ?? 0);
-
-                await updateDoc(userDocRef, {
-                    remainingCount: curRem + 1,
-                    ticketCount: curRem + 1,
-                    remCount: curRem + 1,
-                    usedCount: Math.max(0, curUsed - 1)
-                });
-            }
-        }
-
-        alert("🎉 예약이 취소되고 수강권 1회가 복구되었습니다.");
-        loadAdminReservations(dateStr);
-
-    } catch (err) {
-        console.error("관리자 예약 취소 에러:", err);
-        alert("취소 처리 중 오류 발생: " + err.message);
-    }
-};
-
-// ─── [6] 관리자 접근 권한 검증 ───
+// ─── [8] 관리자 인증 권한 확인 ───
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
         alert("로그인이 필요합니다.");
