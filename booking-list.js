@@ -194,6 +194,13 @@ async function loadAdminReservations(selectedDate) {
                                 </span>
                             </div>
                             <!-- 버튼 -->
+                                                        <button type="button" 
+                                    onclick="window.cancelByAdmin('${m.id}', '${name}', '${selectedDate}', '${time}', '${m.uid || ''}', '${phone}')"
+                                    style="background: #fee2e2; border: 1px solid #fca5a5; color: #ef4444; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer;">
+                                예약 취소 (+1회)
+                            </button>
+
+                            
                         </div>
                     </li>
                 `;
