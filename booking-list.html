@@ -15,6 +15,7 @@ const RECENT_ITEMS_PER_PAGE = 7;
 let currentRecentPage = 1;
 let allRecentReservations = [];
 
+// ─── [1] 한국 표준시(KST YYYY-MM-DD) 반환 함수 ───
 function getTodayKST() {
     const now = new Date();
     const offset = now.getTimezoneOffset() * 60000;
@@ -22,6 +23,7 @@ function getTodayKST() {
     return dateKST.toISOString().split('T')[0];
 }
 
+// ─── [2] DOM 로드 완료 후 초기화 ───
 document.addEventListener("DOMContentLoaded", () => {
     const today = getTodayKST();
     const dateInput = document.getElementById("searchDate");
@@ -40,12 +42,13 @@ document.addEventListener("DOMContentLoaded", () => {
     initRecentReservations();
 });
 
+// ─── [3] 실시간 최근 수업 예약 수신 ───
 function initRecentReservations() {
     const recentTbody = document.getElementById('recentTbody');
     if (!recentTbody) return;
 
     const q = query(
-        collection(db, 'reservations'), 
+        collection(db, 'reservations'),
         orderBy('createdAt', 'desc')
     );
     
@@ -62,6 +65,7 @@ function initRecentReservations() {
     });
 }
 
+// ─── [4] 최근 수업 예약 표 7개씩 페이지네이션 출력 ───
 function renderRecentTablePage(page = 1) {
     const recentTbody = document.getElementById('recentTbody');
     if (!recentTbody) return;
@@ -102,6 +106,7 @@ function renderRecentTablePage(page = 1) {
     renderRecentPagination(allRecentReservations.length);
 }
 
+// ─── [5] 페이지네이션 버튼 생성 ───
 function renderRecentPagination(totalItems) {
     let paginationBox = document.getElementById('recentPagination');
     const tableBox = document.querySelector('.recent-table-box');
@@ -143,6 +148,7 @@ function renderRecentPagination(totalItems) {
     }
 }
 
+// ─── [6] 회원의 사용/잔여 횟수 정보 조회 ───
 async function fetchUserData(member) {
     let uData = null;
 
@@ -166,6 +172,7 @@ async function fetchUserData(member) {
     return uData;
 }
 
+// ─── [7] 일자별 수업 회원 명단 출력 ───
 async function loadAdminReservations(selectedDate) {
     const container = document.getElementById("reservationContainer");
     if (!container) return;
@@ -259,6 +266,7 @@ async function loadAdminReservations(selectedDate) {
     }
 }
 
+// ─── [8] 관리자 인증 권한 확인 ───
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
         alert("로그인이 필요합니다.");
