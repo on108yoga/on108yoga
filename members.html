@@ -467,6 +467,33 @@
                 </div>
                 <!-- 이용권 설정 및 변경 여기까지 -->
 
+                        <!-- 이름별 예약 출력 -->
+    <div style="margin-top: 30px; border-top: 2px dashed var(--border); padding-top: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h3 style="margin: 0; font-size: 16px; color: #1e293b;">🗓️ 회원별 전체 예약 내역 목록</h3>
+        <span id="reservation-summary" style="font-size: 13px; color: #4f46e5; font-weight: bold;"></span>
+    </div>
+    
+    <div style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px;">
+        <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 13px;">
+            <thead style="background: #f9fafb; position: sticky; top: 0; border-bottom: 1px solid var(--border);">
+                <tr>
+                    <th style="padding: 8px;">예약 날짜</th>
+                    <th style="padding: 8px;">수업 시간</th>
+                    <th style="padding: 8px;">신청 일시</th>
+                    <th style="padding: 8px;">관리 (취소/복구)</th>
+                </tr>
+            </thead>
+            <tbody id="user-reservation-list">
+                <tr>
+                    <td colspan="4" style="padding: 15px; color: #9ca3af;">회원을 선택하면 예약 내역이 표시됩니다.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+                <!-- 여기까지 -->
+
             </div>
         </div>
     </div>
