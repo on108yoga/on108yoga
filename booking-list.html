@@ -1,304 +1,392 @@
-import { db, auth } from "./firebase.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
-import {
-    collection,
-    query,
-    where,
-    orderBy,
-    onSnapshot,
-    getDocs,
-    doc,
-    getDoc
-} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
-
-const RECENT_ITEMS_PER_PAGE = 7;
-let currentRecentPage = 1;
-let allRecentReservations = [];
-
-// ─── [1] 한국 표준시(KST YYYY-MM-DD) 반환 함수 ───
-function getTodayKST() {
-    const now = new Date();
-    const offset = now.getTimezoneOffset() * 60000;
-    const dateKST = new Date(now.getTime() - offset);
-    return dateKST.toISOString().split('T')[0];
-}
-
-// ─── [2] DOM 로드 완료 후 초기화 ───
-document.addEventListener("DOMContentLoaded", () => {
-    const today = getTodayKST();
-    const dateInput = document.getElementById("searchDate");
-    
-    if (dateInput) {
-        dateInput.value = today;
-        loadAdminReservations(today);
-    }
-
-    document.getElementById("loadBtn")?.addEventListener("click", () => {
-        if (dateInput) {
-            loadAdminReservations(dateInput.value);
-        }
-    });
-
-    initRecentReservations();
-});
-
-// ─── [3] 실시간 최근 수업 예약 수신 ───
-function initRecentReservations() {
-    const recentTbody = document.getElementById('recentTbody');
-    if (!recentTbody) return;
-
-    const q = query(
-        collection(db, 'reservations'),
-        orderBy('createdAt', 'desc')
-    );
-    
-    onSnapshot(q, (snapshot) => {
-        allRecentReservations = snapshot.docs.map(docSnap => ({
-            id: docSnap.id,
-            ...docSnap.data()
-        }));
-
-        renderRecentTablePage(currentRecentPage);
-    }, (error) => {
-        console.error("최근 수업 예약 수신 실패:", error);
-        recentTbody.innerHTML = `<tr><td colspan="4" class="empty-msg" style="color:red;">데이터를 불러오지 못했습니다.</td></tr>`;
-    });
-}
-
-// ─── [4] 최근 수업 예약 표 7개씩 페이지네이션 출력 ───
-function renderRecentTablePage(page = 1) {
-    const recentTbody = document.getElementById('recentTbody');
-    if (!recentTbody) return;
-
-    recentTbody.innerHTML = '';
-
-    if (allRecentReservations.length === 0) {
-        recentTbody.innerHTML = `<tr><td colspan="4" class="empty-msg">최근 수업 예약 건이 없습니다.</td></tr>`;
-        renderRecentPagination(0);
-        return;
-    }
-
-    const startIndex = (page - 1) * RECENT_ITEMS_PER_PAGE;
-    const endIndex = startIndex + RECENT_ITEMS_PER_PAGE;
-    const paginatedItems = allRecentReservations.slice(startIndex, endIndex);
-
-    paginatedItems.forEach((item) => {
-        let createdTimeStr = item.date || '-';
-        if (item.createdAt?.toDate) {
-            const d = item.createdAt.toDate();
-            createdTimeStr = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 - 수업별 예약 현황</title>
+    <style>    
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Noto+Sans+KR:wght@200;300;400;500;700&display=swap');
+        
+        /* ─── [1] 공통 기본 및 리셋 ─── */
+        * { 
+            padding: 0; 
+            margin: 0; 
+            box-sizing: border-box; 
+        }   
+        
+        html {
+            scroll-behavior: smooth;
         }
 
-        const userName = item.name || item.userName || '회원';
-        const userPhone = item.phone ? ` (${item.phone})` : '';
-        const classInfo = `${item.date} [${item.time || '시간미지정'}]`;
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background: #f9fafb; 
+            color: #333;
+        }
 
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${createdTimeStr}</td>
-            <td>${userName}${userPhone}</td>
-            <td style="font-weight:500; color:#517e73;">${classInfo}</td>
-            <td><span class="badge badge-approved">예약완료</span></td>
-        `;
-        recentTbody.appendChild(tr);
-    });
+        /* ─── [2] 상단 메뉴 및 헤더 ─── */
+        .menu {
+            justify-content: center;
+            display: flex;
+            text-align: center;
+            align-items: center;
+            gap: 15px;
+            background-color: #517e73;
+            padding: 10px;
+            font-size: 14px;
+            flex-wrap: wrap;
+        }
+        
+        .menu a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 4px 8px;
+            transition: opacity 0.2s;
+        }        
+        
+        .menu a:hover {
+            color: #f2cc8f;
+        }
+        
+        nav {
+            width: 100%;
+            justify-content: center;
+            text-align: center;
+            background-color: #517e73;       
+        }
+        
+        h1 {
+            background-color: #f4efe6;
+            color: #3f4e43;
+            text-align: center;
+            letter-spacing: 0.35em;
+            margin: 0;
+            padding: 12px 0;
+            font-family: 'Cormorant Garamond', 'Noto Sans KR', serif;
+            font-weight: 300;
+            font-size: 20px;
+            text-transform: uppercase;
+        }     
 
-    renderRecentPagination(allRecentReservations.length);
-}
+        header { 
+            width: 100%; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 25px; 
+        }
 
-// ─── [5] 페이지네이션 버튼 생성 ───
-function renderRecentPagination(totalItems) {
-    let paginationBox = document.getElementById('recentPagination');
-    const tableBox = document.querySelector('.recent-table-box');
+        /* ─── [3] 본인 레이아웃 및 대시보드 ─── */
+        .admin-container { 
+            max-width: 950px; 
+            margin: 0 auto 40px auto; 
+            background: #fff; 
+            padding: 28px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+        }
 
-    if (!paginationBox && tableBox) {
-        paginationBox = document.createElement('div');
-        paginationBox.id = 'recentPagination';
-        paginationBox.style.cssText = "display:flex; justify-content:center; gap:6px; margin-top:10px; margin-bottom:25px;";
-        tableBox.after(paginationBox);
-    }
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #3f4e43;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-    if (!paginationBox) return;
-    paginationBox.innerHTML = '';
+        /* 최신 수강신청 표 스타일 */
+        .recent-table-box {
+            margin-bottom: 10px;
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            -webkit-overflow-scrolling: touch;
+        }
 
-    const totalPages = Math.ceil(totalItems / RECENT_ITEMS_PER_PAGE);
-    if (totalPages <= 1) return;
+        .recent-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: left;
+            min-width: 500px;
+        }
 
-    for (let i = 1; i <= totalPages; i++) {
-        const btn = document.createElement('button');
-        btn.innerText = i;
-        btn.type = 'button';
-        btn.style.cssText = `
-            padding: 5px 10px; 
-            font-size: 13px; 
-            border: 1px solid #cbd5e1; 
+        .recent-table th {
+            background-color: #f4efe6;
+            color: #3f4e43;
+            font-weight: 600;
+            padding: 12px 14px;
+            border-bottom: 1px solid #e2d9cc;
+            white-space: nowrap;
+        }
+
+        .recent-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid #f3f4f6;
+            color: #4b5563;
+            white-space: nowrap;
+        }
+
+        .recent-table tr:hover {
+            background-color: #faf9f6;
+        }
+
+        .recent-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* 최근 수강신청 전용 페이지네이션 박스 */
+        #recentPagination {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 10px;
+            margin-bottom: 25px;
+        }
+
+        /* 상태 태그 */
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .badge-pending {
+            background-color: #fff3ed;
+            color: #e65100;
+            border: 1px solid #ffe0b2;
+        }
+        .badge-approved {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+
+        /* 구분선 */
+        .divider {
+            height: 1px;
+            background-color: #eee;
+            margin: 30px 0;
+        }
+
+        /* 날짜 조회 박스 */
+        .date-picker-box { 
+            margin-bottom: 20px; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            background: #fafaeb;
+            padding: 14px 18px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .date-picker-box input[type="date"] {
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        .btn-search {
+            padding: 7px 16px; 
+            background: #517e73; 
+            color: #fff; 
+            border: none; 
             border-radius: 4px; 
             cursor: pointer;
-            background-color: ${i === currentRecentPage ? '#517e73' : '#ffffff'};
-            color: ${i === currentRecentPage ? '#ffffff' : '#334155'};
-            font-weight: ${i === currentRecentPage ? 'bold' : 'normal'};
-        `;
-
-        btn.onclick = () => {
-            currentRecentPage = i;
-            renderRecentTablePage(currentRecentPage);
-        };
-
-        paginationBox.appendChild(btn);
-    }
-}
-
-// ─── [6] 회원의 사용/잔여 횟수 정보 조회 ───
-async function fetchUserData(member) {
-    let uData = null;
-
-    if (member.uid) {
-        try {
-            const uidSnap = await getDoc(doc(db, "users", member.uid));
-            if (uidSnap.exists()) uData = uidSnap.data();
-        } catch (e) { console.warn("UID 조회 패스:", e); }
-    }
-
-    if (!uData && member.phone) {
-        const cleanPhone = member.phone.replace(/[^0-9]/g, '');
-        if (cleanPhone) {
-            try {
-                const phoneSnap = await getDoc(doc(db, "users", cleanPhone));
-                if (phoneSnap.exists()) uData = phoneSnap.data();
-            } catch (e) { console.warn("전화번호 문서 조회 패스:", e); }
-        }
-    }
-
-    return uData;
-}
-
-// ─── [7] 일자별 수업 회원 명단 출력 ───
-async function loadAdminReservations(selectedDate) {
-    const container = document.getElementById("reservationContainer");
-    if (!container) return;
-
-    container.innerHTML = "<p class='empty-msg'>예약 내역을 불러오는 중...</p>";
-
-    try {
-        const q = query(
-            collection(db, "reservations"),
-            where("date", "==", selectedDate)
-        );
-        const snapshot = await getDocs(q);
-
-        if (snapshot.empty) {
-            container.innerHTML = `<p class='empty-msg'>${selectedDate}에는 예약된 수업이 없습니다.</p>`;
-            return;
+            font-weight: 500;
+            transition: background 0.2s;
         }
 
-        const groupedByTime = {};
+        .btn-search:hover {
+            background: #3f4e43;
+        }
 
-        snapshot.forEach(docSnap => {
-            const data = docSnap.data();
-            const time = data.time || "시간 미지정";
+        /* 수업 타임 카드 */
+        .time-slot-card { 
+            border: 1px solid #e5e7eb; 
+            border-radius: 8px; 
+            margin-bottom: 16px; 
+            overflow: hidden; 
+        }
 
-            if (!groupedByTime[time]) {
-                groupedByTime[time] = [];
-            }
-            groupedByTime[time].push({
-                id: docSnap.id,
-                ...data
-            });
-        });
+        .slot-header { 
+            background: #517e73; 
+            color: white; 
+            padding: 12px 16px; 
+            font-weight: 500; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+        }
 
-        const sortedTimes = Object.keys(groupedByTime).sort();
-        container.innerHTML = "";
+        .member-list { 
+            list-style: none; 
+            padding: 0; 
+            margin: 0; 
+        }
 
-        for (const time of sortedTimes) {
-            const members = groupedByTime[time];
+        .member-item { 
+            padding: 12px 16px; 
+            border-bottom: 1px solid #f3f4f6; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
 
-            const card = document.createElement("div");
-            card.className = "time-slot-card";
+        .member-item:last-child { 
+            border-bottom: none; 
+        }
 
-            let membersHtml = "";
+        .empty-msg { 
+            padding: 24px; 
+            color: #9ca3af; 
+            text-align: center; 
+            font-size: 14px;
+        }
 
-            for (let idx = 0; idx < members.length; idx++) {
-                const m = members[idx];
-                let usedCount = 0;
-                let remainingCount = 0;
+        /* ─── [4] 푸터 ─── */
+        footer {
+            width: 100%;
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #f4efe6;
+            font-size: 12px;
+            color: #777;
+            text-align: center;
+        }
 
-                const uData = await fetchUserData(m);
-                if (uData) {
-                    usedCount = uData.usedCount ?? uData.usedTickets ?? uData.used ?? 0;
-                    remainingCount = uData.remainingCount ?? uData.ticketCount ?? uData.remCount ?? 0;
-                }
-
-                const name = m.userName || m.name || (uData ? uData.name : '회원');
-                const phone = m.phone || (uData ? uData.phone : '');
-                const phoneText = phone ? ` / 📞 ${phone}` : "";
-
-                membersHtml += `
-                    <li class="member-item">
-                        <div>
-                            <strong>${idx + 1}. ${name}</strong> 
-                            <span style="font-size: 13px; color: #2563eb; font-weight: 600; margin-left: 6px;">
-                                (${usedCount}회 사용 / ${remainingCount}회 남음)
-                            </span>
-                            <span style="font-size: 12px; color: #6b7280; margin-left: 8px;">
-                                ${phoneText}
-                            </span>
-                        </div>
-                    </li>
-                `;
+        /* ─── [5] 모바일 반응형 미디어 쿼리 ─── */
+        @media (max-width: 768px) {
+            header {
+                margin-bottom: 15px;
             }
 
-            card.innerHTML = `
-                <div class="slot-header">
-                    <span>⏰ ${time} 수업</span>
-                    <span>총 ${members.length}명 예약</span>
-                </div>
-                <ul class="member-list">
-                    ${membersHtml}
-                </ul>
-            `;
+            .menu {
+                gap: 10px;
+                padding: 8px 12px;
+                font-size: 13px;
+            }
 
-            container.appendChild(card);
-        }
+            h1 {
+                font-size: 16px;
+                letter-spacing: 0.25em;
+                padding: 10px 0;
+            }
 
-    } catch (error) {
-        console.error("관리자 예약 조회 오류:", error);
-        container.innerHTML = "<p class='empty-msg' style='color:red;'>예약 목록을 불러오지 못했습니다.</p>";
-    }
-}
+            .admin-container {
+                margin: 0 10px 20px 10px;
+                padding: 16px;
+                border-radius: 8px;
+            }
 
-// ─── [8] 관리자 인증 권한 확인 ───
-onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-        alert("로그인이 필요합니다.");
-        location.href = "./index.html";
-        return;
-    }
+            .section-title {
+                font-size: 16px;
+            }
 
-    try {
-        const phone = user.email ? user.email.split("@")[0] : "";
-        let isAdmin = false;
+            .date-picker-box {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+                padding: 12px;
+            }
 
-        if (phone) {
-            const phoneSnap = await getDoc(doc(db, "users", phone));
-            if (phoneSnap.exists() && phoneSnap.data().role === "admin") {
-                isAdmin = true;
+            .date-picker-box input[type="date"] {
+                width: 100%;
+                padding: 8px;
+            }
+
+            .btn-search {
+                width: 100%;
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            .slot-header {
+                padding: 10px 12px;
+                font-size: 14px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+
+            .member-item {
+                padding: 10px 12px;
+                font-size: 13px;
             }
         }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="menu">
+            <a href="index.html">홈</a>
+            <a href="members.html">회원관리</a>  
+            <a href="reservation.html">예약</a>
+            <a href="mypage.html">마이페이지</a>
+            <span id="userInfo"></span>
+        </nav>
+        <h1>
+            ON108 YOGA
+            <span style="display: block; font-size: 11px; font-weight: 200; letter-spacing: 0.2em; margin-top: 4px; color: #777;">
+                온108요가
+            </span>
+        </h1>
+    </header>
+    
+    <div class="admin-container">
+        
+        <!-- SECTION 1: 새롭게 신청된 최신 수강신청 표 -->
+        <h2 class="section-title">✨ 최근 수업 예약건 (최신순)</h2>
+        <div class="recent-table-box">
+            <table class="recent-table">
+                <thead>
+                    <tr>
+                        <th>신청일시</th>
+                        <th>연락처 / 성함</th>
+                        <th>예약 수업 정보</th>
+                        <th>상태</th>
+                    </tr>
+                </thead>
+                <tbody id="recentTbody">
+                    <tr>
+                        <td colspan="4" class="empty-msg">최신 신청 내역을 불러오는 중입니다...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 🎯 최근 예약 전용 페이지네이션 동적 버튼 위치 -->
+        <div id="recentPagination"></div>
 
-        if (!isAdmin) {
-            const uidSnap = await getDoc(doc(db, "users", user.uid));
-            if (uidSnap.exists() && uidSnap.data().role === "admin") {
-                isAdmin = true;
-            }
-        }
+        <div class="divider"></div>
 
-        if (!isAdmin) {
-            alert("관리자만 접근할 수 있는 페이지입니다.");
-            location.href = "./index.html";
-        }
-    } catch (err) {
-        console.error("권한 체크 실패:", err);
-        alert("권한 확인 중 오류가 발생했습니다.");
-        location.href = "./index.html";
-    }
-});
+        <!-- SECTION 2: 날짜별 수업 예약 현황 -->
+        <h2 class="section-title">📋 일자별 수업 회원 명단</h2>
+        
+        <!-- 날짜 선택 영역 -->
+        <div class="date-picker-box">
+            <label for="searchDate"><strong>조회 날짜:</strong></label>
+            <input type="date" id="searchDate">
+            <button id="loadBtn" class="btn-search">조회</button>
+        </div>
+
+        <!-- 예약 현황 출력 영역 -->
+        <div id="reservationContainer">
+            <p class="empty-msg">날짜를 선택하고 조회 버튼을 눌러주세요.</p>
+        </div>
+
+    </div>
+
+    <footer>
+        ⓒ ON108YOGA - booking-list.html
+    </footer>
+
+    <!-- booking-list.js 연동 -->
+    <script type="module" src="./booking-list.js"></script>
+</body>
+</html>
