@@ -9,7 +9,9 @@ import {
     onSnapshot,
     getDocs,
     doc,
-    getDoc
+    getDoc,
+    deleteDoc,
+    updateDoc
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
 // ─── [1] 한국 표준시(KST YYYY-MM-DD) 반환 함수 ───
@@ -37,49 +39,86 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // 2. 실시간 최근 수강신청 데이터 감시
+    // 2. 실시간 최근 수업 예약 데이터 감시
     initRecentReservations();
 });
 
-// ─── [3] 실시간 최근 수강신청 표(최신 5건) 출력 ───
+// ─── [3] 실시간 최근 수업 예약 표(최신 5건) 출력 ───
 function initRecentReservations() {
     const recentTbody = document.getElementById('recentTbody');
     if (!recentTbody) return;
 
-    // 최신순(timestamp 내림차순)으로 상위 5개 실시간 수신
+    // 🎯 reservations 컬렉션에서 최근 예약 신청건 최신순 5개 수신
     const q = query(
-        collection(db, 'event_reservations'), 
-        orderBy('timestamp', 'desc'), 
+        collection(db, 'reservations'), 
+        orderBy('createdAt', 'desc'), 
         limit(5)
     );
     
-    onSnapshot(q, (snapshot) => {
+    onSnapshot(q, async (snapshot) => {
         recentTbody.innerHTML = '';
         
         if (snapshot.empty) {
-            recentTbody.innerHTML = `<tr><td colspan="4" class="empty-msg">최근 신청 건이 없습니다.</td></tr>`;
+            recentTbody.innerHTML = `<tr><td colspan="4" class="empty-msg">최근 수업 예약 건이 없습니다.</td></tr>`;
             return;
         }
 
-        snapshot.forEach((docSnap) => {
+        for (const docSnap of snapshot.docs) {
             const item = docSnap.data();
-            const statusBadge = item.status === 'approved' 
-                ? `<span class="badge badge-approved">승인</span>` 
-                : `<span class="badge badge-pending">대기중</span>`;
+
+            // 신청 시각 포맷팅
+            let createdTimeStr = item.date || '-';
+            if (item.createdAt?.toDate) {
+                const d = item.createdAt.toDate();
+                createdTimeStr = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+            }
+
+            // 회원의 이름/연락처
+            const userName = item.name || item.userName || '회원';
+            const userPhone = item.phone ? ` (${item.phone})` : '';
+
+            // 예약된 수업 날짜 및 시간
+            const classInfo = `${item.date} [${item.time || '시간미지정'}]`;
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${item.createdAt || '-'}</td>
-                <td>${item.phone || item.name || '미입력'}</td>
-                <td style="font-weight:500; color:#517e73;">${item.actualTicket || item.eventOption || '-'}</td>
-                <td>${statusBadge}</td>
+                <td>${createdTimeStr}</td>
+                <td>${userName}${userPhone}</td>
+                <td style="font-weight:500; color:#517e73;">${classInfo}</td>
+                <td><span class="badge badge-approved">예약완료</span></td>
             `;
             recentTbody.appendChild(tr);
-        });
+        }
     }, (error) => {
-        console.error("최근 신청 내역 수신 실패:", error);
+        console.error("최근 수업 예약 수신 실패:", error);
         recentTbody.innerHTML = `<tr><td colspan="4" class="empty-msg" style="color:red;">데이터를 불러오지 못했습니다.</td></tr>`;
     });
+}
+
+// ─── 유저 데이터 검색 헬퍼 (UID -> 전화번호 문서 순서로 교차 조회) ───
+async function fetchUserData(member) {
+    let uData = null;
+
+    // 1. UID 기반 문서 확인
+    if (member.uid) {
+        try {
+            const uidSnap = await getDoc(doc(db, "users", member.uid));
+            if (uidSnap.exists()) uData = uidSnap.data();
+        } catch (e) { console.warn("UID 조회 패스:", e); }
+    }
+
+    // 2. 전화번호 기반 문서 확인
+    if (!uData && member.phone) {
+        const cleanPhone = member.phone.replace(/[^0-9]/g, '');
+        if (cleanPhone) {
+            try {
+                const phoneSnap = await getDoc(doc(db, "users", cleanPhone));
+                if (phoneSnap.exists()) uData = phoneSnap.data();
+            } catch (e) { console.warn("전화번호 문서 조회 패스:", e); }
+        }
+    }
+
+    return uData;
 }
 
 // ─── [4] 관리자용 특정 날짜 수업 예약 목록 조회 ───
@@ -90,7 +129,6 @@ async function loadAdminReservations(selectedDate) {
     container.innerHTML = "<p class='empty-msg'>예약 내역을 불러오는 중...</p>";
 
     try {
-        // 1. 해당 날짜의 예약 전체 조회
         const q = query(
             collection(db, "reservations"),
             where("date", "==", selectedDate)
@@ -102,7 +140,6 @@ async function loadAdminReservations(selectedDate) {
             return;
         }
 
-        // 2. 시간대별로 데이터 그룹핑
         const groupedByTime = {};
 
         snapshot.forEach(docSnap => {
@@ -118,12 +155,9 @@ async function loadAdminReservations(selectedDate) {
             });
         });
 
-        // 3. 시간순 정렬
         const sortedTimes = Object.keys(groupedByTime).sort();
+        container.innerHTML = "";
 
-        container.innerHTML = ""; // 기존 내용 초기화
-
-        // 4. 시간대별 카드 UI 생성
         for (const time of sortedTimes) {
             const members = groupedByTime[time];
 
@@ -132,42 +166,38 @@ async function loadAdminReservations(selectedDate) {
 
             let membersHtml = "";
 
-            // 회원의 최신 정보(사용/남은 횟수) 조회
             for (let idx = 0; idx < members.length; idx++) {
                 const m = members[idx];
                 let usedCount = 0;
                 let remainingCount = 0;
 
-                if (m.uid) {
-                    try {
-                        const userSnap = await getDoc(doc(db, "users", m.uid));
-                        if (userSnap.exists()) {
-                            const uData = userSnap.data();
-                            
-                            // 사용 횟수 필드 체크
-                            usedCount = uData.usedCount ?? uData.usedTickets ?? uData.used ?? 0;
-                            
-                            // 남은 횟수 필드 체크
-                            remainingCount = uData.remainingCount ?? uData.ticketCount ?? uData.remCount ?? 0;
-                        }
-                    } catch (e) {
-                        console.error(`회원(${m.uid}) 정보 조회 실패:`, e);
-                    }
+                const uData = await fetchUserData(m);
+                if (uData) {
+                    usedCount = uData.usedCount ?? uData.usedTickets ?? uData.used ?? 0;
+                    remainingCount = uData.remainingCount ?? uData.ticketCount ?? uData.remCount ?? 0;
                 }
 
-                const name = m.userName || m.name || '회원';
-                const phoneText = m.phone ? ` / 📞 ${m.phone}` : "";
+                const name = m.userName || m.name || (uData ? uData.name : '회원');
+                const phone = m.phone || (uData ? uData.phone : '');
+                const phoneText = phone ? ` / 📞 ${phone}` : "";
 
                 membersHtml += `
                     <li class="member-item">
-                        <div>
-                            <strong>${idx + 1}. ${name}</strong> 
-                            <span style="font-size: 13px; color: #2563eb; font-weight: 600; margin-left: 6px;">
-                                (${usedCount}회 사용 / ${remainingCount}회 남음)
-                            </span>
-                            <span style="font-size: 12px; color: #6b7280; margin-left: 8px;">
-                                ${phoneText} (UID: ${m.uid ? m.uid.substring(0, 6) : '---'}...)
-                            </span>
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <div>
+                                <strong>${idx + 1}. ${name}</strong> 
+                                <span style="font-size: 13px; color: #2563eb; font-weight: 600; margin-left: 6px;">
+                                    (${usedCount}회 사용 / ${remainingCount}회 남음)
+                                </span>
+                                <span style="font-size: 12px; color: #6b7280; margin-left: 8px;">
+                                    ${phoneText}
+                                </span>
+                            </div>
+                            <button type="button" 
+                                    onclick="window.cancelByAdmin('${m.id}', '${name}', '${selectedDate}', '${time}', '${m.uid || ''}', '${phone}')"
+                                    style="background: #fee2e2; border: 1px solid #fca5a5; color: #ef4444; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer;">
+                                예약 취소 (+1회)
+                            </button>
                         </div>
                     </li>
                 `;
@@ -192,7 +222,54 @@ async function loadAdminReservations(selectedDate) {
     }
 }
 
-// ─── [5] 관리자 접근 권한 검증 ───
+// ─── [5] 관리자 단에서 직관적 예약 취소 및 1회 환불 ───
+window.cancelByAdmin = async (resId, name, dateStr, timeStr, uid, phone) => {
+    if (!confirm(`[${dateStr} ${timeStr}] ${name} 회원님의 예약을 취소하고 수강권 1회를 복구하시겠습니까?`)) return;
+
+    try {
+        await deleteDoc(doc(db, 'reservations', resId));
+
+        let userDocRef = null;
+
+        if (uid) {
+            const uidSnap = await getDoc(doc(db, 'users', uid));
+            if (uidSnap.exists()) userDocRef = doc(db, 'users', uid);
+        }
+
+        if (!userDocRef && phone) {
+            const cleanPhone = phone.replace(/[^0-9]/g, '');
+            if (cleanPhone) {
+                const phoneSnap = await getDoc(doc(db, 'users', cleanPhone));
+                if (phoneSnap.exists()) userDocRef = doc(db, 'users', cleanPhone);
+            }
+        }
+
+        if (userDocRef) {
+            const uSnap = await getDoc(userDocRef);
+            if (uSnap.exists()) {
+                const uData = uSnap.data();
+                const curRem = Number(uData.remainingCount ?? uData.ticketCount ?? uData.remCount ?? 0);
+                const curUsed = Number(uData.usedCount ?? uData.usedTickets ?? uData.used ?? 0);
+
+                await updateDoc(userDocRef, {
+                    remainingCount: curRem + 1,
+                    ticketCount: curRem + 1,
+                    remCount: curRem + 1,
+                    usedCount: Math.max(0, curUsed - 1)
+                });
+            }
+        }
+
+        alert("🎉 예약이 취소되고 수강권 1회가 복구되었습니다.");
+        loadAdminReservations(dateStr);
+
+    } catch (err) {
+        console.error("관리자 예약 취소 에러:", err);
+        alert("취소 처리 중 오류 발생: " + err.message);
+    }
+};
+
+// ─── [6] 관리자 접근 권한 검증 ───
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
         alert("로그인이 필요합니다.");
@@ -201,8 +278,24 @@ onAuthStateChanged(auth, async (user) => {
     }
 
     try {
-        const userSnap = await getDoc(doc(db, "users", user.uid));
-        if (!userSnap.exists() || userSnap.data().role !== "admin") {
+        const phone = user.email ? user.email.split("@")[0] : "";
+        let isAdmin = false;
+
+        if (phone) {
+            const phoneSnap = await getDoc(doc(db, "users", phone));
+            if (phoneSnap.exists() && phoneSnap.data().role === "admin") {
+                isAdmin = true;
+            }
+        }
+
+        if (!isAdmin) {
+            const uidSnap = await getDoc(doc(db, "users", user.uid));
+            if (uidSnap.exists() && uidSnap.data().role === "admin") {
+                isAdmin = true;
+            }
+        }
+
+        if (!isAdmin) {
             alert("관리자만 접근할 수 있는 페이지입니다.");
             location.href = "./index.html";
         }
