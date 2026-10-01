@@ -110,7 +110,7 @@
             border-collapse: collapse;
             font-size: 13px;
             text-align: left;
-            min-width: 500px;
+            min-width: 600px;
         }
 
         .recent-table th {
@@ -141,12 +141,14 @@
         #recentPagination {
             display: flex;
             justify-content: center;
+            align-items: center;
             gap: 6px;
-            margin-top: 10px;
+            margin-top: 12px;
             margin-bottom: 25px;
+            flex-wrap: wrap;
         }
 
-        /* 상태 태그 */
+        /* 상태 및 삭제 버튼 태그 */
         .badge {
             display: inline-block;
             padding: 3px 8px;
@@ -154,15 +156,27 @@
             font-size: 11px;
             font-weight: 600;
         }
-        .badge-pending {
-            background-color: #fff3ed;
-            color: #e65100;
-            border: 1px solid #ffe0b2;
-        }
         .badge-approved {
             background-color: #e8f5e9;
             color: #2e7d32;
             border: 1px solid #c8e6c9;
+        }
+
+        .btn-delete-res {
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #ef4444;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-delete-res:hover {
+            background: #ef4444;
+            color: #ffffff;
         }
 
         /* 구분선 */
@@ -346,21 +360,22 @@
             <table class="recent-table">
                 <thead>
                     <tr>
-                        <th>신청일시</th>
-                        <th>연락처 / 성함</th>
-                        <th>예약 수업 정보</th>
-                        <th>상태</th>
+                        <th style="width: 20%;">신청일시</th>
+                        <th style="width: 25%;">연락처 / 성함</th>
+                        <th style="width: 30%;">예약 수업 정보</th>
+                        <th style="width: 12%;">상태</th>
+                        <th style="width: 13%; text-align: center;">관리</th>
                     </tr>
                 </thead>
                 <tbody id="recentTbody">
                     <tr>
-                        <td colspan="4" class="empty-msg">최신 신청 내역을 불러오는 중입니다...</td>
+                        <td colspan="5" class="empty-msg">최신 신청 내역을 불러오는 중입니다...</td>
                     </tr>
                 </tbody>
             </table>
         </div>
         
-        <!-- 🎯 최근 예약 전용 페이지네이션 동적 버튼 위치 -->
+        <!-- 최근 예약 전용 페이지네이션 동적 버튼 위치 -->
         <div id="recentPagination"></div>
 
         <div class="divider"></div>
