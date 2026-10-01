@@ -365,7 +365,7 @@
             <a href="index.html">홈</a>
             <a href="event-login.html">로그인/수강신청</a>
         </div>
-        <button class="role-toggle-btn" onclick="toggleRole()">
+        <button class="role-toggle-btn" onclick="window.toggleRole()">
             🔑 <span id="roleText">비공개 게시판</span>
         </button>
     </nav>
@@ -373,14 +373,14 @@
     <h1>
         ON108 YOGA
         <span style="display: block; font-size: 11px; font-weight: 200; letter-spacing: 0.2em; margin-top: 4px; color: #777;">
-            수강 신청 게시판
+            이벤트 수강 신청 게시판
         </span>
     </h1>
 </header>
 
 <main>
     <div class="status-header">
-        <h2>전체 신청 목록</h2>
+        <h2>이벤트 신청 목록</h2>
         <span id="roleBadge" class="role-badge user">🔒 일반 사용자</span>
     </div>
 
@@ -396,7 +396,7 @@
                 </tr>
             </thead>
             <tbody id="boardTbody">
-                <!-- 동적 게시물 로딩 -->
+                <tr><td colspan="5" style="text-align:center; padding:30px; color:#888;">목록을 불러오는 중입니다...</td></tr>
             </tbody>
         </table>
     </div>
@@ -409,8 +409,6 @@
     <p>© ON108YOGA Reservation System</p>
 </footer>
 
-
-    
 <!-- Firebase SDK 연결 및 게시판 스크립트 -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -421,7 +419,9 @@
         onSnapshot, 
         deleteDoc, 
         doc, 
-        updateDoc 
+        updateDoc,
+        query,
+        where
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     // 1. Firebase 구성 설정
@@ -435,14 +435,12 @@
         measurementId: "G-7X1ELMNKXC"
     };
 
-    // Firebase 및 Firestore 초기화
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     
-    // 이벤트 전용 독립 컬렉션 사용 ('event_reservations')
+    // 🎯 이벤트 수강신청 전용 독립 컬렉션
     const reservationsRef = collection(db, 'event_reservations');
 
-    // 날짜 포맷 함수 (YYYY.MM.DD)
     function formatDate(date = new Date()) {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -450,7 +448,6 @@
         return `${year}.${month}.${day}`;
     }
 
-    // 2. 상태 및 상수 설정
     const ADMIN_PASSWORD = "0093";
     let isAdmin = false;
     let openDetailId = null;
@@ -460,7 +457,7 @@
     const itemsPerPage = 10;
     let postsData = [];
 
-    // 3. event-login.html에서 넘어온 새 수강신청건 Firestore에 자동 저장
+    // 2. event-login.html에서 넘어온 수강신청 데이터 저장
     const newTicket = localStorage.getItem('selectedTicket');
     const newPhone = localStorage.getItem('userPhone');
 
@@ -468,21 +465,21 @@
         const newPost = {
             phone: newPhone ? newPhone : '연락처 미입력', 
             actualTicket: newTicket,
+            type: "event_ticket", // 🎯 이벤트 전용 플래그 지정
             status: 'pending',
-            createdAt: formatDate(), // 신청 날짜
-            timestamp: Date.now(),    // 최신순 정렬용
+            createdAt: formatDate(),
+            timestamp: Date.now(),
             comments: []
         };
         
         addDoc(reservationsRef, newPost)
             .then(() => {
-                // 저장 완료 후 localStorage 임시 티켓 데이터 삭제 (새로고침 시 중복 저장 방지)
                 localStorage.removeItem('selectedTicket');
             })
-            .catch((err) => console.error("Firestore 데이터 저장 실패:", err));
+            .catch((err) => console.error("저장 실패:", err));
     }
 
-    // 4. Firestore 실시간 데이터 수신 (onSnapshot)
+    // 3. Firestore 실시간 데이터 수신 (이벤트 데이터만 수신)
     onSnapshot(reservationsRef, (snapshot) => {
         postsData = [];
 
@@ -495,16 +492,15 @@
             });
         });
 
-        // 최신순 정렬 (timestamp 기준)
         postsData.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
         renderBoard();
         updateRoleUI();
     }, (error) => {
-        console.error("Firestore 데이터 수신 에러:", error);
+        console.error("수신 에러:", error);
     });
 
-    // 5. 게시판 목록 및 상세 렌더링
+    // 4. 게시판 목록 렌더링
     window.renderBoard = function() {
         const tbody = document.getElementById('boardTbody');
         if (!tbody) return;
@@ -512,7 +508,7 @@
         tbody.innerHTML = '';
 
         if (postsData.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#999; padding:30px;">등록된 수강신청 내역이 없습니다.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#999; padding:30px;">등록된 이벤트 신청 내역이 없습니다.</td></tr>`;
             renderPagination();
             return;
         }
@@ -526,10 +522,7 @@
             const statusClass = isApproved ? 'status-approved' : 'status-pending';
             const statusText = isApproved ? '승인' : '대기중';
 
-            // 날짜 변환
             let postDate = post.createdAt || formatDate();
-
-            // 전화번호 마스킹 (010-****-1234)
             const rawPhone = post.phone || '';
             let maskedUser = '신청자';
 
@@ -540,29 +533,25 @@
                 maskedUser = rawPhone;
             }
 
-            // 선택 수강권명
-            const ticketDisplayName = post.actualTicket || '수강권 미지정';
-
+            const ticketDisplayName = post.actualTicket || '이벤트 수강권';
             const displayNum = postsData.length - (startIndex + index);
             const isOpen = openDetailId === post.id;
 
-            // 목록 행 (tr)
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${displayNum}</td>
                 <td>
-                    <span class="post-title-link" onclick="toggleDetail('${post.id}')">
-                        🔒 [신청] 비공개 수강신청글 입니다.
+                    <span class="post-title-link" onclick="window.toggleDetail('${post.id}')">
+                        🔒 [이벤트신청] 비공개 수강신청글 입니다.
                     </span>
                 </td>
                 <td>${maskedUser}</td>
                 <td><span class="status-tag ${statusClass}">${statusText}</span></td>
                 <td style="text-align: center;">
-                    ${isAdmin ? `<button class="btn-delete" onclick="deletePost('${post.id}')">삭제</button>` : '-'}
+                    ${isAdmin ? `<button class="btn-delete" onclick="window.deletePost('${post.id}')">삭제</button>` : '-'}
                 </td>
             `;
             
-            // 상세 영역 행 (detailTr)
             const detailTr = document.createElement('tr');
             detailTr.className = `detail-row ${isOpen ? 'active' : ''}`;
             detailTr.id = `detail-${post.id}`;
@@ -573,7 +562,7 @@
             } else {
                 post.comments.forEach((c, idx) => {
                     const commentDeleteBtn = isAdmin 
-                        ? `<button class="btn-delete" style="font-size:10px; margin-left: 6px;" onclick="deleteComment('${post.id}', ${idx})">삭제</button>` 
+                        ? `<button class="btn-delete" style="font-size:10px; margin-left: 6px;" onclick="window.deleteComment('${post.id}', ${idx})">삭제</button>` 
                         : '';
                     commentsHtml += `
                         <div class="comment-item">
@@ -587,7 +576,6 @@
                 });
             }
 
-            // 상세 내역 표시
             detailTr.innerHTML = `
                 <td colspan="5" style="padding: 0;">
                     <div class="detail-container">
@@ -617,7 +605,7 @@
                             ${isAdmin ? `
                                 <div class="admin-comment-form clearfix">
                                     <textarea id="comment-input-${post.id}" placeholder="답변을 입력하세요. ('승인' 또는 '확인' 포함 시 자동 승인 처리)"></textarea>
-                                    <button class="btn-comment-submit" onclick="addAdminComment('${post.id}')">답변 등록</button>
+                                    <button class="btn-comment-submit" onclick="window.addAdminComment('${post.id}')">답변 등록</button>
                                 </div>
                             ` : ''}
                         </div>
@@ -632,14 +620,13 @@
         renderPagination();
     };
 
-    // 상세글 본인/관리자 권한 확인 및 토글
+    // 5. 전역 접근 함수 등록 (window 객체 바인딩)
     window.toggleDetail = function(postId) {
         const targetPost = postsData.find(p => p.id === postId);
         
         const cleanPostPhone = targetPost && targetPost.phone ? targetPost.phone.replace(/[^0-9]/g, '') : '';
         const cleanUserPhone = currentUserPhone ? currentUserPhone.replace(/[^0-9]/g, '') : '';
         
-        // 작성자 본인 확인 (로그인된 핸드폰번호와 게시글의 핸드폰번호 비교)
         const isOwner = cleanUserPhone && cleanPostPhone && (cleanPostPhone === cleanUserPhone);
 
         if (!isOwner && !isAdmin) {
@@ -651,7 +638,6 @@
         renderBoard();
     };
 
-    // 게시글 삭제 (관리자 전용)
     window.deletePost = function(postId) {
         if (!isAdmin) return;
         if (confirm("정말 이 수강신청글을 삭제하시겠습니까?")) {
@@ -664,7 +650,6 @@
         }
     };
 
-    // 답변 삭제 (관리자 전용)
     window.deleteComment = function(postId, commentIndex) {
         if (!isAdmin) return;
         const targetPost = postsData.find(p => p.id === postId);
@@ -679,7 +664,6 @@
         }
     };
 
-    // 답변 등록 (관리자 전용)
     window.addAdminComment = function(postId) {
         if (!isAdmin) return;
         const input = document.getElementById(`comment-input-${postId}`);
@@ -714,7 +698,6 @@
             .catch(err => alert("답변 등록 실패: " + err.message));
     };
 
-    // 관리자 모드 전환
     window.toggleRole = function() {
         if (!isAdmin) {
             const password = prompt("관리자 암호를 입력하세요.");
@@ -736,7 +719,6 @@
         renderBoard();
     };
 
-    // UI 배지 업데이트
     window.updateRoleUI = function() {
         const roleText = document.getElementById('roleText');
         const roleBadge = document.getElementById('roleBadge');
@@ -754,7 +736,6 @@
         }
     };
 
-    // 페이지네이션
     function renderPagination() {
         const paginationContainer = document.getElementById('pagination');
         if (!paginationContainer) return;
