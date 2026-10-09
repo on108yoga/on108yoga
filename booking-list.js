@@ -12,14 +12,12 @@ import {
     updateDoc
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
-// 🎯 최근 수강신청 설정 (페이지당 7개 / 10개 단위 블록 페이지네이션)
 const RECENT_ITEMS_PER_PAGE = 7;
 const PAGE_BLOCK_SIZE = 10;
 
 let currentRecentPage = 1;
 let allRecentReservations = [];
 
-// ─── [1] 한국 표준시(KST YYYY-MM-DD) 반환 함수 ───
 function getTodayKST() {
     const now = new Date();
     const offset = now.getTimezoneOffset() * 60000;
@@ -27,7 +25,6 @@ function getTodayKST() {
     return dateKST.toISOString().split('T')[0];
 }
 
-// ─── [2] DOM 로드 완료 후 초기화 ───
 document.addEventListener("DOMContentLoaded", () => {
     const today = getTodayKST();
     const dateInput = document.getElementById("searchDate");
@@ -46,12 +43,10 @@ document.addEventListener("DOMContentLoaded", () => {
     initRecentReservations();
 });
 
-// ─── [3] 실시간 최근 수업 예약 및 취소 내역 수신 ───
 function initRecentReservations() {
     const recentTbody = document.getElementById('recentTbody');
     if (!recentTbody) return;
 
-    // reservations 컬렉션에서 전체 내역 수신 (예약 + 취소건)
     const q = query(
         collection(db, 'reservations'),
         orderBy('createdAt', 'desc')
@@ -70,7 +65,6 @@ function initRecentReservations() {
     });
 }
 
-// ─── [4] 최근 수업 예약 및 취소 내역 표 출력 ───
 function renderRecentTablePage(page = 1) {
     const recentTbody = document.getElementById('recentTbody');
     if (!recentTbody) return;
@@ -124,7 +118,6 @@ function renderRecentTablePage(page = 1) {
     renderRecentPagination(allRecentReservations.length);
 }
 
-// ─── [5] 10개 단위 화살표 그룹 페이지네이션 생성 ───
 function renderRecentPagination(totalItems) {
     let paginationBox = document.getElementById('recentPagination');
     const tableBox = document.querySelector('.recent-table-box');
@@ -181,18 +174,15 @@ function renderRecentPagination(totalItems) {
     paginationBox.appendChild(createBtn('&raquo;', nextBlockPage, endPage >= totalPages));
 }
 
-// ─── [6] 관리자 예약 취소 처리 (status를 'cancelled'로 변경하고 수강권 1회 복구) ───
 window.cancelRecentReservation = async (resId, name, dateStr, timeStr, uid, phone) => {
     if (!confirm(`[${dateStr} ${timeStr}] ${name} 회원님의 예약을 취소 상태로 변경하고 수강권 1회를 복구하시겠습니까?`)) return;
 
     try {
-        // 1. reservations 컬렉션 문서 상태를 cancelled로 업데이트
         await updateDoc(doc(db, 'reservations', resId), {
             status: 'cancelled',
             cancelledAt: new Date()
         });
 
-        // 2. 유저 정보 매칭하여 수강권 횟수 복구 (+1회)
         let userDocRef = null;
 
         if (uid) {
@@ -226,7 +216,6 @@ window.cancelRecentReservation = async (resId, name, dateStr, timeStr, uid, phon
 
         alert("🎉 예약 상태가 '취소됨'으로 변경되었으며 회원의 수강권 1회가 복구되었습니다.");
 
-        // 현재 조회 중인 일자별 명단도 새로고침
         const searchDateVal = document.getElementById('searchDate')?.value;
         if (searchDateVal) loadAdminReservations(searchDateVal);
 
@@ -236,7 +225,6 @@ window.cancelRecentReservation = async (resId, name, dateStr, timeStr, uid, phon
     }
 };
 
-// ─── [7] 회원의 사용/잔여 횟수 정보 조회 헬퍼 ───
 async function fetchUserData(member) {
     let uData = null;
 
@@ -260,7 +248,6 @@ async function fetchUserData(member) {
     return uData;
 }
 
-// ─── [8] 일자별 수업 회원 명단 출력 (유효한 예약건만 출력) ───
 async function loadAdminReservations(selectedDate) {
     const container = document.getElementById("reservationContainer");
     if (!container) return;
@@ -283,8 +270,6 @@ async function loadAdminReservations(selectedDate) {
 
         snapshot.forEach(docSnap => {
             const data = docSnap.data();
-            
-            // 🎯 명단에는 취소건(status === 'cancelled') 제외하고 실제 예약 유효건만 표시
             if (data.status === 'cancelled') return;
 
             const time = data.time || "시간 미지정";
@@ -364,7 +349,6 @@ async function loadAdminReservations(selectedDate) {
     }
 }
 
-// ─── [9] 관리자 권한 확인 ───
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
         alert("로그인이 필요합니다.");
