@@ -2,117 +2,89 @@ import { db, auth } from "./firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 import {
     collection,
-    addDoc,
     query,
-    where,
-    orderBy,
     onSnapshot,
     doc,
     getDoc,
-    updateDoc,
-    deleteDoc,
-    serverTimestamp,
-    arrayUnion,
-    arrayRemove
+    updateDoc
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
 let currentUser = null;
 let isAdmin = false;
-let selectedTicket = localStorage.getItem('selectedTicket') || '선택 없음';
+let userPhone = localStorage.getItem('userPhone') || '';
 
-document.addEventListener('DOMContentLoaded', () => {
-    const ticketDisplay = document.getElementById('ticketDisplay');
-    if (ticketDisplay) {
-        ticketDisplay.innerText = `선택 수강권: [${selectedTicket}]`;
-    }
-
-    document.getElementById('postForm')?.addEventListener('submit', handleCreatePost);
-});
-
-// 1. 로그인 사용자 및 운영자 권한 확인
+// 1. 사용자 권한 체크 및 익명 식별자 세팅
 onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-        alert("로그인이 필요합니다.");
-        window.location.href = 'index.html';
-        return;
-    }
+    if (user) {
+        currentUser = user;
+        userPhone = userPhone || (user.email ? user.email.split('@')[0] : '');
 
-    currentUser = user;
-
-    // 운영자 role 체크
-    try {
-        const userSnap = await getDoc(doc(db, "users", user.uid));
-        if (userSnap.exists() && userSnap.data().role === 'admin') {
-            isAdmin = true;
-            document.getElementById('userBadge').innerText = "👑 관리자 모드 접속 중";
-        } else {
-            document.getElementById('userBadge').innerText = `👤 ${user.email ? user.email.split('@')[0] : '회원'}님`;
+        try {
+            const userSnap = await getDoc(doc(db, "users", user.uid));
+            if (userSnap.exists() && userSnap.data().role === 'admin') {
+                isAdmin = true;
+            }
+        } catch (e) {
+            console.warn("관리자 권한 판별 중 오류 패스:", e);
         }
-    } catch (e) {
-        console.warn("권한 확인 패스:", e);
     }
 
-    loadBoardPosts();
+    const badgeEl = document.getElementById('userBadge');
+    if (badgeEl) {
+        badgeEl.innerText = isAdmin ? "👑 관리자 모드" : (userPhone ? `👤 익명사용자 (${userPhone.substring(0, 3)}****)` : "👤 익명 게스트");
+    }
+
+    loadAllBoardPosts();
 });
 
-// 2. 비공개 게시글 작성
-async function handleCreatePost(e) {
-    e.preventDefault();
-    const memo = document.getElementById('postMemo').value.trim();
-    if (!memo) return;
-
-    try {
-        await addDoc(collection(db, "board_posts"), {
-            uid: currentUser.uid,
-            phone: currentUser.email ? currentUser.email.split('@')[0] : '',
-            ticket: selectedTicket,
-            memo: memo,
-            comments: [],
-            createdAt: serverTimestamp()
-        });
-
-        alert("비공개 신청글이 정상 등록되었습니다.");
-        document.getElementById('postMemo').value = '';
-    } catch (err) {
-        console.error("글 작성 오류:", err);
-        alert("글 작성 실패: " + err.message);
-    }
-}
-
-// 3. 게시글 불러오기 (일반 회원은 본인글만, 운영자는 전체)
-function loadBoardPosts() {
+// 2. 게시글 불러오기 (기존 리스트 포함 전체 수신 후 프론트 단에서 본인/관리자만 필터링)
+function loadAllBoardPosts() {
     const container = document.getElementById('postsContainer');
-    let q;
+    if (!container) return;
 
-    if (isAdmin) {
-        // 관리자는 전체 비공개글 조회
-        q = query(collection(db, "board_posts"), orderBy("createdAt", "desc"));
-    } else {
-        // 일반 회원은 본인 작성글만 조회
-        q = query(
-            collection(db, "board_posts"),
-            where("uid", "==", currentUser.uid)
-        );
-    }
+    // 모든 신청/문의 내역 수신
+    const q = query(collection(db, "board_posts"));
 
     onSnapshot(q, (snapshot) => {
         container.innerHTML = '';
 
         if (snapshot.empty) {
-            container.innerHTML = `<p style="text-align:center; color:#999; padding:20px;">신청 내역이 없습니다.</p>`;
+            container.innerHTML = `<p style="text-align:center; color:#999; padding:20px;">등록된 신청 내역이 없습니다.</p>`;
             return;
         }
 
-        const posts = snapshot.docs.map(docSnap => ({
+        let posts = snapshot.docs.map(docSnap => ({
             id: docSnap.id,
             ...docSnap.data()
         }));
 
-        // 프론트 내 정렬 (날짜순)
-        posts.sort((a, b) => (b.createdAt?.toDate?.() || 0) - (a.createdAt?.toDate?.() || 0));
+        // 날짜순 내림차순 정렬 (최신순)
+        posts.sort((a, b) => {
+            const tA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+            const tB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+            return tB - tA;
+        });
 
-        posts.forEach(post => {
-            let dateStr = "방금 전";
+        // 🎯 본인 작성글이거나 관리자인 경우만 조회 가능하도록 제한
+        const visiblePosts = posts.filter(post => {
+            if (isAdmin) return true; // 관리자는 전체 읽기 허용
+
+            // 회원 UID 매칭
+            if (currentUser && post.uid === currentUser.uid) return true;
+
+            // 전화번호 매칭 (로그인 창에서 넘겨받은 익명 구분 전화번호)
+            if (userPhone && post.phone && post.phone.replace(/[^0-9]/g, '') === userPhone.replace(/[^0-9]/g, '')) return true;
+
+            return false;
+        });
+
+        if (visiblePosts.length === 0) {
+            container.innerHTML = `<p style="text-align:center; color:#999; padding:20px;">조회 가능한 본인의 신청 내역이 없습니다.</p>`;
+            return;
+        }
+
+        visiblePosts.forEach(post => {
+            let dateStr = "신청일자 미기재";
             if (post.createdAt?.toDate) {
                 const d = post.createdAt.toDate();
                 dateStr = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
@@ -151,13 +123,16 @@ function loadBoardPosts() {
                 </div>
             ` : '';
 
+            // 마스킹 처리된 익명 작성자 연락처
+            const displayPhone = post.phone ? `${post.phone.substring(0, 3)}****${post.phone.slice(-4)}` : '익명 회원';
+
             postEl.innerHTML = `
                 <div class="post-header">
-                    <span><span class="post-badge">🔒 비공개</span> 작성자: ${post.phone || '회원'}</span>
+                    <span><span class="post-badge">🔒 비공개</span> 작성자: ${displayPhone}</span>
                     <span>신청일시: ${dateStr}</span>
                 </div>
-                <div class="post-ticket-info">🎫 신청 수강권: ${post.ticket || '미선택'}</div>
-                <div class="post-content">${post.memo}</div>
+                <div class="post-ticket-info">🎫 신청 옵션: ${post.ticket || post.eventOption || '미선택'}</div>
+                <div class="post-content">${post.memo || post.message || '신청 내용이 등록되었습니다.'}</div>
 
                 <div class="comment-section">
                     <strong style="font-size:12px; color:#517e73;">💬 운영자 답변 및 안내</strong>
@@ -168,10 +143,13 @@ function loadBoardPosts() {
 
             container.appendChild(postEl);
         });
+    }, (error) => {
+        console.error("게시글 수신 실패:", error);
+        container.innerHTML = `<p style="text-align:center; color:red; padding:20px;">내역을 불러오는 중 오류가 발생했습니다.</p>`;
     });
 }
 
-// 4. 운영자 댓글 등록 함수
+// 3. 운영자 댓글 등록
 window.addComment = async (postId) => {
     const inputEl = document.getElementById(`commentInput_${postId}`);
     const text = inputEl?.value.trim();
@@ -197,11 +175,11 @@ window.addComment = async (postId) => {
         }
     } catch (err) {
         console.error("댓글 등록 실패:", err);
-        alert("댓글 등록에 실패했습니다.");
+        alert("댓글 등록 실패: " + err.message);
     }
 };
 
-// 5. 운영자 댓글 삭제 함수
+// 4. 운영자 댓글 삭제
 window.deleteComment = async (postId, commentIndex) => {
     if (!confirm("해당 댓글을 삭제하시겠습니까?")) return;
 
@@ -217,6 +195,6 @@ window.deleteComment = async (postId, commentIndex) => {
         }
     } catch (err) {
         console.error("댓글 삭제 실패:", err);
-        alert("댓글 삭제에 실패했습니다.");
+        alert("댓글 삭제 실패: " + err.message);
     }
 };
