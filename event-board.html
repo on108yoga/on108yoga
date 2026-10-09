@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>수강신청 게시판 - ON108 YOGA</title>
+    <title>익명 수강신청 게시판 - ON108 YOGA</title>
     
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -65,7 +65,7 @@
         }
 
         .board-title {
-            font-size: 20px;
+            font-size: 18px;
             color: #3f4e43;
             font-weight: 700;
             margin-bottom: 16px;
@@ -74,31 +74,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-
-        .post-form textarea {
-            width: 100%;
-            height: 80px;
-            padding: 12px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            font-family: inherit;
-            resize: none;
-            outline: none;
-            margin-top: 8px;
-        }
-        .post-form textarea:focus { border-color: #517e73; }
-
-        .btn-submit {
-            background-color: #3f4e43;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 10px;
-            float: right;
         }
 
         /* 게시글 목록 스타일 */
@@ -220,32 +195,20 @@
 </header>
 
 <main>
-    <!-- 작성 상자 -->
     <div class="board-card">
         <div class="board-title">
-            <span>🔒 비공개 수강신청 게시판</span>
+            <span>🔒 익명 수강신청/문의 내역</span>
             <span id="userBadge" style="font-size:12px; color:#666;"></span>
         </div>
-
-        <form class="post-form" id="postForm">
-            <div id="ticketDisplay" class="post-ticket-info">선택 수강권: 불러오는 중...</div>
-            <textarea id="postMemo" placeholder="추가 문의사항이나 입금자 성함을 적어주세요. (운영자만 볼 수 있는 비공개 글입니다)" required></textarea>
-            <button type="submit" class="btn-submit">신청글 등록하기</button>
-            <div style="clear:both;"></div>
-        </form>
-    </div>
-
-    <!-- 게시글 목록 -->
-    <div class="board-card">
-        <h3 style="font-size:16px; color:#3f4e43; margin-bottom:14px;">📋 나의 신청 내역 (비공개)</h3>
+        
         <div id="postsContainer">
-            <p style="text-align:center; color:#999; padding:20px;">신청 내역을 불러오는 중입니다...</p>
+            <p style="text-align:center; color:#999; padding:20px;">기존 신청 리스트를 불러오는 중입니다...</p>
         </div>
     </div>
 </main>
 
 <footer>
-    <p>© ON108YOGA Reservation System</p>
+    <p>© ON108 YOGA Reservation System</p>
 </footer>
 
 <script type="module" src="firebase.js"></script>
