@@ -3,13 +3,14 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/f
 import {
     collection,
     query,
-    where,
     orderBy,
     onSnapshot,
     getDocs,
+    where,
     doc,
     getDoc,
-    updateDoc
+    updateDoc,
+    serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
 const RECENT_ITEMS_PER_PAGE = 7;
@@ -43,21 +44,28 @@ document.addEventListener("DOMContentLoaded", () => {
     initRecentReservations();
 });
 
+// ─── 실시간 최근 예약 및 취소 내역 동시 수신 (오류 방지 로직 포함) ───
 function initRecentReservations() {
     const recentTbody = document.getElementById('recentTbody');
     if (!recentTbody) return;
 
-    const q = query(
-        collection(db, 'reservations'),
-        orderBy('createdAt', 'desc')
-    );
+    // orderBy 정렬 실패로 인한 백화 현상을 막기 위해 예외 쿼리 파이프라인 구성
+    const q = query(collection(db, 'reservations'));
     
     onSnapshot(q, (snapshot) => {
-        allRecentReservations = snapshot.docs.map(docSnap => ({
+        let docsData = snapshot.docs.map(docSnap => ({
             id: docSnap.id,
             ...docSnap.data()
         }));
 
+        // 자바스크립트 내부에서 생성일/취소일 기준으로 정렬하여 쿼리 실패 및 백화 방지
+        docsData.sort((a, b) => {
+            const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : (a.updatedAt?.toDate ? a.updatedAt.toDate().getTime() : 0);
+            const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : (b.updatedAt?.toDate ? b.updatedAt.toDate().getTime() : 0);
+            return timeB - timeA;
+        });
+
+        allRecentReservations = docsData;
         renderRecentTablePage(currentRecentPage);
     }, (error) => {
         console.error("최근 내역 수신 실패:", error);
@@ -65,6 +73,7 @@ function initRecentReservations() {
     });
 }
 
+// ─── 표 렌더링 ───
 function renderRecentTablePage(page = 1) {
     const recentTbody = document.getElementById('recentTbody');
     if (!recentTbody) return;
@@ -83,16 +92,24 @@ function renderRecentTablePage(page = 1) {
 
     paginatedItems.forEach((item) => {
         let createdTimeStr = item.date || '-';
-        if (item.createdAt?.toDate) {
-            const d = item.createdAt.toDate();
-            createdTimeStr = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        
+        try {
+            if (item.createdAt?.toDate) {
+                const d = item.createdAt.toDate();
+                createdTimeStr = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+            } else if (item.cancelledAt?.toDate) {
+                const d = item.cancelledAt.toDate();
+                createdTimeStr = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+            }
+        } catch (e) {
+            console.warn("날짜 파싱 실패 패스:", e);
         }
 
         const userName = item.name || item.userName || '회원';
         const userPhone = item.phone ? ` (${item.phone})` : '';
-        const classInfo = `${item.date} [${item.time || '시간미지정'}]`;
+        const classInfo = `${item.date || ''} [${item.time || '시간미지정'}]`;
 
-        const isCancelled = item.status === 'cancelled';
+        const isCancelled = (item.status === 'cancelled' || item.status === 'canceled');
         
         const statusBadge = isCancelled 
             ? `<span class="badge badge-cancelled">취소됨</span>` 
@@ -100,7 +117,7 @@ function renderRecentTablePage(page = 1) {
 
         const actionButton = isCancelled
             ? `<button type="button" class="btn-disabled" disabled>취소완료</button>`
-            : `<button type="button" class="btn-delete-res" onclick="window.cancelRecentReservation('${item.id}', '${userName}', '${item.date}', '${item.time || ''}', '${item.uid || ''}', '${item.phone || ''}')">예약취소</button>`;
+            : `<button type="button" class="btn-delete-res" onclick="window.cancelRecentReservation('${item.id}', '${userName}', '${item.date || ''}', '${item.time || ''}', '${item.uid || ''}', '${item.phone || ''}')">예약취소</button>`;
 
         const tr = document.createElement('tr');
         if (isCancelled) tr.className = 'cancelled-row';
@@ -118,6 +135,7 @@ function renderRecentTablePage(page = 1) {
     renderRecentPagination(allRecentReservations.length);
 }
 
+// ─── 페이지네이션 버튼 ───
 function renderRecentPagination(totalItems) {
     let paginationBox = document.getElementById('recentPagination');
     const tableBox = document.querySelector('.recent-table-box');
@@ -174,13 +192,14 @@ function renderRecentPagination(totalItems) {
     paginationBox.appendChild(createBtn('&raquo;', nextBlockPage, endPage >= totalPages));
 }
 
+// ─── 예약 취소 실행 ───
 window.cancelRecentReservation = async (resId, name, dateStr, timeStr, uid, phone) => {
     if (!confirm(`[${dateStr} ${timeStr}] ${name} 회원님의 예약을 취소 상태로 변경하고 수강권 1회를 복구하시겠습니까?`)) return;
 
     try {
         await updateDoc(doc(db, 'reservations', resId), {
             status: 'cancelled',
-            cancelledAt: new Date()
+            cancelledAt: serverTimestamp()
         });
 
         let userDocRef = null;
@@ -214,7 +233,7 @@ window.cancelRecentReservation = async (resId, name, dateStr, timeStr, uid, phon
             }
         }
 
-        alert("🎉 예약 상태가 '취소됨'으로 변경되었으며 회원의 수강권 1회가 복구되었습니다.");
+        alert("예약 상태가 '취소됨'으로 변경되었으며 회원의 수강권 1회가 복구되었습니다.");
 
         const searchDateVal = document.getElementById('searchDate')?.value;
         if (searchDateVal) loadAdminReservations(searchDateVal);
@@ -248,6 +267,7 @@ async function fetchUserData(member) {
     return uData;
 }
 
+// ─── 일자별 명단 (취소건 제외) ───
 async function loadAdminReservations(selectedDate) {
     const container = document.getElementById("reservationContainer");
     if (!container) return;
@@ -270,7 +290,7 @@ async function loadAdminReservations(selectedDate) {
 
         snapshot.forEach(docSnap => {
             const data = docSnap.data();
-            if (data.status === 'cancelled') return;
+            if (data.status === 'cancelled' || data.status === 'canceled') return;
 
             const time = data.time || "시간 미지정";
 
