@@ -8,10 +8,14 @@ import {
     onSnapshot,
     getDocs,
     doc,
-    getDoc
+    getDoc,
+    updateDoc
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
+// 🎯 최근 수강신청 설정 (페이지당 7개 / 10개 단위 블록 페이지네이션)
 const RECENT_ITEMS_PER_PAGE = 7;
+const PAGE_BLOCK_SIZE = 10;
+
 let currentRecentPage = 1;
 let allRecentReservations = [];
 
@@ -42,11 +46,12 @@ document.addEventListener("DOMContentLoaded", () => {
     initRecentReservations();
 });
 
-// ─── [3] 실시간 최근 수업 예약 수신 ───
+// ─── [3] 실시간 최근 수업 예약 및 취소 내역 수신 ───
 function initRecentReservations() {
     const recentTbody = document.getElementById('recentTbody');
     if (!recentTbody) return;
 
+    // reservations 컬렉션에서 전체 내역 수신 (예약 + 취소건)
     const q = query(
         collection(db, 'reservations'),
         orderBy('createdAt', 'desc')
@@ -60,12 +65,12 @@ function initRecentReservations() {
 
         renderRecentTablePage(currentRecentPage);
     }, (error) => {
-        console.error("최근 수업 예약 수신 실패:", error);
-        recentTbody.innerHTML = `<tr><td colspan="4" class="empty-msg" style="color:red;">데이터를 불러오지 못했습니다.</td></tr>`;
+        console.error("최근 내역 수신 실패:", error);
+        recentTbody.innerHTML = `<tr><td colspan="5" class="empty-msg" style="color:red;">데이터를 불러오지 못했습니다.</td></tr>`;
     });
 }
 
-// ─── [4] 최근 수업 예약 표 7개씩 페이지네이션 출력 ───
+// ─── [4] 최근 수업 예약 및 취소 내역 표 출력 ───
 function renderRecentTablePage(page = 1) {
     const recentTbody = document.getElementById('recentTbody');
     if (!recentTbody) return;
@@ -73,7 +78,7 @@ function renderRecentTablePage(page = 1) {
     recentTbody.innerHTML = '';
 
     if (allRecentReservations.length === 0) {
-        recentTbody.innerHTML = `<tr><td colspan="4" class="empty-msg">최근 수업 예약 건이 없습니다.</td></tr>`;
+        recentTbody.innerHTML = `<tr><td colspan="5" class="empty-msg">최근 예약 및 취소 내역이 없습니다.</td></tr>`;
         renderRecentPagination(0);
         return;
     }
@@ -93,12 +98,25 @@ function renderRecentTablePage(page = 1) {
         const userPhone = item.phone ? ` (${item.phone})` : '';
         const classInfo = `${item.date} [${item.time || '시간미지정'}]`;
 
+        const isCancelled = item.status === 'cancelled';
+        
+        const statusBadge = isCancelled 
+            ? `<span class="badge badge-cancelled">취소됨</span>` 
+            : `<span class="badge badge-approved">예약완료</span>`;
+
+        const actionButton = isCancelled
+            ? `<button type="button" class="btn-disabled" disabled>취소완료</button>`
+            : `<button type="button" class="btn-delete-res" onclick="window.cancelRecentReservation('${item.id}', '${userName}', '${item.date}', '${item.time || ''}', '${item.uid || ''}', '${item.phone || ''}')">예약취소</button>`;
+
         const tr = document.createElement('tr');
+        if (isCancelled) tr.className = 'cancelled-row';
+
         tr.innerHTML = `
             <td>${createdTimeStr}</td>
             <td>${userName}${userPhone}</td>
             <td style="font-weight:500; color:#517e73;">${classInfo}</td>
-            <td><span class="badge badge-approved">예약완료</span></td>
+            <td>${statusBadge}</td>
+            <td style="text-align: center;">${actionButton}</td>
         `;
         recentTbody.appendChild(tr);
     });
@@ -106,7 +124,7 @@ function renderRecentTablePage(page = 1) {
     renderRecentPagination(allRecentReservations.length);
 }
 
-// ─── [5] 페이지네이션 버튼 생성 ───
+// ─── [5] 10개 단위 화살표 그룹 페이지네이션 생성 ───
 function renderRecentPagination(totalItems) {
     let paginationBox = document.getElementById('recentPagination');
     const tableBox = document.querySelector('.recent-table-box');
@@ -114,7 +132,6 @@ function renderRecentPagination(totalItems) {
     if (!paginationBox && tableBox) {
         paginationBox = document.createElement('div');
         paginationBox.id = 'recentPagination';
-        paginationBox.style.cssText = "display:flex; justify-content:center; gap:6px; margin-top:10px; margin-bottom:25px;";
         tableBox.after(paginationBox);
     }
 
@@ -124,31 +141,102 @@ function renderRecentPagination(totalItems) {
     const totalPages = Math.ceil(totalItems / RECENT_ITEMS_PER_PAGE);
     if (totalPages <= 1) return;
 
-    for (let i = 1; i <= totalPages; i++) {
+    const currentBlock = Math.floor((currentRecentPage - 1) / PAGE_BLOCK_SIZE);
+    const startPage = currentBlock * PAGE_BLOCK_SIZE + 1;
+    const endPage = Math.min(startPage + PAGE_BLOCK_SIZE - 1, totalPages);
+
+    const createBtn = (label, pageNum, disabled = false, isActive = false) => {
         const btn = document.createElement('button');
-        btn.innerText = i;
+        btn.innerHTML = label;
         btn.type = 'button';
+        btn.disabled = disabled;
         btn.style.cssText = `
             padding: 5px 10px; 
             font-size: 13px; 
             border: 1px solid #cbd5e1; 
             border-radius: 4px; 
-            cursor: pointer;
-            background-color: ${i === currentRecentPage ? '#517e73' : '#ffffff'};
-            color: ${i === currentRecentPage ? '#ffffff' : '#334155'};
-            font-weight: ${i === currentRecentPage ? 'bold' : 'normal'};
+            cursor: ${disabled ? 'default' : 'pointer'};
+            opacity: ${disabled ? '0.4' : '1'};
+            background-color: ${isActive ? '#517e73' : '#ffffff'};
+            color: ${isActive ? '#ffffff' : '#334155'};
+            font-weight: ${isActive ? 'bold' : 'normal'};
         `;
+        if (!disabled) {
+            btn.onclick = () => {
+                currentRecentPage = pageNum;
+                renderRecentTablePage(currentRecentPage);
+            };
+        }
+        return btn;
+    };
 
-        btn.onclick = () => {
-            currentRecentPage = i;
-            renderRecentTablePage(currentRecentPage);
-        };
+    const prevBlockPage = startPage - 1;
+    paginationBox.appendChild(createBtn('&laquo;', prevBlockPage, startPage <= 1));
 
-        paginationBox.appendChild(btn);
+    for (let i = startPage; i <= endPage; i++) {
+        paginationBox.appendChild(createBtn(i, i, false, i === currentRecentPage));
     }
+
+    const nextBlockPage = endPage + 1;
+    paginationBox.appendChild(createBtn('&raquo;', nextBlockPage, endPage >= totalPages));
 }
 
-// ─── [6] 회원의 사용/잔여 횟수 정보 조회 ───
+// ─── [6] 관리자 예약 취소 처리 (status를 'cancelled'로 변경하고 수강권 1회 복구) ───
+window.cancelRecentReservation = async (resId, name, dateStr, timeStr, uid, phone) => {
+    if (!confirm(`[${dateStr} ${timeStr}] ${name} 회원님의 예약을 취소 상태로 변경하고 수강권 1회를 복구하시겠습니까?`)) return;
+
+    try {
+        // 1. reservations 컬렉션 문서 상태를 cancelled로 업데이트
+        await updateDoc(doc(db, 'reservations', resId), {
+            status: 'cancelled',
+            cancelledAt: new Date()
+        });
+
+        // 2. 유저 정보 매칭하여 수강권 횟수 복구 (+1회)
+        let userDocRef = null;
+
+        if (uid) {
+            const uidSnap = await getDoc(doc(db, 'users', uid));
+            if (uidSnap.exists()) userDocRef = doc(db, 'users', uid);
+        }
+
+        if (!userDocRef && phone) {
+            const cleanPhone = phone.replace(/[^0-9]/g, '');
+            if (cleanPhone) {
+                const phoneSnap = await getDoc(doc(db, 'users', cleanPhone));
+                if (phoneSnap.exists()) userDocRef = doc(db, 'users', cleanPhone);
+            }
+        }
+
+        if (userDocRef) {
+            const uSnap = await getDoc(userDocRef);
+            if (uSnap.exists()) {
+                const uData = uSnap.data();
+                const curRem = Number(uData.remainingCount ?? uData.ticketCount ?? uData.remCount ?? 0);
+                const curUsed = Number(uData.usedCount ?? uData.usedTickets ?? uData.used ?? 0);
+
+                await updateDoc(userDocRef, {
+                    remainingCount: curRem + 1,
+                    ticketCount: curRem + 1,
+                    remCount: curRem + 1,
+                    usedCount: Math.max(0, curUsed - 1)
+                });
+            }
+        }
+
+        alert("🎉 예약 상태가 '취소됨'으로 변경되었으며 회원의 수강권 1회가 복구되었습니다.");
+
+        // 현재 조회 중인 일자별 명단도 새로고침
+        const searchDateVal = document.getElementById('searchDate')?.value;
+        if (searchDateVal) loadAdminReservations(searchDateVal);
+
+    } catch (err) {
+        console.error("예약 취소 오류:", err);
+        alert("예약 취소 실패: " + err.message);
+    }
+};
+
+// ─── [7] 회원의 사용/잔여 횟수 정보 조회 헬퍼 ───
 async function fetchUserData(member) {
     let uData = null;
 
@@ -172,7 +260,7 @@ async function fetchUserData(member) {
     return uData;
 }
 
-// ─── [7] 일자별 수업 회원 명단 출력 ───
+// ─── [8] 일자별 수업 회원 명단 출력 (유효한 예약건만 출력) ───
 async function loadAdminReservations(selectedDate) {
     const container = document.getElementById("reservationContainer");
     if (!container) return;
@@ -195,6 +283,10 @@ async function loadAdminReservations(selectedDate) {
 
         snapshot.forEach(docSnap => {
             const data = docSnap.data();
+            
+            // 🎯 명단에는 취소건(status === 'cancelled') 제외하고 실제 예약 유효건만 표시
+            if (data.status === 'cancelled') return;
+
             const time = data.time || "시간 미지정";
 
             if (!groupedByTime[time]) {
@@ -207,6 +299,12 @@ async function loadAdminReservations(selectedDate) {
         });
 
         const sortedTimes = Object.keys(groupedByTime).sort();
+        
+        if (sortedTimes.length === 0) {
+            container.innerHTML = `<p class='empty-msg'>${selectedDate}에는 예약된 수업이 없습니다. (취소건 제외)</p>`;
+            return;
+        }
+
         container.innerHTML = "";
 
         for (const time of sortedTimes) {
@@ -266,7 +364,7 @@ async function loadAdminReservations(selectedDate) {
     }
 }
 
-// ─── [8] 관리자 인증 권한 확인 ───
+// ─── [9] 관리자 권한 확인 ───
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
         alert("로그인이 필요합니다.");
