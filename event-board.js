@@ -3,198 +3,194 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/f
 import {
     collection,
     query,
+    orderBy,
     onSnapshot,
     doc,
-    getDoc,
-    updateDoc
+    getDoc
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
+const ITEMS_PER_PAGE = 10; // 페이지당 10개
+let currentPage = 1;
+let allPosts = [];
 let currentUser = null;
 let isAdmin = false;
 let userPhone = localStorage.getItem('userPhone') || '';
 
-// 1. 사용자 권한 체크 및 익명 식별자 세팅
+// 1. 사용자 인증 및 관리자 권한 확인
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         currentUser = user;
         userPhone = userPhone || (user.email ? user.email.split('@')[0] : '');
-
         try {
             const userSnap = await getDoc(doc(db, "users", user.uid));
             if (userSnap.exists() && userSnap.data().role === 'admin') {
                 isAdmin = true;
             }
         } catch (e) {
-            console.warn("관리자 권한 판별 중 오류 패스:", e);
+            console.warn("관리자 권한 확인 실패:", e);
         }
     }
 
     const badgeEl = document.getElementById('userBadge');
     if (badgeEl) {
-        badgeEl.innerText = isAdmin ? "👑 관리자 모드" : (userPhone ? `👤 익명사용자 (${userPhone.substring(0, 3)}****)` : "👤 익명 게스트");
+        badgeEl.innerText = isAdmin ? "👑 관리자 모드 (전체 열람 가능)" : "🔒 비밀글 모드 (본인/관리자만 열람)";
     }
 
-    loadAllBoardPosts();
+    loadEventPosts();
 });
 
-// 2. 게시글 불러오기 (기존 리스트 포함 전체 수신 후 프론트 단에서 본인/관리자만 필터링)
-function loadAllBoardPosts() {
-    const container = document.getElementById('postsContainer');
-    if (!container) return;
+// 2. event_reservations 데이터 가져오기
+function loadEventPosts() {
+    const tbody = document.getElementById('boardTbody');
+    if (!tbody) return;
 
-    // 모든 신청/문의 내역 수신
-    const q = query(collection(db, "board_posts"));
+    const q = query(collection(db, "event_reservations"), orderBy("createdAt", "desc"));
 
     onSnapshot(q, (snapshot) => {
-        container.innerHTML = '';
-
-        if (snapshot.empty) {
-            container.innerHTML = `<p style="text-align:center; color:#999; padding:20px;">등록된 신청 내역이 없습니다.</p>`;
-            return;
-        }
-
-        let posts = snapshot.docs.map(docSnap => ({
-            id: docSnap.id,
-            ...docSnap.data()
-        }));
-
-        // 날짜순 내림차순 정렬 (최신순)
-        posts.sort((a, b) => {
-            const tA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
-            const tB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
-            return tB - tA;
+        allPosts = snapshot.docs.map((docSnap, index) => {
+            const data = docSnap.data();
+            return {
+                id: docSnap.id,
+                index: 0, // 나중에 번호 매김
+                ...data
+            };
         });
 
-        // 🎯 본인 작성글이거나 관리자인 경우만 조회 가능하도록 제한
-        const visiblePosts = posts.filter(post => {
-            if (isAdmin) return true; // 관리자는 전체 읽기 허용
-
-            // 회원 UID 매칭
-            if (currentUser && post.uid === currentUser.uid) return true;
-
-            // 전화번호 매칭 (로그인 창에서 넘겨받은 익명 구분 전화번호)
-            if (userPhone && post.phone && post.phone.replace(/[^0-9]/g, '') === userPhone.replace(/[^0-9]/g, '')) return true;
-
-            return false;
+        // 전체 번호 재정렬 (최신글이 높은 번호)
+        const total = allPosts.length;
+        allPosts.forEach((p, idx) => {
+            p.index = total - idx;
         });
 
-        if (visiblePosts.length === 0) {
-            container.innerHTML = `<p style="text-align:center; color:#999; padding:20px;">조회 가능한 본인의 신청 내역이 없습니다.</p>`;
-            return;
-        }
-
-        visiblePosts.forEach(post => {
-            let dateStr = "신청일자 미기재";
-            if (post.createdAt?.toDate) {
-                const d = post.createdAt.toDate();
-                dateStr = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-            }
-
-            const postEl = document.createElement('div');
-            postEl.className = 'post-item';
-
-            // 댓글 목록 생성
-            let commentsHtml = '';
-            if (post.comments && post.comments.length > 0) {
-                post.comments.forEach((c, idx) => {
-                    const deleteBtn = isAdmin 
-                        ? `<button class="btn-comment-del" onclick="window.deleteComment('${post.id}', ${idx})">삭제</button>` 
-                        : '';
-                    commentsHtml += `
-                        <div class="comment-item">
-                            <div>
-                                <span class="comment-author">${c.author}:</span>
-                                <span>${c.text}</span>
-                            </div>
-                            <div>
-                                <span style="font-size:11px; color:#999;">${c.date || ''}</span>
-                                ${deleteBtn}
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-
-            // 관리자 전용 댓글 작성 양식
-            const commentFormHtml = isAdmin ? `
-                <div class="comment-form">
-                    <input type="text" id="commentInput_${post.id}" class="comment-input" placeholder="운영자 답변을 입력하세요...">
-                    <button class="btn-comment-add" onclick="window.addComment('${post.id}')">답변등록</button>
-                </div>
-            ` : '';
-
-            // 마스킹 처리된 익명 작성자 연락처
-            const displayPhone = post.phone ? `${post.phone.substring(0, 3)}****${post.phone.slice(-4)}` : '익명 회원';
-
-            postEl.innerHTML = `
-                <div class="post-header">
-                    <span><span class="post-badge">🔒 비공개</span> 작성자: ${displayPhone}</span>
-                    <span>신청일시: ${dateStr}</span>
-                </div>
-                <div class="post-ticket-info">🎫 신청 옵션: ${post.ticket || post.eventOption || '미선택'}</div>
-                <div class="post-content">${post.memo || post.message || '신청 내용이 등록되었습니다.'}</div>
-
-                <div class="comment-section">
-                    <strong style="font-size:12px; color:#517e73;">💬 운영자 답변 및 안내</strong>
-                    ${commentsHtml || '<p style="font-size:12px; color:#999; margin-top:4px;">작성된 답변이 없습니다.</p>'}
-                    ${commentFormHtml}
-                </div>
-            `;
-
-            container.appendChild(postEl);
-        });
+        renderTablePage(currentPage);
     }, (error) => {
-        console.error("게시글 수신 실패:", error);
-        container.innerHTML = `<p style="text-align:center; color:red; padding:20px;">내역을 불러오는 중 오류가 발생했습니다.</p>`;
+        console.error("이벤트 게시글 수신 실패:", error);
+        tbody.innerHTML = `<tr><td colspan="4" class="empty-msg" style="color:red;">데이터를 불러오지 못했습니다.</td></tr>`;
     });
 }
 
-// 3. 운영자 댓글 등록
-window.addComment = async (postId) => {
-    const inputEl = document.getElementById(`commentInput_${postId}`);
-    const text = inputEl?.value.trim();
-    if (!text) return;
+// 3. 10개 단위 테이블 페이지 렌더링
+function renderTablePage(page = 1) {
+    const tbody = document.getElementById('boardTbody');
+    if (!tbody) return;
 
-    const now = new Date();
-    const dateStr = `${now.getMonth() + 1}/${now.getDate()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    tbody.innerHTML = '';
 
-    try {
-        const postRef = doc(db, "board_posts", postId);
-        const postSnap = await getDoc(postRef);
-
-        if (postSnap.exists()) {
-            const currentComments = postSnap.data().comments || [];
-            currentComments.push({
-                author: "운영자",
-                text: text,
-                date: dateStr
-            });
-
-            await updateDoc(postRef, { comments: currentComments });
-            inputEl.value = '';
-        }
-    } catch (err) {
-        console.error("댓글 등록 실패:", err);
-        alert("댓글 등록 실패: " + err.message);
+    if (allPosts.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="empty-msg">등록된 신청 내역이 없습니다.</td></tr>`;
+        renderPagination(0);
+        return;
     }
-};
 
-// 4. 운영자 댓글 삭제
-window.deleteComment = async (postId, commentIndex) => {
-    if (!confirm("해당 댓글을 삭제하시겠습니까?")) return;
+    const startIndex = (page - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const paginatedItems = allPosts.slice(startIndex, endIndex);
 
-    try {
-        const postRef = doc(db, "board_posts", postId);
-        const postSnap = await getDoc(postRef);
-
-        if (postSnap.exists()) {
-            let currentComments = postSnap.data().comments || [];
-            currentComments.splice(commentIndex, 1);
-
-            await updateDoc(postRef, { comments: currentComments });
+    paginatedItems.forEach((post) => {
+        // 날짜 포맷
+        let dateStr = '-';
+        if (post.createdAt?.toDate) {
+            const d = post.createdAt.toDate();
+            dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         }
-    } catch (err) {
-        console.error("댓글 삭제 실패:", err);
-        alert("댓글 삭제 실패: " + err.message);
+
+        // 작성자 익명화 처리 (예: 01012345678 -> 010****5678)
+        let rawPhone = post.phone || post.userPhone || '';
+        let maskedName = '익명 회원';
+        if (rawPhone.length >= 7) {
+            maskedName = rawPhone.substring(0, 3) + '****' + rawPhone.slice(-4);
+        } else if (post.name) {
+            maskedName = post.name.substring(0, 1) + '**';
+        }
+
+        const ticketName = post.eventOption || post.actualTicket || '수강권 신청';
+        const titleText = `[신청완료] ${ticketName}`;
+
+        // 리스트 행 생성
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="text-align: center; color: #6b7280;">${post.index}</td>
+            <td>
+                <a class="post-title-link" onclick="window.toggleDetail('${post.id}')">
+                    🔒 ${titleText}
+                </a>
+            </td>
+            <td style="text-align: center;">${maskedName}</td>
+            <td style="text-align: center; font-size: 13px; color: #6b7280;">${dateStr}</td>
+        `;
+        tbody.appendChild(tr);
+
+        // 상세 내용 확장 행 생성 (비공개 처리)
+        const detailTr = document.createElement('tr');
+        detailTr.id = `detail_${post.id}`;
+        detailTr.className = 'detail-row';
+        detailTr.innerHTML = `
+            <td colspan="4">
+                <div class="detail-content" id="content_${post.id}">
+                    내용을 불러오는 중...
+                </div>
+            </td>
+        `;
+        tbody.appendChild(detailTr);
+    });
+
+    renderPagination(allPosts.length);
+}
+
+// 4. 숫자 스크롤 페이징 버튼 생성
+function renderPagination(totalItems) {
+    const paginationBox = document.getElementById('paginationBox');
+    if (!paginationBox) return;
+
+    paginationBox.innerHTML = '';
+    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+    if (totalPages <= 1) return;
+
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.innerText = i;
+        btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+        btn.onclick = () => {
+            currentPage = i;
+            renderTablePage(currentPage);
+        };
+        paginationBox.appendChild(btn);
     }
+}
+
+// 5. 제목 클릭 시 권한 체크 후 내용 열람 (작성자 및 관리자만 가능)
+window.toggleDetail = (postId) => {
+    const detailRow = document.getElementById(`detail_${postId}`);
+    const contentDiv = document.getElementById(`content_${postId}`);
+    if (!detailRow || !contentDiv) return;
+
+    // 이미 열려있으면 닫기
+    if (detailRow.style.display === 'table-row') {
+        detailRow.style.display = 'none';
+        return;
+    }
+
+    // 해당 글 데이터 찾기
+    const post = allPosts.find(p => p.id === postId);
+    if (!post) return;
+
+    // 🔒 권한 검증: 관리자이거나 작성자 본인일 때만 내용 허용
+    const isOwner = (currentUser && post.uid === currentUser.uid) || 
+                    (userPhone && post.phone && post.phone.replace(/[^0-9]/g, '') === userPhone.replace(/[^0-9]/g, ''));
+
+    if (!isAdmin && !isOwner) {
+        alert("🚨 비밀글입니다. 작성자와 관리자만 내용을 볼 수 있습니다.");
+        return;
+    }
+
+    // 내용 구성
+    contentDiv.innerHTML = `
+        <strong>📋 상세 신청 정보</strong><br>
+        - <strong>신청 수강권:</strong> ${post.eventOption || post.actualTicket || '미지정'}<br>
+        - <strong>연락처:</strong> ${post.phone || '미입력'}<br>
+        - <strong>상태:</strong> ${post.status === 'approved' ? '승인완료' : '대기중'}<br>
+        - <strong>메모 / 안내:</strong> 계좌 입금 확인 후 최종 처리됩니다.
+    `;
+
+    detailRow.style.display = 'table-row';
 };
