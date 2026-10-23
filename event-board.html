@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>익명 수강신청 게시판 - ON108 YOGA</title>
+    <title>이벤트 수강신청 게시판 - ON108 YOGA</title>
     
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -49,7 +49,7 @@
 
         main {
             flex: 1;
-            max-width: 800px;
+            max-width: 900px;
             width: 100%;
             margin: 30px auto;
             padding: 0 20px;
@@ -76,101 +76,95 @@
             align-items: center;
         }
 
-        /* 게시글 목록 스타일 */
-        .post-item {
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            padding: 18px;
-            margin-bottom: 16px;
-            background: #fafafa;
-        }
-
-        .post-header {
-            display: flex;
-            justify-content: space-between;
-            font-size: 13px;
-            color: #6b7280;
-            margin-bottom: 8px;
-        }
-
-        .post-badge {
-            background: #fee2e2;
-            color: #dc2626;
-            font-size: 11px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: bold;
-        }
-
-        .post-ticket-info {
-            font-weight: bold;
-            color: #2563eb;
+        /* 테이블 스타일 */
+        .board-table {
+            width: 100%;
+            border-collapse: collapse;
             font-size: 14px;
-            margin-bottom: 8px;
+            text-align: left;
         }
 
-        .post-content {
-            font-size: 14px;
-            color: #374151;
-            line-height: 1.5;
-            white-space: pre-wrap;
+        .board-table th {
+            background-color: #f4efe6;
+            color: #3f4e43;
+            font-weight: 600;
+            padding: 12px 14px;
+            border-bottom: 1px solid #e2d9cc;
+            white-space: nowrap;
         }
 
-        /* 댓글 영역 */
-        .comment-section {
-            margin-top: 14px;
-            padding-top: 12px;
-            border-top: 1px dashed #d1d5db;
+        .board-table td {
+            padding: 14px;
+            border-bottom: 1px solid #f3f4f6;
+            color: #4b5563;
         }
 
-        .comment-item {
-            background: #f3f4f6;
-            padding: 10px;
-            border-radius: 6px;
-            font-size: 13px;
-            margin-top: 6px;
+        .board-table tr:hover {
+            background-color: #faf9f6;
+        }
+
+        /* 비밀글 제목 링크 */
+        .post-title-link {
+            color: #111827;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 6px;
         }
 
-        .comment-author {
-            font-weight: bold;
+        .post-title-link:hover {
             color: #517e73;
-            margin-right: 6px;
+            text-decoration: underline;
         }
 
-        .btn-comment-del {
-            background: none;
-            border: none;
-            color: #ef4444;
-            font-size: 12px;
-            cursor: pointer;
-            margin-left: 8px;
+        /* 내용 확장(아코디언) 영역 스타일 */
+        .detail-row {
+            background-color: #f8fafc;
+            display: none;
+        }
+        .detail-content {
+            padding: 20px;
+            font-size: 13px;
+            color: #334155;
+            line-height: 1.6;
+            border-left: 3px solid #517e73;
+            background: #f0f7f5;
+            border-radius: 4px;
+            margin: 8px 0;
         }
 
-        .comment-form {
+        /* 페이징 버튼 박스 */
+        #paginationBox {
             display: flex;
-            gap: 8px;
-            margin-top: 10px;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            margin-top: 20px;
         }
 
-        .comment-input {
-            flex: 1;
-            padding: 8px 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
+        .page-btn {
+            padding: 6px 12px;
             font-size: 13px;
-        }
-
-        .btn-comment-add {
-            background: #517e73;
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 6px;
-            font-size: 13px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
             cursor: pointer;
+            background-color: #ffffff;
+            color: #334155;
+        }
+
+        .page-btn.active {
+            background-color: #517e73;
+            color: #ffffff;
+            font-weight: bold;
+            border-color: #517e73;
+        }
+
+        .empty-msg {
+            text-align: center;
+            color: #9ca3af;
+            padding: 30px;
         }
 
         footer {
@@ -197,13 +191,30 @@
 <main>
     <div class="board-card">
         <div class="board-title">
-            <span>🔒 익명 수강신청/문의 내역</span>
-            <span id="userBadge" style="font-size:12px; color:#666;"></span>
+            <span> 수강신청 게시판</span>
+            <span id="userBadge" style="font-size:12px; color:#666;">확인 중...</span>
         </div>
         
-        <div id="postsContainer">
-            <p style="text-align:center; color:#999; padding:20px;">기존 신청 리스트를 불러오는 중입니다...</p>
+        <div style="overflow-x: auto;">
+            <table class="board-table">
+                <thead>
+                    <tr>
+                        <th style="width: 8%; text-align: center;">번호</th>
+                        <th style="width: 52%;">제목</th>
+                        <th style="width: 20%; text-align: center;">작성자(익명)</th>
+                        <th style="width: 20%; text-align: center;">날짜</th>
+                    </tr>
+                </thead>
+                <tbody id="boardTbody">
+                    <tr>
+                        <td colspan="4" class="empty-msg">신청 리스트를 불러오는 중입니다...</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
+
+        <!-- 10개 단위 숫자 스크롤 페이지네이션 -->
+        <div id="paginationBox"></div>
     </div>
 </main>
 
