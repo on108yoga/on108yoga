@@ -368,13 +368,20 @@ h1 {
 </head>
 <body>
  <header>    
-   <nav class="menu">
-        <a href="index.html" style="background-color: #32CD32; border-radius: 20px;">홈</a>
-        <a href="reservation.html" style="background-color: tomato; border-radius: 20px;">예약</a>
-        <a href="./event-board.html" style="background-color: #32CD32; border-radius: 20px;"">신청목록</a>
-        <a href="mypage.html" style="background-color: #32CD32; border-radius: 20px;">마이페이지</a>
-        <span id="userInfo"></span>
-        <button id="logoutBtn" style="background-color: #32CD32; border-radius: 20px;">로그아웃</button>
+HTML
+    <nav class="menu" style="display: flex; justify-content: center; align-items: center; gap: 10px; background-color: #517e73; padding: 12px; flex-wrap: wrap;">
+        <a href="index.html" style="background-color: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 20px; padding: 6px 14px; color: white; text-decoration: none; font-size: 13px;">홈</a>
+        
+        <!-- 예약 버튼은 눈에 띄면서도 차분한 소프트 로즈/코랄 톤으로 강조 -->
+        <a href="reservation.html" style="background-color: #tomato; border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 20px; padding: 6px 14px; color: white; text-decoration: none; font-size: 13px; font-weight: 500;">예약</a>
+        
+        <a href="./event-board.html" style="background-color: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 20px; padding: 6px 14px; color: white; text-decoration: none; font-size: 13px;">신청목록</a>
+        
+        <a href="mypage.html" style="background-color: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 20px; padding: 6px 14px; color: white; text-decoration: none; font-size: 13px;">마이페이지</a>
+        
+        <span id="userInfo" style="color: white; font-size: 13px;"></span>
+        
+        <button id="logoutBtn" style="background-color: rgba(0, 0, 0, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 20px; padding: 6px 14px; color: white; font-size: 13px; cursor: pointer;">로그아웃</button>
     </nav>
     <h1>
     ON108 YOGA
