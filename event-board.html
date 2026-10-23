@@ -11,15 +11,73 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Cormorant+Garamond:wght@300;400&display=swap" rel="stylesheet">
     
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: #fcfcfc;
-            color: #333;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+        * {
+    box-sizing: border-box;
+}
+
+body {
+    text-align: center;
+    margin: 0;
+    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #fcfcfc;
+    color: #333;
+}
+
+/* 네비게이션 바 */
+.menu {
+    justify-content: center;
+    display: flex;
+    text-align: center;
+    align-items: center;
+    gap: 15px;
+    background-color: #517e73;
+    padding: 10px;
+    font-size: 14px;
+}
+
+.menu a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.menu a:hover {
+    text-decoration: underline;
+}
+
+#userInfo {
+    color: #fff;
+    font-weight: bold;
+}
+
+#logoutBtn {
+    font-size: 12px;
+    padding: 4px 8px;
+    border: 1px solid #fff;
+    background: transparent;
+    color: white;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+#logoutBtn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* 얇은 서체 & 슬림한 슬레이트 그린 로고 헤더 */
+h1 {
+    background-color: #f4efe6; /* 따뜻하고 세련된 샌드 베이지 */
+    color: #3f4e43;            /* 딥 그린 폰트 컬러 */
+    text-align: center;
+    letter-spacing: 0.35em;
+    margin: 0;
+    padding: 12px 0;           /* 🔥 높이 축소 */
+    font-family: 'Cormorant Garamond', 'Noto Sans KR', serif;
+    font-weight: 300;
+    font-size: 20px;
+    text-transform: uppercase;
+}
 
         .navbar {
             justify-content: center;
