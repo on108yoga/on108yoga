@@ -676,22 +676,30 @@
 
 <body>
     <header>    
-        <nav class="menu2">
-            <div id="guestMenu">
-                <a href="login.html" style="border: 1px solid white"; >로그인</a>
-                <a href="signup.html" style="border: 1px solid white";>회원가입</a>
+        <nav class="menu2" style="display: flex; justify-content: center; align-items: center; gap: 10px; background-color: #517e73; padding: 12px; flex-wrap: wrap;">
+            <!-- 비회원 메뉴 -->
+            <div id="guestMenu" style="display: flex; gap: 10px; align-items: center;">
+                <a href="login.html" style="background-color: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 20px; padding: 6px 14px; color: white; text-decoration: none; font-size: 13px;">로그인</a>
+                <a href="signup.html" style="background-color: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 20px; padding: 6px 14px; color: white; text-decoration: none; font-size: 13px;">회원가입</a>
             </div>   
-            <div id="memberMenu" style="display:none;">
-                <!-- 관리자 전용 메뉴 (admin-only 클래스 추가 및 고유 ID 부여) -->
-                <a href="./booking-list.html" id="bookingListLink" class="admin-only" style="background-color: #000; border-radius: 20px; display:none;">예약현황</a>
-                <a href="members.html" id="memberManageLink" class="admin-only" style="background-color: #000; border-radius: 20px; display:none;">회원관리</a>
-                <!-- 일반 회원 공통 메뉴 -->                 
-                <a href="reservation.html" style="background-color: tomato; border-radius: 20px;">예약</a>
-                <a href="mypage.html" style="background-color: #32CD32; border-radius: 20px;">마이페이지</a>
-                <span id="userInfo"></span>
-                <a href="#" id="logoutBtn" style="background-color: #32CD32; border-radius: 20px;">로그아웃</a>
+
+            <!-- 회원/관리자 메뉴 -->
+            <div id="memberMenu" style="display: none; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                <!-- 관리자 전용 메뉴 -->
+                <a href="./booking-list.html" id="bookingListLink" class="admin-only" style="background-color: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 20px; padding: 6px 14px; color: white; text-decoration: none; font-size: 13px; display: none;">예약현황</a>
+                <a href="members.html" id="memberManageLink" class="admin-only" style="background-color: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 20px; padding: 6px 14px; color: white; text-decoration: none; font-size: 13px; display: none;">회원관리</a>
+                
+                <!-- 일반 회원 공통 메뉴 -->               
+                <a href="reservation.html" style="background-color: #tomato; border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 20px; padding: 6px 14px; color: white; text-decoration: none; font-size: 13px; font-weight: 500;">예약</a>
+                <a href="mypage.html" style="background-color: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 20px; padding: 6px 14px; color: white; text-decoration: none; font-size: 13px;">마이페이지</a>
+                
+                <span id="userInfo" style="color: white; font-size: 13px;"></span>
+                
+                <a href="#" id="logoutBtn" style="background-color: rgba(0, 0, 0, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 20px; padding: 6px 14px; color: white; text-decoration: none; font-size: 13px;">로그아웃</a>
             </div>
         </nav>
+
+        
         <h1>
             ON108 YOGA
             <span style="display: block; font-size: 11px; font-weight: 200; letter-spacing: 0.2em; margin-top: 4px; color: #777;">
