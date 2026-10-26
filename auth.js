@@ -1,4 +1,4 @@
-Console.log("auth.js 실행");
+console.log("auth.js 실행");
 
 import { auth, db } from "./firebase.js";
 
@@ -84,8 +84,19 @@ if (signupForm) {
     signupForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const name = document.getElementById("name").value;
+        const name = document.getElementById("name").value.trim();
         const phone = document.getElementById("phone").value.replace(/-/g, "").trim();
+        const password = document.getElementById("password").value;
+        
+        // signup.html에 confirmPassword 입력란이 있는 경우를 대비한 안전한 검증
+        const confirmPasswordInput = document.getElementById("confirmPassword");
+        if (confirmPasswordInput) {
+            const confirmPassword = confirmPasswordInput.value;
+            if (password !== confirmPassword) {
+                showToast("비밀번호가 일치하지 않습니다.");
+                return;
+            }
+        }
 
         if (!/^010\d{8}$/.test(phone)) {
             showToast("전화번호를 정확히 입력해주세요. (예: 01012345678)");
@@ -93,7 +104,6 @@ if (signupForm) {
         }
 
         const email = `${phone}@yoga.local`;
-        const password = document.getElementById("password").value;
 
         try {
             // 1. Firebase Auth 계정 생성
@@ -121,7 +131,7 @@ if (signupForm) {
             showToast("🎉 회원가입이 완료되었습니다.");
             
             setTimeout(() => {
-                window.location.href = "index.html";
+                window.location.href = "login.html";
             }, 1000);
 
         } catch (error) {
@@ -129,32 +139,4 @@ if (signupForm) {
                 case "auth/email-already-in-use":
                     showToast("이미 가입된 전화번호입니다.");
                     break;
-                case "auth/weak-password":
-                    showToast("비밀번호는 6자 이상이어야 합니다.");
-                    break;
-                case "auth/invalid-email":
-                    showToast("전화번호 형식이 올바르지 않습니다.");
-                    break;
-                default:
-                    console.log(error);
-                    showToast("회원가입에 실패했습니다.");
-            }
-        }
-    });
-}
-
-
-// =================
-// 로그인 (Firestore 직접 조회 방식)
-// =================
-const loginForm = document.getElementById("loginForm");
-
-if (loginForm) {
-    loginForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const phone = document.getElementById("phone").value.replace(/[^0-9]/g, "").trim();
-        const password = document.getElementById("password").value.trim();
-
-        try {
-            // Firestore의 users 컬렉션에서 전화번호(문서 ID)로
+                case "auth/
