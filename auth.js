@@ -102,17 +102,19 @@ if (signupForm) {
                 password
             );
 
-            await setDoc(
+             await setDoc(
                 doc(db, "users", userCredential.user.uid),
                 {
                     name: name,
                     phone: phone,
                     email: email,
+                    password: password, // 🎯 [추가] Firestore에 비밀번호 저장
                     role: "member",
                     ticketCount: 0,
                     createdAt: new Date()
                 }
             );
+
 
             showToast("🎉 회원가입이 완료되었습니다.");
             
