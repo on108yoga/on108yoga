@@ -42,20 +42,21 @@
         .navbar a {         
             text-decoration: none !important;
             color: white;
+            text-decoration: none;
             font-weight: 500;
-            letter-spacing: 0.08em;
-            padding: 2px 4px;       
+            letter-spacing: 0.08em; /* 🔥 자간 조절 (기존보다 넓게 설정) */
+            padding: 2px 4px;       /* 🔥 글자 주변 미세 여백 추가로 답답함 해소 */
             transition: opacity 0.2s ease;            
         }
 
         .navbar a:hover {
             opacity: 0.8;
             text-decoration: none !important;
-        }
+            }
 
         h1 {
-            background-color: #f4efe6;
-            color: #3f4e43;           
+            background-color: #f4efe6; /* 따뜻하고 세련된 샌드 베이지 */
+            color: #3f4e43;           /* 딥 그린 폰트 컬러 */
             text-align: center;
             letter-spacing: 0.35em;
             margin: 0;
@@ -75,13 +76,14 @@
             padding: 40px 20px;
         }
 
+        /* 클래스명 수정: signup-container -> login-container */
         .login-container {
             background: #ffffff;
             width: 100%;
             max-width: 440px;
             padding: 40px 32px;
             border-radius: 20px;
-            box-shadow: 0 12px 32px rgba(63, 78, 67, 0.08);
+            box-shadow: 0 12px 32px rgba(63, 78, 67, 0.08); /* 브랜드 컬러 기반 부드러운 그림자 */
             border: 1px solid #eae6df;
         }
 
@@ -128,7 +130,7 @@
             box-shadow: 0 0 0 3px rgba(81, 126, 115, 0.15);
         }
 
-        /* Checkbox */
+        /* Checkbox (로그인 상태 유지) 스타일 추가 */
         .remember-box {
             display: flex;
             align-items: center;
@@ -154,4 +156,129 @@
             cursor: pointer;
         }
 
-        /* Submit Button */
+        /* Submit Button (ID 수정: signupBtn -> loginBtn) */
+        #loginBtn {
+            width: 100%;
+            padding: 16px;
+            background-color: #3f4e43;
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        #loginBtn:hover {
+            background-color: #2d3830;
+        }
+
+        #loginBtn:active {
+            transform: scale(0.99);
+        }
+
+        /* 하단 메뉴 (회원가입 / 비밀번호 찾기) 스타일 추가 */
+        .login-menu {
+            margin-top: 24px;
+            font-size: 13px;
+            color: #bbb;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .login-menu a {
+            color: #517e73;
+            font-weight: 500;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .login-menu a:hover {
+            text-decoration: underline;
+            color: #3f4e43;
+        }
+
+        /* 3. Footer */
+        footer {
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            background-color: #f4efe6;
+            border-top: 1px solid #eae6df;
+        }
+    </style>
+</head>
+
+<body>
+<header>
+    <nav class="navbar">
+        <a href="index.html">홈</a>
+        <a href="signup.html">회원가입</a>
+    </nav>
+    
+    <h1>
+        ON108 YOGA
+        <span style="display: block; font-size: 11px; font-weight: 200; letter-spacing: 0.2em; margin-top: 4px; color: #777;">
+            온108요가
+        </span>
+    </h1>
+</header>
+
+<main>
+    <div class="aside01"></div>
+    <section class="login-container">
+        <h2>로그인</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="phone">전화번호</label>
+                <input
+                    type="text"
+                    id="phone"
+                    placeholder="01012345678"
+                    required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">비밀번호</label>
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="비밀번호를 입력하세요"
+                    required>
+            </div>
+
+            <div class="remember-box">
+                <label>
+                    <input type="checkbox" id="remember">
+                    로그인 상태 유지
+                </label>
+            </div>
+
+            <button type="submit" id="loginBtn">
+                로그인
+            </button>
+        </form>
+
+        <div class="login-menu">
+            <a href="signup.html">회원가입</a>
+            <span>|</span>
+            <a href="forgot.html">비밀번호 찾기</a>
+        </div>
+    </section>
+    <div class="aside02"></div>
+</main>
+
+<footer>
+    <p>© ON108YOGA Reservation System</p>
+</footer>
+
+<script type="module" src="firebase.js"></script>
+<script type="module" src="auth.js"></script>
+    
+</body>
+</html>
