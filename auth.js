@@ -52,12 +52,12 @@ function showToast(message) {
         document.head.appendChild(style);
     }
 
-    const existingToast = document.querySelector(".custom-toast");
+     existingToast = document.querySelector(".custom-toast");
     if (existingToast) {
         existingToast.remove();
     }
 
-    const toast = document.createElement("div");
+     toast = document.createElement("div");
     toast.className = "custom-toast";
     toast.innerText = message;
     document.body.appendChild(toast);
@@ -99,7 +99,7 @@ if (signupForm) {
             const userCredential = await createUserWithEmailAndPassword(
                 auth,
                 email,
-                password
+                password // 이 파라미터를 통해 Firebase 인증 서버로 전송됩니다.
             );
 
             await setDoc(
@@ -110,7 +110,8 @@ if (signupForm) {
                     email: email,
                     role: "member",
                     ticketCount: 0,
-                    createdAt: new Date()
+                    createdAt: new Date()                
+                    // 비밀번호(password)는 여기에 저장되지 않습니다.
                 }
             );
 
