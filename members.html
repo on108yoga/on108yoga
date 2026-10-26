@@ -24,27 +24,26 @@
             display: flex;
             text-align: center;
             align-items: center;
-            gap: 18px;                  /* 15px -> 18px로 메뉴 간격 확대 */
+            gap: 18px;                  
             background-color: #517e73;
-            padding: 12px 16px;         /* 상하좌우 여백을 늘려 클릭 터치 영역 확보 */
-            font-size: 14px;            /* 🎯 14px -> 16px로 글자 크기 확대 (18px까지도 가능) */
-            flex-wrap: wrap;            /* 화면이 좁을 때 글자가 밖으로 튀어나가지 않도록 설정 */
+            padding: 12px 16px;         
+            font-size: 14px;            
+            flex-wrap: wrap;            
         }
         
         .menu a {
             color: white;
             text-decoration: none;
-            font-weight: 600;           /* 500 -> 600으로 글자를 조금 더 또렷하게 */
-            padding: 4px 8px;           /* 클릭 영역 및 가독성 개선 */
+            font-weight: 600;           
+            padding: 4px 8px;           
             transition: opacity 0.2s;
         }
         
         .menu a:hover {
             text-decoration: underline;
-            opacity: 0.85;              /* 마우스 올렸을 때 자연스러운 효과 */
+            opacity: 0.85;              
         }            
         
-        /* 유저 정보 텍스트 스타일 추가 (필요시) */
         #userInfo {
             color: #e2e8f0;
             font-size: 14px;
@@ -52,12 +51,12 @@
         }
                 
         h1 {    width: 100%;
-                background-color: #f4efe6; /* 따뜻하고 세련된 샌드 베이지 */
-                color: #3f4e43;            /* 딥 그린 폰트 컬러 */
+                background-color: #f4efe6; 
+                color: #3f4e43;            
                 text-align: center;
                 letter-spacing: 0.35em;
                 margin: 0;
-                padding: 12px 0;           /* 🔥 높이 축소 */
+                padding: 12px 0;           
                 font-family: 'Cormorant Garamond', 'Noto Sans KR', serif;
                 font-weight: 300;
                 font-size: 20px;
@@ -67,7 +66,7 @@
         header {justify-content: space-between; align-items: center; margin-bottom: 20px; }
         main{ padding: 20px; }
         .search-box { padding: 10px; width: 260px; border: 1px solid var(--border); border-radius: 6px; }
-        /* 3. Footer */
+        
         footer {
             padding: 20px;
             text-align: center;
@@ -77,10 +76,8 @@
             border-top: 1px solid #eae6df;
         }
         
-        /* 메인 레이아웃 (좌우 분할) */
         .main-container { display: flex; gap: 20px; flex: 1; min-height: 0; }
         
-        /* 1. 회원 리스트 영역 (왼쪽) */
         .member-list-section { flex: 1; background: var(--card); border-radius: 8px; border: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
         .list-header { padding: 15px 20px; background: #f9fafb; border-bottom: 1px solid var(--border); font-weight: bold; }
         .member-list { overflow-y: auto; flex: 1; }
@@ -90,7 +87,6 @@
         .member-name { font-weight: bold; }
         .member-phone { color: #6b7280; font-size: 13px; }
 
-        /* 2, 3, 4. 회원 상세 및 이용권 설정 영역 (오른쪽) */
         .member-detail-section { flex: 1.2; background: var(--card); border-radius: 8px; border: 1px solid var(--border); padding: 25px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
         .placeholder-text { margin: auto; color: #9ca3af; text-align: center; }
         
@@ -101,18 +97,10 @@
         .info-label { font-size: 13px; color: #6b7280; margin-bottom: 3px; }
         .info-value { font-weight: 600; font-size: 15px; }
 
-        /* 스크롤 */
         .mypage-container {
             max-width: 600px;
             margin: 0 auto;
             padding: 15px;
-        }
-        
-        /* 회원 카드 목록 */
-        .member-list {
-            list-style: none;
-            padding: 0;
-            margin: 0 0 20px 0;
         }
         
         .member-card {
@@ -136,7 +124,6 @@
             color: #64748b;
         }
         
-        /* 페이지네이션 버튼 디자인 */
         .pagination {
             display: flex;
             justify-content: center;
@@ -168,7 +155,6 @@
             cursor: not-allowed;
         }
         
-        /* 이용권 변경/수정 폼 */
         .ticket-management { border: 1px solid var(--border); padding: 20px; border-radius: 8px; background: #fcfcfd; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
@@ -182,20 +168,15 @@
         .btn-danger:hover { background: #dc2626; }
         .btn-secondary { background: #9ca3af; color: white; }
 
-        /* 등록 팝업 모달 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 100; }
-        .modal-content { background: white; padding: 25px; border-radius: 8px; width: 380px; }
+        .modal-content { background: white; padding: 25px; border-radius: 8px; width: 380px; max-height: 90vh; overflow-y: auto; }
 
-        /* ===================================================
-   📱 모바일 디바이스 전용 반응형 스타일 (768px 이하)
-   =================================================== */
 @media (max-width: 768px) {
         body {
             padding: 10px;
-            height: auto; /* 고정 높이 제거하여 자연스러운 스크롤 생성 */
+            height: auto; 
         }
     
-        /* 헤더 및 검색창 터치 최적화 */
         header div {
             display: flex;
             flex-direction: column;
@@ -203,7 +184,7 @@
         }
     
         .search-box {
-            width: 100%; /* 검색창 전체 너비 확충 */
+            width: 100%; 
             box-sizing: border-box;
             padding: 12px;
             font-size: 15px;
@@ -215,25 +196,23 @@
             font-size: 15px;
         }
     
-        /* 🔥 핵심: 좌우 분할 flex 해제 -> 세로 일렬(block) 상태로 변경 */
         .main-container {
             display: block; 
         }
     
         .member-list-section {
             margin-bottom: 20px;
-            max-height: 350px; /* 리스트 영역 높이 제한 후 스크롤 적용 */
+            max-height: 350px; 
         }
     
         .member-item {
-            padding: 16px; /* 모바일 터치 영역 확장 */
+            padding: 16px; 
         }
     
         .member-detail-section {
             padding: 15px;
         }
     
-        /* 정보 영역 2열 레이아웃을 모바일에서는 1열 세로 스택으로 변경 */
         .info-grid {
             grid-template-columns: 1fr; 
             gap: 12px;
@@ -243,7 +222,6 @@
             grid-column: span 1 !important;
         }
     
-        /* 모바일 버튼 군 배치 (세로 모드) */
         .btn-group {
             flex-direction: column;
             gap: 8px;
@@ -255,23 +233,12 @@
             font-size: 15px;
         }
     
-        /* 등록 팝업 모달 크기 맞춤 */
         .modal-content {
             width: 90%;
             padding: 20px;
             box-sizing: border-box;
         }
-    
-        /* 테이블 가로 스크롤 터치 대응 */
-        .ticket-management div[style*="overflow-y"] {
-            overflow-x: auto;
-        }
-    
-        table {
-            min-width: 480px; /* 최소 너비를 확보해 모바일에서 표가 깨지지 않고 스크롤되도록 설정 */
-        }
     }
-        
     </style>
 </head>
 <body>
@@ -305,10 +272,7 @@
     <div class="main-container">
     <div class="member-list-section">
         <div class="list-header">전체 회원 목록</div>
-            <!-- 10개씩 출력될 목록 영역 -->
         <ul id="member-list" class="member-list"></ul>
-    
-        <!-- 페이지 번호 버튼이 생성될 영역 -->
         <div id="pagination" class="pagination"></div>
     </div>
     <hr>
@@ -324,33 +288,41 @@
                 <span id="det-phone" style="color:#6b7280;">010-1234-5678</span>
             </div>
 
+            <!-- 계정 정보 확인 영역 추가 -->
+            <h3>회원 계정 정보</h3>
+            <div class="info-grid" style="margin-bottom: 20px;">
+                <div>
+                    <div class="info-label">아이디</div>
+                    <div class="info-value" id="cur-userid">-</div>
+                </div>
+                <div>
+                    <div class="info-label">비밀번호</div>
+                    <div class="info-value" id="cur-password" style="color: #4f46e5;">-</div>
+                </div>
+            </div>
+
             <h3>현재 사용 중인 이용권</h3>
             <div class="info-grid">
-                <!-- 1. 이용권 구분 -->
                 <div>
                     <div class="info-label">이용권 구분</div>
                     <div class="info-value" id="cur-ticket">-</div>
                 </div>
             
-                <!-- 2. 이용권 잔여 횟수 -->
                 <div>
                     <div class="info-label">이용권 (잔여 횟수/총 횟수)</div>
                     <div class="info-value" id="cur-count" style="color: var(--primary);">-</div>
                 </div>
             
-                <!-- 3. 일반 취소 남은 횟수 -->
                 <div>
                     <div class="info-label">남은 취소 횟수</div>
                     <div class="info-value" id="cur-cancel-count" style="color: #ef4444;">-</div>
                 </div>
             
-                <!-- 4. 당일 취소 남은 횟수 -->
                 <div>
                     <div class="info-label">남은 당일취소 횟수</div>
                     <div class="info-value" id="cur-today-cancel-count" style="color: #f59e0b;">-</div>
                 </div>
             
-                <!-- 5. 이용 기간 (2열 전체 차지) -->
                 <div style="grid-column: span 2;">
                     <div class="info-label">이용 기간 (시작일 ~ 만료일)</div>
                     <div class="info-value" id="cur-period">-</div>
@@ -361,7 +333,6 @@
             <div class="ticket-management">
                 <div class="form-group">
                     <label>이용권 템플릿 선택</label>
-                    <!-- 1. 이용권 수정 영역 드롭다운 -->
                         <select id="edit-template-select" onchange="applyTemplateToEdit()">
                             <option value="">-- 직접 입력 또는 요금제 선택 --</option>
                             <option value="1,7,1,1">1회 / 7일 (취소 1회, 당일취소 1회)</option>
@@ -378,7 +349,6 @@
                     <input type="text" id="edit-ticket-type">
                 </div>             
                     
-                <!-- 💡 [핵심 추가] 이용권 횟수 설정 (총 횟수 / 잔여 횟수 입력) -->
                 <div style="margin-bottom: 12px;">
                     <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px;">이용권 횟수 설정(총횟수/잔여횟수)</label>
                     <div style="display: flex; gap: 10px;">
@@ -387,7 +357,6 @@
                     </div>
                 </div>
 
-                <!-- 취소 횟수 설정 (A안) --> 
                 <div style="margin-bottom: 12px;">
                     <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px;">일반 취소 횟수 설정</label>
                     <div style="display: flex; gap: 10px;">
@@ -396,7 +365,6 @@
                     </div>
                 </div>
                 
-                <!-- 당일 취소 횟수 설정 (B안) -->
                 <div style="margin-bottom: 12px;">
                     <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px;">당일 취소 횟수 설정</label>
                     <div style="display: flex; gap: 10px;">
@@ -423,23 +391,12 @@
                     <button class="btn btn-danger" onclick="deleteCurrentMember()">회원 삭제</button>
                 </div> 
 
-                <!-- 이용권 설정 및 변경 폼 밑에 추가 -->
-                    <div style="margin-top: 30px;">
+                <div style="margin-top: 30px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <h3 style="margin: 0;">결제 및 환불 내역</h3>
-                        
-                        <!-- 버튼 영역 (선택 삭제 + 전체 초기화) -->
                         <div style="display: flex; gap: 6px;">
-                            <button type="button" 
-                                    onclick="deleteSelectedPaymentHistory()" 
-                                    style="background: #fee2e2; border: 1px solid #fca5a5; color: #ef4444; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer;">
-                                선택 삭제
-                            </button>
-                            <button type="button" 
-                                    onclick="clearAllPaymentHistory()" 
-                                    style="background: #f3f4f6; border: 1px solid #d1d5db; color: #4b5563; padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer;">
-                                전체 초기화
-                            </button>
+                            <button type="button" onclick="deleteSelectedPaymentHistory()" style="background: #fee2e2; border: 1px solid #fca5a5; color: #ef4444; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer;">선택 삭제</button>
+                            <button type="button" onclick="clearAllPaymentHistory()" style="background: #f3f4f6; border: 1px solid #d1d5db; color: #4b5563; padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer;">전체 초기화</button>
                         </div>
                     </div>
                     
@@ -447,9 +404,7 @@
                         <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 13px;">
                             <thead style="background: #f9fafb; position: sticky; top: 0; border-bottom: 1px solid var(--border);">
                                 <tr>
-                                    <th style="padding: 8px; width: 35px;">
-                                        <input type="checkbox" id="check-all-history" onchange="toggleAllHistorySelect(this)">
-                                    </th>
+                                    <th style="padding: 8px; width: 35px;"><input type="checkbox" id="check-all-history" onchange="toggleAllHistorySelect(this)"></th>
                                     <th style="padding: 8px;">일시</th>
                                     <th style="padding: 8px;">구분</th>
                                     <th style="padding: 8px;">이용권 명</th>
@@ -458,42 +413,34 @@
                                 </tr>
                             </thead>
                             <tbody id="payment-history-list">
-                                <tr>
-                                    <td colspan="6" style="padding: 15px; color: #9ca3af;">내역이 없습니다.</td>
-                                </tr>
+                                <tr><td colspan="6" style="padding: 15px; color: #9ca3af;">내역이 없습니다.</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
-                <!-- 이용권 설정 및 변경 여기까지 -->
 
-                        <!-- 이름별 예약 출력 -->
-    <div style="margin-top: 30px; border-top: 2px dashed var(--border); padding-top: 20px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h3 style="margin: 0; font-size: 16px; color: #1e293b;">🗓️ 회원별 전체 예약 내역 목록</h3>
-        <span id="reservation-summary" style="font-size: 13px; color: #4f46e5; font-weight: bold;"></span>
-    </div>
-    
-    <div style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px;">
-        <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 13px;">
-            <thead style="background: #f9fafb; position: sticky; top: 0; border-bottom: 1px solid var(--border);">
-                <tr>
-                    <th style="padding: 8px;">예약 날짜</th>
-                    <th style="padding: 8px;">수업 시간</th>
-                    <th style="padding: 8px;">신청 일시</th>
-                    <th style="padding: 8px;">관리 (취소/복구)</th>
-                </tr>
-            </thead>
-            <tbody id="user-reservation-list">
-                <tr>
-                    <td colspan="4" style="padding: 15px; color: #9ca3af;">회원을 선택하면 예약 내역이 표시됩니다.</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-                <!-- 여기까지 -->
-
+                <div style="margin-top: 30px; border-top: 2px dashed var(--border); padding-top: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h3 style="margin: 0; font-size: 16px; color: #1e293b;">🗓️ 회원별 전체 예약 내역 목록</h3>
+                        <span id="reservation-summary" style="font-size: 13px; color: #4f46e5; font-weight: bold;"></span>
+                    </div>
+                    
+                    <div style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 13px;">
+                            <thead style="background: #f9fafb; position: sticky; top: 0; border-bottom: 1px solid var(--border);">
+                                <tr>
+                                    <th style="padding: 8px;">예약 날짜</th>
+                                    <th style="padding: 8px;">수업 시간</th>
+                                    <th style="padding: 8px;">신청 일시</th>
+                                    <th style="padding: 8px;">관리 (취소/복구)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="user-reservation-list">
+                                <tr><td colspan="4" style="padding: 15px; color: #9ca3af;">회원을 선택하면 예약 내역이 표시됩니다.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -506,9 +453,12 @@
             <div class="form-group"><label>이름</label><input type="text" id="reg-name" required></div>
             <div class="form-group"><label>연락처</label><input type="tel" id="reg-phone" placeholder="01012345678" required></div>
             
+            <!-- 아이디 및 비밀번호 입력 필드 추가 -->
+            <div class="form-group"><label>아이디</label><input type="text" id="reg-userid" placeholder="사용할 아이디 입력" required></div>
+            <div class="form-group"><label>비밀번호</label><input type="password" id="reg-password" placeholder="비밀번호 입력" required></div>
+
             <div class="form-group">
                 <label>이용권 프리셋</label>
-                <!-- 2. 신규 회원 등록 모달 드롭다운 -->
                     <select id="reg-template" onchange="applyTemplateToReg()">
                         <option value="">직접 설정</option>
                         <option value="1,7,1,1">1회 / 7일 (취소 1회, 당일취소 1회)</option>
@@ -520,13 +470,11 @@
                     </select>
             </div>
 
-            <!-- 기본 취소 가능 횟수 -->
             <div style="margin-bottom: 12px;">
                 <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px;">기본 취소 가능 횟수</label>
                 <input type="number" id="reg-cancel-count" placeholder="예: 3 (미입력 시 0)">
             </div>
 
-            <!-- 기본 당일취소 가능 횟수 -->
             <div style="margin-bottom: 12px;">
                 <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px;">기본 당일취소 가능 횟수</label>
                 <input type="number" id="reg-today-cancel-count" placeholder="예: 1 (미입력 시 0)">
