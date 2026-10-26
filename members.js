@@ -44,8 +44,6 @@ window.closeModal = () => {
 // 1. Firebase 실시간 회원 리스트 수신 및 갱신
 const usersCol = collection(db, 'users');
 onSnapshot(usersCol, (snapshot) => {
-    // 🎯 [수정] doc 데이터를 최신순으로 정렬
-    // createdAt 필드가 있으면 최신순 정렬, 없으면 최근 수정/등록된 순서(또나 문서 업데이트 기준)로 처리
     currentDocsList = [...snapshot.docs].sort((a, b) => {
         const aData = a.data();
         const bData = b.data();
@@ -55,7 +53,7 @@ onSnapshot(usersCol, (snapshot) => {
         const bTime = bData.createdAt?.toDate ? bData.createdAt.toDate().getTime() : (bData.createdAt || 0);
         
         if (aTime !== bTime) {
-            return bTime - aTime; // 내림차순
+            return bTime - aTime;
         }
 
         // 2순위: createdAt이 없거나 같은 경우, 등록된 시작일(startDate) 기준 내림차순
@@ -64,11 +62,9 @@ onSnapshot(usersCol, (snapshot) => {
         return bStart.localeCompare(aStart);
     });
     
-    // 데이터 변경 시 현재 페이지 기준으로 회원 목록 및 페이지 버튼 UI 렌더링
     renderMemberList(currentDocsList, currentPage);
     renderPagination(currentDocsList.length);
     
-    // 현재 선택되어 보고 있던 회원이 있다면 해당 회원의 정보도 실시간 자동 갱신
     if (activeUserId) {
         const activeDoc = currentDocsList.find(doc => doc.id === activeUserId);
         if (activeDoc) {
@@ -103,11 +99,9 @@ function renderMemberList(docs, page = 1) {
         
         li.onclick = () => selectMember(id, user);
 
-        // 🎯 날짜 포맷팅 함수 (YYYY/MM/DD 형식 변환)
         const formatBadgeDate = (dateVal) => {
-            if (!dateVal) return todayStr.replace(/-/g, '/'); // 날짜 정보 없으면 오늘 날짜
+            if (!dateVal) return todayStr.replace(/-/g, '/');
             
-            // Firestore Timestamp 객체인 경우
             if (dateVal.toDate && typeof dateVal.toDate === 'function') {
                 const d = dateVal.toDate();
                 const year = d.getFullYear();
@@ -116,22 +110,16 @@ function renderMemberList(docs, page = 1) {
                 return `${year}/${month}/${day}`;
             }
             
-            // 문자열(YYYY-MM-DD)인 경우
             return String(dateVal).split('T')[0].replace(/-/g, '/');
         };
 
-        // 🎯 회원 등록/생성 일자 추출 (createdAt -> startDate -> 오늘날짜)
         const createdDateStr = formatBadgeDate(user.createdAt || user.startDate);
-
-        // id가 11자리 숫자(연락처) 형태라면 임시 등록(미가입) 회원 구분
         const isTemporary = id.length === 11 && !isNaN(id);
         
-        // 🎯 (가입됨-YYYY/MM/DD) 또는 (미가입-YYYY/MM/DD) 뱃지 출력
         const joinedBadge = isTemporary 
             ? ` <span style="font-size:11px; color:#f59e0b; font-weight:normal;">(미가입-${createdDateStr})</span>` 
             : ` <span style="font-size:11px; color:#10b981; font-weight:normal;">(가입됨-${createdDateStr})</span>`;
 
-        // 이용기간 만료 체크
         const isExpired = user.endDate && user.endDate < todayStr;
         let countBadge = `<span style="font-size:13px; color: var(--primary); font-weight:bold;">${user.remainingCount || 0}회 남음</span>`;
 
@@ -157,10 +145,8 @@ function renderPagination(totalItems) {
 
     const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
-    // 1페이지 이하이거나 회원이 없으면 버튼 표시 안 함
     if (totalPages <= 1) return; 
 
-    // [이전] 버튼
     const prevBtn = document.createElement('button');
     prevBtn.className = 'page-btn';
     prevBtn.innerText = '‹';
@@ -168,7 +154,6 @@ function renderPagination(totalItems) {
     prevBtn.onclick = () => changePage(currentPage - 1);
     paginationContainer.appendChild(prevBtn);
 
-    // [숫자 페이지] 버튼
     for (let i = 1; i <= totalPages; i++) {
         const btn = document.createElement('button');
         btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
@@ -177,7 +162,6 @@ function renderPagination(totalItems) {
         paginationContainer.appendChild(btn);
     }
 
-    // [다음] 버튼
     const nextBtn = document.createElement('button');
     nextBtn.className = 'page-btn';
     nextBtn.innerText = '›';
@@ -186,35 +170,38 @@ function renderPagination(totalItems) {
     paginationContainer.appendChild(nextBtn);
 }
 
-// 페이지 변경 처리
 function changePage(newPage) {
     currentPage = newPage;
     renderMemberList(currentDocsList, currentPage);
     renderPagination(currentDocsList.length);
 }
 
-// 회원 클릭 선택 시 이벤트
 function selectMember(id, userData) {
     activeUserId = id;
     document.querySelectorAll('.member-item').forEach(item => item.classList.remove('active'));
     showMemberDetail(id, userData);
 }
 
-// 우측 회원 상세 페이지 출력 함수 (만료 로직 강화)
+// 우측 회원 상세 페이지 출력 함수 (아이디/비밀번호 바인딩 포함)
 function showMemberDetail(id, user) {
     if (detailPlaceholder) detailPlaceholder.style.display = 'none';
     if (detailContent) detailContent.style.display = 'block';
 
-    // 1. 상단 기본 정보
+    // 1. 상단 기본 정보 및 계정 정보 바인딩
     document.getElementById('det-name').innerText = `선택회원: ${user.name || '미등록'} 회원님`;
     document.getElementById('det-phone').innerText = formatPhone(user.phone);
+    
+    // 아이디 및 비밀번호 표시
+    const userIdElem = document.getElementById('cur-userid');
+    const passwordElem = document.getElementById('cur-password');
+    if (userIdElem) userIdElem.innerText = user.userId || '-';
+    if (passwordElem) passwordElem.innerText = user.password || '-';
 
     // 2. 현재 사용 중인 이용권 및 만료 체크
     const todayStr = new Date().toISOString().split('T')[0];
     const hasTicket = Boolean(user.ticketType);
-    const isExpired = user.endDate && user.endDate < todayStr; // 만료 여부 판별
+    const isExpired = user.endDate && user.endDate < todayStr;
 
-    // 이용권 이름 표시
     const ticketElem = document.getElementById('cur-ticket');
     if (hasTicket) {
         ticketElem.innerText = isExpired ? `${user.ticketType} (기간 만료됨)` : user.ticketType;
@@ -224,7 +211,6 @@ function showMemberDetail(id, user) {
         ticketElem.style.color = "inherit";
     }
 
-    // 잔여 횟수 표시
     const countElem = document.getElementById('cur-count');
     if (hasTicket) {
         if (isExpired) {
@@ -241,7 +227,6 @@ function showMemberDetail(id, user) {
         countElem.style.color = "inherit";
     }
 
-    // 이용 기간 표시
     const periodElem = document.getElementById('cur-period');
     if (periodElem) {
         periodElem.innerText = user.startDate ? `${user.startDate} ~ ${user.endDate}` : "이용 기간 정보 없음";
@@ -249,7 +234,6 @@ function showMemberDetail(id, user) {
         periodElem.style.fontWeight = isExpired ? "bold" : "normal";
     }
 
-    // 일반 취소 / 당일 취소 남은 횟수
     document.getElementById('cur-cancel-count').innerText = hasTicket 
         ? `${user.remainingCancelCount ?? 0}회 / ${user.totalCancelLimit ?? 0}회` 
         : "-";
@@ -280,8 +264,8 @@ function showMemberDetail(id, user) {
     const templateSelect = document.getElementById('edit-template-select');
     if (templateSelect) templateSelect.value = '';
 
-    // 결제 내역 불러오기 실행
     loadPaymentHistory(id);
+    loadUserReservations(id, user.name);
 }
 
 function closeDetailView() {
@@ -297,7 +281,6 @@ function addDaysToDate(dateString, days) {
     return date.toISOString().split('T')[0];
 }
 
-// 템플릿 선택 시 날짜 자동 계산 (시작일 기준)
 window.calculateEditEndDate = () => {
     const startDate = document.getElementById('edit-start-date').value;
     const selectValue = document.getElementById('edit-template-select').value;
@@ -335,7 +318,6 @@ window.applyTemplateToEdit = () => {
     const curTotalTodayCancel = parseInt(document.getElementById('edit-total-today-cancel').value, 10) || 0;
     const curRemainingTodayCancel = parseInt(document.getElementById('edit-remaining-today-cancel').value, 10) || 0;
 
-    // 수량 및 취소 횟수 누적
     document.getElementById('edit-total-count').value = curTotalCount + addCount;
     document.getElementById('edit-remaining-count').value = curRemainingCount + addCount;
     document.getElementById('edit-total-cancel').value = curTotalCancel + addCancel;
@@ -345,7 +327,6 @@ window.applyTemplateToEdit = () => {
 
     document.getElementById('edit-ticket-type').value = `${addCount}회권 추가 (${curTotalCount + addCount}회)`;
 
-    // 만료일 연장 계산
     const existingEndDate = document.getElementById('edit-end-date').value;
     const startDateInput = document.getElementById('edit-start-date');
     if (!startDateInput.value) {
@@ -529,8 +510,8 @@ window.updateUserTicket = async () => {
             ticketType,
             totalCount: inputTotalCount,
             remainingCount: inputRemainingCount,
-            ticketCount: inputRemainingCount,      // 👈 추가: reservation.js 호환용
-            remCount: inputRemainingCount,         // 👈 추가: 호환용
+            ticketCount: inputRemainingCount,
+            remCount: inputRemainingCount,
             startDate,
             endDate,
             totalCancelLimit,
@@ -579,7 +560,9 @@ window.refundUserTicket = async () => {
         const newRemaining = Math.max(0, curRemaining - refundCount);
 
         await updateDoc(userDocRef, {
-            remainingCount: newRemaining
+            remainingCount: newRemaining,
+            ticketCount: newRemaining,
+            remCount: newRemaining
         });
 
         const todayStr = new Date().toISOString().split('T')[0];
@@ -613,6 +596,8 @@ window.resetUserTicket = async () => {
             ticketType: "",
             totalCount: 0,
             remainingCount: 0,
+            ticketCount: 0,
+            remCount: 0,
             startDate: "",
             endDate: "",
             totalCancelLimit: 0,
@@ -641,11 +626,87 @@ window.deleteCurrentMember = async () => {
     }
 };
 
-// 11. 신규 회원 등록
+// 11. 회원별 전체 예약 내역 로드 및 관리 함수
+async function loadUserReservations(userId, userName) {
+    const reservationListContainer = document.getElementById('user-reservation-list');
+    const reservationSummary = document.getElementById('reservation-summary');
+    if (!reservationListContainer) return;
+
+    reservationListContainer.innerHTML = '<tr><td colspan="4" style="padding: 15px; text-align:center; color:#9ca3af;">예약 내역 조회 중...</td></tr>';
+    if (reservationSummary) reservationSummary.innerText = '';
+
+    try {
+        const reservationsRef = collection(db, 'reservations');
+        const querySnapshot = await getDocs(reservationsRef);
+
+        let userReservations = [];
+
+        querySnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const isMatch = (data.userId === userId) || 
+                            (data.name && userName && data.name.trim() === userName.trim());
+
+            if (isMatch) {
+                userReservations.push({
+                    id: docSnap.id,
+                    ...data
+                });
+            }
+        });
+
+        userReservations.sort((a, b) => {
+            const dateA = a.date || a.reservationDate || '';
+            const dateB = b.date || b.reservationDate || '';
+            return dateB.localeCompare(dateA);
+        });
+
+        if (reservationSummary) {
+            reservationSummary.innerText = `총 ${userReservations.length}건`;
+        }
+
+        if (userReservations.length === 0) {
+            reservationListContainer.innerHTML = '<tr><td colspan="4" style="padding: 15px; text-align:center; color: #9ca3af;">예약 내역이 없습니다.</td></tr>';
+            return;
+        }
+
+        let html = '';
+        userReservations.forEach((item) => {
+            const resDate = item.date || item.reservationDate || '-';
+            const resTime = item.time || item.slot || '-';
+            const regTime = item.createdAt?.toDate ? item.createdAt.toDate().toLocaleString() : (item.createdAt || '-');
+            const status = item.status || '확정';
+            
+            const isCanceled = status === '취소' || status === 'canceled';
+            const statusBadge = isCanceled 
+                ? `<span style="color: #ef4444; font-weight: bold;">[취소됨]</span>`
+                : `<span style="color: #10b981; font-weight: bold;">[예약확정]</span>`;
+
+            html += `
+                <tr style="border-bottom: 1px solid #f3f4f6; text-align: center;">
+                    <td style="padding: 8px; font-weight: 500;">${resDate}</td>
+                    <td style="padding: 8px;">${resTime}</td>
+                    <td style="padding: 8px; color: #6b7280; font-size: 11px;">${regTime}</td>
+                    <td style="padding: 8px;">
+                        ${statusBadge}
+                    </td>
+                </tr>
+            `;
+        });
+        reservationListContainer.innerHTML = html;
+
+    } catch (err) {
+        console.error("예약 내역 로드 실패:", err);
+        reservationListContainer.innerHTML = '<tr><td colspan="4" style="padding: 15px; text-align:center; color: #ef4444;">예약 내역을 불러오지 못했습니다.</td></tr>';
+    }
+}
+
+// 12. 신규 회원 등록 (아이디, 비밀번호 필드 반영)
 document.getElementById('register-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const phone = document.getElementById('reg-phone').value.replace(/[^0-9]/g, '');
     const name = document.getElementById('reg-name').value.trim();
+    const userId = document.getElementById('reg-userid').value.trim();
+    const password = document.getElementById('reg-password').value.trim();
     const ticketType = document.getElementById('reg-ticket').value.trim();
     const totalCount = parseInt(document.getElementById('reg-count').value) || 0;
     const startDate = document.getElementById('reg-start').value;
@@ -667,16 +728,19 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
 
         let targetUserId = "";
 
-       // 11. 신규 회원 등록 내부 수정
         if (registeredUser) {
             targetUserId = registeredUser.id;
             await updateDoc(doc(db, 'users', targetUserId), {
                 ticketType, 
                 totalCount, 
                 remainingCount: totalCount, 
+                ticketCount: totalCount,
+                remCount: totalCount,
                 startDate, 
                 endDate,
-                updatedAt: new Date(), // [추가] 업데이트 시간
+                userId,
+                password,
+                updatedAt: new Date(),
                 ...cancelData
             });
             alert(`이미 가입된 ${name} 회원님의 계정에 이용권이 부여되었습니다.`);
@@ -685,16 +749,20 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
             await setDoc(doc(db, 'users', targetUserId), {
                 name, 
                 phone, 
+                userId,
+                password,
                 ticketType, 
                 totalCount, 
                 remainingCount: totalCount, 
+                ticketCount: totalCount,
+                remCount: totalCount,
                 startDate, 
                 endDate, 
                 role: "member",
-                createdAt: new Date(), // 🎯 [핵심 추가] 생성시간 저장 -> 최상단 정렬 기준이 됨
+                createdAt: new Date(),
                 ...cancelData
             });
-            alert("미가입 회원의 임시 정보가 추가되었습니다.");
+            alert("신규 회원 정보와 계정이 등록되었습니다.");
         }
 
         const priceStr = prompt("등록 결제 금액을 입력해 주세요 (원):", "0");
@@ -728,7 +796,7 @@ function formatPhone(phone) {
     return phone;
 }
 
-// 12. 실시간 이름/연락처 검색 연동
+// 13. 실시간 이름/연락처 검색 연동
 searchInput.addEventListener('input', async (e) => {
     const keyword = e.target.value.toLowerCase().trim();
     try {
@@ -738,10 +806,11 @@ searchInput.addEventListener('input', async (e) => {
             const data = docSnap.data();
             const name = data.name ? data.name.toLowerCase() : '';
             const phone = data.phone ? data.phone.toLowerCase() : '';
-            return name.includes(keyword) || phone.includes(keyword);
+            const userId = data.userId ? data.userId.toLowerCase() : '';
+            return name.includes(keyword) || phone.includes(keyword) || userId.includes(keyword);
         });
         
-        currentPage = 1; // 검색 시 항상 1페이지로 리셋
+        currentPage = 1;
         renderMemberList(currentDocsList, currentPage);
         renderPagination(currentDocsList.length);
     } catch (err) {
