@@ -1,4 +1,4 @@
-console.log("auth.js 실행");
+Console.log("auth.js 실행");
 
 import { auth, db } from "./firebase.js";
 
@@ -96,25 +96,27 @@ if (signupForm) {
         const password = document.getElementById("password").value;
 
         try {
+            // 1. Firebase Auth 계정 생성
             const userCredential = await createUserWithEmailAndPassword(
                 auth,
                 email,
                 password
             );
 
-             await setDoc(
-                doc(db, "users", userCredential.user.uid),
+            // 2. Firestore 문서 ID를 전화번호(phone)로 저장하여 다른 기능들과 연동
+            await setDoc(
+                doc(db, "users", phone),
                 {
+                    uid: userCredential.user.uid,
                     name: name,
                     phone: phone,
                     email: email,
-                    password: password, // 🎯 [추가] Firestore에 비밀번호 저장
+                    password: password, 
                     role: "member",
                     ticketCount: 0,
                     createdAt: new Date()
                 }
             );
-
 
             showToast("🎉 회원가입이 완료되었습니다.");
             
@@ -143,7 +145,7 @@ if (signupForm) {
 
 
 // =================
-// 로그인
+// 로그인 (Firestore 직접 조회 방식)
 // =================
 const loginForm = document.getElementById("loginForm");
 
@@ -151,133 +153,8 @@ if (loginForm) {
     loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const phone = document.getElementById("phone").value.replace(/-/g, "").trim();
-        const email = `${phone}@yoga.local`;
-        const password = document.getElementById("password").value;
+        const phone = document.getElementById("phone").value.replace(/[^0-9]/g, "").trim();
+        const password = document.getElementById("password").value.trim();
 
         try {
-            await signInWithEmailAndPassword(auth, email, password);
-            showToast("✅ 로그인 되었습니다.");
-            
-            setTimeout(() => {
-                location.href = "index.html";
-            }, 1000);
-
-        } catch (error) {
-            if (error.code === "auth/invalid-credential") {
-                showToast("전화번호 또는 비밀번호가 올바르지 않습니다.");
-            } else {
-                console.log(error);
-                showToast("로그인에 실패했습니다.");
-            }
-        }
-    });
-}
-
-
-// =================
-// 로그아웃
-// =================
-const logoutBtn = document.getElementById("logoutBtn");
-
-if (logoutBtn) {
-    logoutBtn.addEventListener("click", async (e) => {
-        e.preventDefault();
-        await signOut(auth);
-        showToast("로그아웃 되었습니다.");
-        
-        setTimeout(() => {
-            location.href = "index.html";
-        }, 1000);
-    });
-}
-
-
-// =================
-// 로그인 상태 확인 & 프로필/잔여횟수/메뉴 UI 연동
-// =================
-onAuthStateChanged(auth, async (user) => {
-    const userInfo = document.getElementById("userInfo");
-    const guestMenu = document.getElementById("guestMenu");
-    const memberMenu = document.getElementById("memberMenu");
-
-    // reservation.html / mypage.html 등 프로필 카드 요소
-    const myUserNameEl = document.getElementById("myUserName");
-    const myTicketCountEl = document.getElementById("myTicketCount");
-
-    // 관리자 전용 메뉴 일괄 선택
-    const adminOnlyElements = document.querySelectorAll(".admin-only");
-
-    if (user) {
-        console.log("로그인 UID:", user.uid);
-
-        let userName = user.email;
-        let role = "member";
-        let ticketCount = 0;
-
-        try {
-            let userData = null;
-
-            // 1. user.uid 문서 조회
-            const userRef = doc(db, "users", user.uid);
-            const userDoc = await getDoc(userRef);
-
-            if (userDoc.exists()) {
-                userData = userDoc.data();
-            } else {
-                // 2. 만약 UID 문서가 없으면 전화번호(이메일 앞자리) ID 문서 조회 시도
-                const phone = user.email ? user.email.split("@")[0] : "";
-                if (phone) {
-                    const phoneRef = doc(db, "users", phone);
-                    const phoneDoc = await getDoc(phoneRef);
-                    if (phoneDoc.exists()) {
-                        userData = phoneDoc.data();
-                    }
-                }
-            }
-
-            if (userData) {
-                userName = userData.name || "회원";
-                role = userData.role || "member";
-
-                // 📌 핵심 수정: updateDoc(0) 덮어쓰기 로직 제거!
-                // ticketCount, remainingCount 중 존재하는 필드값을 안전하게 가져옵니다.
-                ticketCount = userData.ticketCount ?? userData.remainingCount ?? 0;
-
-                console.log("Firestore 이름:", userName, "권한:", role, "잔여 횟수:", ticketCount);
-            }
-        } catch (error) {
-            console.log("사용자 정보 불러오기 실패", error);
-        }
-
-        // 1. 게스트/회원 메뉴 스위칭
-        if (guestMenu) guestMenu.style.display = "none";
-        if (memberMenu) memberMenu.style.display = "flex";
-
-        // 2. 사용자 정보 표시
-        if (userInfo) {
-            userInfo.style.display = "inline";
-            userInfo.innerHTML = `👋 ${userName}님`;
-        }
-        if (myUserNameEl) myUserNameEl.innerText = `${userName} 님`;
-        if (myTicketCountEl) myTicketCountEl.innerText = `${ticketCount} 회`;
-
-        // 3. 관리자 전용 메뉴 표시 제어
-        if (role === "admin") {
-            adminOnlyElements.forEach(el => el.style.display = "inline-block");
-        } else {
-            adminOnlyElements.forEach(el => el.style.display = "none");
-        }
-
-    } else {
-        // 비로그인 상태일 때 초기화
-        if (guestMenu) guestMenu.style.display = "flex";
-        if (memberMenu) memberMenu.style.display = "none";
-
-        if (userInfo) userInfo.style.display = "none";
-        if (myUserNameEl) myUserNameEl.innerText = "- 님";
-        if (myTicketCountEl) myTicketCountEl.innerText = "- 회";
-
-        adminOnlyElements.forEach(el => el.style.display = "none");
-    }
-});
+            // Firestore의 users 컬렉션에서 전화번호(문서 ID)로
