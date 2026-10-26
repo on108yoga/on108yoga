@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>비밀번호 찾기 - ON108 YOGA</title>
+    <title>비밀번호 재설정 - ON108 YOGA</title>
     
     <!-- 구글 폰트 및 프리텐다드 불러오기 -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
@@ -116,7 +116,7 @@
             margin-bottom: 8px;
         }
 
-        .form-group input[type="text"] {
+        .form-group input {
             width: 100%;
             padding: 14px 16px;
             border: 1px solid #e0e0e0;
@@ -128,14 +128,14 @@
             outline: none;
         }
 
-        .form-group input[type="text"]:focus {
+        .form-group input:focus {
             border-color: #517e73;
             background-color: #ffffff;
             box-shadow: 0 0 0 3px rgba(81, 126, 115, 0.15);
         }
 
         /* Submit Button */
-        #findBtn {
+        #resetBtn {
             width: 100%;
             padding: 16px;
             background-color: #3f4e43;
@@ -149,37 +149,12 @@
             margin-top: 10px;
         }
 
-        #findBtn:hover {
+        #resetBtn:hover {
             background-color: #2d3830;
         }
 
-        #findBtn:active {
+        #resetBtn:active {
             transform: scale(0.99);
-        }
-
-        /* 비밀번호 결과 출력 박스 */
-        .result-box {
-            display: none; /* JS 조회 후 block 처리 */
-            margin-top: 24px;
-            padding: 20px;
-            background-color: #f4efe6;
-            border-radius: 12px;
-            text-align: center;
-            border: 1px solid #eae6df;
-        }
-
-        .result-box p {
-            margin: 0 0 8px 0;
-            font-size: 13px;
-            color: #666;
-        }
-
-        .result-box .password-text {
-            font-size: 20px;
-            font-weight: 700;
-            color: #517e73;
-            letter-spacing: 0.05em;
-            word-break: break-all;
         }
 
         /* 하단 링크 */
@@ -236,10 +211,10 @@
 
 <main>
     <section class="forgot-container">
-        <h2>비밀번호 찾기</h2>
-        <p class="forgot-desc">가입하신 이름과 전화번호를 입력하시면<br>등록된 비밀번호를 확인하실 수 있습니다.</p>
+        <h2>비밀번호 재설정</h2>
+        <p class="forgot-desc">가입하신 이름과 전화번호를 확인 후,<br>새로운 비밀번호로 변경하실 수 있습니다.</p>
         
-        <form id="findForm">
+        <form id="resetForm">
             <div class="form-group">
                 <label for="userName">이름</label>
                 <input
@@ -258,16 +233,19 @@
                     required>
             </div>
 
-            <button type="submit" id="findBtn">
-                비밀번호 조회하기
+            <div class="form-group">
+                <label for="newPassword">새로운 비밀번호</label>
+                <input
+                    type="password"
+                    id="newPassword"
+                    placeholder="6자 이상 입력해주세요"
+                    required>
+            </div>
+
+            <button type="submit" id="resetBtn">
+                비밀번호 재설정하기
             </button>
         </form>
-
-        <!-- 결과 출력 영역 -->
-        <div id="resultBox" class="result-box">
-            <p><span id="displayUserName"></span> 회원님의 비밀번호는 다음과 같습니다.</p>
-            <div id="passwordText" class="password-text"></div>
-        </div>
 
         <div class="forgot-menu">
             <a href="login.html">로그인으로 이동</a>
@@ -283,9 +261,7 @@
 
 <script type="module" src="firebase.js"></script>
 <script type="module" src="auth.js"></script>
-
-<script type="module" src="find-password.js"></script>
-
+<script type="module" src="reset-password.js"></script>
 
 </body>
 </html>
