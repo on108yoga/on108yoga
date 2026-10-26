@@ -1,192 +1,282 @@
-// admin.js
-console.log("admin.js 실행 (v12.15.0)");
+
+console.log("auth.js 실행");
 
 import { auth, db } from "./firebase.js";
 
 import {
-    onAuthStateChanged,
-    signOut
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
 import {
     doc,
-    getDoc,
-    getDocs,
-    collection,
-    updateDoc
+    setDoc,
+    getDoc
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
 
-// ==========================
-// 관리자 권한 확인 및 초기화
-// ==========================
-onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-        alert("로그인이 필요합니다.");
-        location.href = "login.html";
-        return;
-    }
-
-    try {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-
-        if (!userDoc.exists()) {
-            alert("회원정보가 없습니다.");
-            location.href = "index.html";
-            return;
-        }
-
-        const data = userDoc.data();
-
-        // 관리자 권한 확인
-        if (data.role !== "admin") {
-            alert("관리자만 접근 가능합니다.");
-            location.href = "index.html";
-            return;
-        }
-
-        console.log("관리자 로그인 :", data.name || user.email);
-
-        // ✅ 관리자 인증 완료 후 전체 회원 목록 불러오기 실행
-        await loadUserList();
-
-    } catch (error) {
-        console.error("권한 확인 실패:", error);
-        alert("권한 확인 중 오류가 발생했습니다.");
-        location.href = "index.html";
-    }
-});
-
-
-// ==========================
-// 전체 회원 목록 불러오기
-// ==========================
-async function loadUserList() {
-    const userListContainer = document.getElementById("userList");
-    if (!userListContainer) return;
-
-    userListContainer.innerHTML = "<tr><td colspan='4'>회원 목록을 불러오는 중...</td></tr>";
-
-    try {
-        const querySnapshot = await getDocs(collection(db, "users"));
-        userListContainer.innerHTML = ""; // 기존 목록 초기화
-
-        if (querySnapshot.empty) {
-            userListContainer.innerHTML = "<tr><td colspan='4'>가입된 회원이 없습니다.</td></tr>";
-            return;
-        }
-
-        querySnapshot.forEach((userDoc) => {
-            const userData = userDoc.data();
-            const uid = userDoc.id;
-
-            // 이름 및 이메일
-            const name = userData.name || userData.displayName || "이름 없음";
-            const email = userData.email || "이메일 없음";
-
-            // 횟수권 통합 조회 (ticketCount 우선 > remCount > remainingCount)
-            let ticketCount = 0;
-            if (userData.ticketCount !== undefined) {
-                ticketCount = userData.ticketCount;
-            } else if (userData.remCount !== undefined) {
-                ticketCount = userData.remCount;
-            } else if (userData.remainingCount !== undefined) {
-                ticketCount = userData.remainingCount;
+// ==========================================
+// ✨ 커스텀 토스트 알림 함수 (alert 대체)
+// ==========================================
+function showToast(message) {
+    if (!document.getElementById("toast-style")) {
+        const style = document.createElement("style");
+        style.id = "toast-style";
+        style.innerHTML = `
+            .custom-toast {
+                position: fixed;
+                bottom: 40px;
+                left: 50%;
+                transform: translateX(-50%) translateY(20px);
+                background-color: #3f4e43;
+                color: #ffffff;
+                padding: 14px 24px;
+                border-radius: 30px;
+                font-size: 14px;
+                font-weight: 500;
+                box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+                z-index: 9999;
+                opacity: 0;
+                transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+                pointer-events: none;
+                text-align: center;
+                min-width: 220px;
+                white-space: nowrap;
             }
-
-            // HTML 테이블 행 생성
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td>${name}</td>
-                <td>${email}</td>
-                <td>
-                    <input type="number" id="input-${uid}" value="${ticketCount}" style="width: 60px; text-align: center; padding: 4px; border: 1px solid #ccc; border-radius: 4px;" min="0"> 회
-                </td>
-                <td>
-                    <button type="button" class="btn-save" data-uid="${uid}" style="background:#3b82f6; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">
-                        저장
-                    </button>
-                </td>
-            `;
-
-            userListContainer.appendChild(tr);
-        });
-
-        // 💡 생성된 버튼들에 이벤트 리스너 연결 (더 안전함)
-        attachSaveEventListeners();
-
-    } catch (error) {
-        console.error("회원 목록 불러오기 실패:", error);
-        userListContainer.innerHTML = "<tr><td colspan='4'>회원 목록을 불러오지 못했습니다.</td></tr>";
+            .custom-toast.show {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        `;
+        document.head.appendChild(style);
     }
+
+    const existingToast = document.querySelector(".custom-toast");
+    if (existingToast) {
+        existingToast.remove();
+    }
+
+    const toast = document.createElement("div");
+    toast.className = "custom-toast";
+    toast.innerText = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add("show");
+    }, 10);
+
+    setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 2000);
 }
 
 
-// ==========================
-// 이벤트 리스너 바인딩
-// ==========================
-function attachSaveEventListeners() {
-    const saveButtons = document.querySelectorAll(".btn-save");
-    
-    saveButtons.forEach((btn) => {
-        btn.addEventListener("click", async (e) => {
-            const uid = e.target.getAttribute("data-uid");
-            if (uid) {
-                await updateUserTicket(uid);
+// =================
+// 회원가입
+// =================
+const signupForm = document.getElementById("signupForm");
+
+if (signupForm) {
+    signupForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const name = document.getElementById("name").value;
+        const phone = document.getElementById("phone").value.replace(/-/g, "").trim();
+
+        if (!/^010\d{8}$/.test(phone)) {
+            showToast("전화번호를 정확히 입력해주세요. (예: 01012345678)");
+            return;
+        }
+
+        const email = `${phone}@yoga.local`;
+        const password = document.getElementById("password").value;
+
+        try {
+            const userCredential = await createUserWithEmailAndPassword(
+                auth,
+                email,
+                password
+            );
+
+            await setDoc(
+                doc(db, "users", userCredential.user.uid),
+                {
+                    name: name,
+                    phone: phone,
+                    email: email,
+                    role: "member",
+                    ticketCount: 0,
+                    createdAt: new Date()
+                }
+            );
+
+            showToast("🎉 회원가입이 완료되었습니다.");
+            
+            setTimeout(() => {
+                window.location.href = "index.html";
+            }, 1000);
+
+        } catch (error) {
+            switch (error.code) {
+                case "auth/email-already-in-use":
+                    showToast("이미 가입된 전화번호입니다.");
+                    break;
+                case "auth/weak-password":
+                    showToast("비밀번호는 6자 이상이어야 합니다.");
+                    break;
+                case "auth/invalid-email":
+                    showToast("전화번호 형식이 올바르지 않습니다.");
+                    break;
+                default:
+                    console.log(error);
+                    showToast("회원가입에 실패했습니다.");
             }
-        });
+        }
     });
 }
 
 
-// ==========================
-// 회원 횟수 수정/충전
-// ==========================
-async function updateUserTicket(uid) {
-    const inputEl = document.getElementById(`input-${uid}`);
-    if (!inputEl) return;
+// =================
+// 로그인
+// ================= 
+const loginForm = document.getElementById("loginForm");
 
-    const newTicketCount = Number(inputEl.value);
+if (loginForm) {
+    loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-    if (isNaN(newTicketCount) || newTicketCount < 0) {
-        alert("올바른 횟수를 입력해 주세요.");
-        return;
-    }
+        const phone = document.getElementById("phone").value.replace(/-/g, "").trim();
+        const email = `${phone}@yoga.local`;
+        const password = document.getElementById("password").value;
 
-    const ok = confirm(`해당 회원의 이용권을 [ ${newTicketCount}회 ]로 변경하시겠습니까?`);
-    if (!ok) return;
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            showToast("✅ 로그인 되었습니다.");
+            
+            setTimeout(() => {
+                location.href = "index.html";
+            }, 1000);
 
-    try {
-        const userRef = doc(db, "users", uid);
-
-        // ✨ 이전 버전과의 호환성을 위해 필요 시 주요 필드 동시 반영 가능
-        await updateDoc(userRef, {
-            ticketCount: newTicketCount
-        });
-
-        alert("횟수가 성공적으로 수정되었습니다.");
-        await loadUserList(); // 목록 새로고침
-
-    } catch (error) {
-        console.error("횟수 수정 실패:", error);
-        alert("횟수 수정 중 오류가 발생했습니다.");
-    }
+        } catch (error) {
+            if (error.code === "auth/invalid-credential") {
+                showToast("전화번호 또는 비밀번호가 올바르지 않습니다.");
+            } else {
+                console.log(error);
+                showToast("로그인에 실패했습니다.");
+            }
+        }
+    });
 }
 
 
-// ==========================
+// =================
 // 로그아웃
-// ==========================
+// =================
 const logoutBtn = document.getElementById("logoutBtn");
 
 if (logoutBtn) {
-    logoutBtn.onclick = async () => {
-        try {
-            await signOut(auth);
-            alert("로그아웃 되었습니다.");
+    logoutBtn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        await signOut(auth);
+        showToast("로그아웃 되었습니다.");
+        
+        setTimeout(() => {
             location.href = "index.html";
-        } catch (error) {
-            console.error("로그아웃 실패:", error);
-        }
-    };
+        }, 1000);
+    });
 }
+
+
+// =================
+// 로그인 상태 확인 & 프로필/잔여횟수/메뉴 UI 연동
+// =================
+onAuthStateChanged(auth, async (user) => {
+    const userInfo = document.getElementById("userInfo");
+    const guestMenu = document.getElementById("guestMenu");
+    const memberMenu = document.getElementById("memberMenu");
+
+    // reservation.html / mypage.html 등 프로필 카드 요소
+    const myUserNameEl = document.getElementById("myUserName");
+    const myTicketCountEl = document.getElementById("myTicketCount");
+
+    // 관리자 전용 메뉴 일괄 선택
+    const adminOnlyElements = document.querySelectorAll(".admin-only");
+
+    if (user) {
+        console.log("로그인 UID:", user.uid);
+
+        let userName = user.email;
+        let role = "member";
+        let ticketCount = 0;
+
+        try {
+            let userData = null;
+
+            // 1. user.uid 문서 조회
+            const userRef = doc(db, "users", user.uid);
+            const userDoc = await getDoc(userRef);
+
+            if (userDoc.exists()) {
+                userData = userDoc.data();
+            } else {
+                // 2. 만약 UID 문서가 없으면 전화번호(이메일 앞자리) ID 문서 조회 시도
+                const phone = user.email ? user.email.split("@")[0] : "";
+                if (phone) {
+                    const phoneRef = doc(db, "users", phone);
+                    const phoneDoc = await getDoc(phoneRef);
+                    if (phoneDoc.exists()) {
+                        userData = phoneDoc.data();
+                    }
+                }
+            }
+
+            if (userData) {
+                userName = userData.name || "회원";
+                role = userData.role || "member";
+
+                // 📌 핵심 수정: updateDoc(0) 덮어쓰기 로직 제거!
+                // ticketCount, remainingCount 중 존재하는 필드값을 안전하게 가져옵니다.
+                ticketCount = userData.ticketCount ?? userData.remainingCount ?? 0;
+
+                console.log("Firestore 이름:", userName, "권한:", role, "잔여 횟수:", ticketCount);
+            }
+        } catch (error) {
+            console.log("사용자 정보 불러오기 실패", error);
+        }
+
+        // 1. 게스트/회원 메뉴 스위칭
+        if (guestMenu) guestMenu.style.display = "none";
+        if (memberMenu) memberMenu.style.display = "flex";
+
+        // 2. 사용자 정보 표시
+        if (userInfo) {
+            userInfo.style.display = "inline";
+            userInfo.innerHTML = `👋 ${userName}님`;
+        }
+        if (myUserNameEl) myUserNameEl.innerText = `${userName} 님`;
+        if (myTicketCountEl) myTicketCountEl.innerText = `${ticketCount} 회`;
+
+        // 3. 관리자 전용 메뉴 표시 제어
+        if (role === "admin") {
+            adminOnlyElements.forEach(el => el.style.display = "inline-block");
+        } else {
+            adminOnlyElements.forEach(el => el.style.display = "none");
+        }
+
+    } else {
+        // 비로그인 상태일 때 초기화
+        if (guestMenu) guestMenu.style.display = "flex";
+        if (memberMenu) memberMenu.style.display = "none";
+
+        if (userInfo) userInfo.style.display = "none";
+        if (myUserNameEl) myUserNameEl.innerText = "- 님";
+        if (myTicketCountEl) myTicketCountEl.innerText = "- 회";
+
+        adminOnlyElements.forEach(el => el.style.display = "none");
+    }
+});
