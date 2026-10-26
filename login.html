@@ -264,9 +264,7 @@
         <div class="login-menu">
             <a href="signup.html">회원가입</a>
             <span>|</span>
-            <!-- 🎯 비밀번호 재설정 페이지 파일명에 맞게 링크 수정  -->
-            ⁠<a href="forgot.html">비밀번호 재설정</a>⁠
-            
+            <a href="forgot.html">비밀번호 재설정</a>
         </div>
     </section>
 </main>
@@ -277,7 +275,6 @@
 
 <script type="module" src="firebase.js"></script>
 <script type="module" src="auth.js"></script>
-    
 
 <!-- 화면에 콘솔 로그를 띄우는 임시 박스 -->
 <div id="debug-console" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 120px; background: rgba(0,0,0,0.85); color: #00ff00; font-size: 11px; overflow-y: auto; z-index: 99999; padding: 5px; box-sizing: border-box;"></div>
@@ -286,6 +283,7 @@
     const debugBox = document.getElementById('debug-console');
     
     function appendLog(message, color = '#00ff00') {
+        if (!debugBox) return;
         debugBox.innerHTML += `<div style="color: ${color}; border-bottom: 1px solid #333; padding: 2px 0;">${message}</div>`;
         debugBox.scrollTop = debugBox.scrollHeight;
     }
