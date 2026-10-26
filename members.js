@@ -48,7 +48,6 @@ onSnapshot(usersCol, (snapshot) => {
         const aData = a.data();
         const bData = b.data();
         
-        // 1순위: createdAt (생성일시) 기준 내림차순 (최신이 맨 위)
         const aTime = aData.createdAt?.toDate ? aData.createdAt.toDate().getTime() : (aData.createdAt || 0);
         const bTime = bData.createdAt?.toDate ? bData.createdAt.toDate().getTime() : (bData.createdAt || 0);
         
@@ -56,7 +55,6 @@ onSnapshot(usersCol, (snapshot) => {
             return bTime - aTime;
         }
 
-        // 2순위: createdAt이 없거나 같은 경우, 등록된 시작일(startDate) 기준 내림차순
         const aStart = aData.startDate || '';
         const bStart = bData.startDate || '';
         return bStart.localeCompare(aStart);
@@ -75,7 +73,7 @@ onSnapshot(usersCol, (snapshot) => {
     }
 });
 
-// 2. 회원 목록 출력 (1페이지당 10명 제한 적용 & 만료 상태 표기 반영)
+// 2. 회원 목록 출력
 function renderMemberList(docs, page = 1) {
     if (!memberListContainer) return;
     memberListContainer.innerHTML = '';
@@ -182,22 +180,20 @@ function selectMember(id, userData) {
     showMemberDetail(id, userData);
 }
 
-// 우측 회원 상세 페이지 출력 함수 (아이디/비밀번호 바인딩 포함)
+// 우측 회원 상세 페이지 출력 함수 (아이디/비밀번호 바인딩)
 function showMemberDetail(id, user) {
     if (detailPlaceholder) detailPlaceholder.style.display = 'none';
     if (detailContent) detailContent.style.display = 'block';
 
-    // 1. 상단 기본 정보 및 계정 정보 바인딩
     document.getElementById('det-name').innerText = `선택회원: ${user.name || '미등록'} 회원님`;
     document.getElementById('det-phone').innerText = formatPhone(user.phone);
     
-    // 아이디 및 비밀번호 표시
+    // 아이디(전화번호) 및 비밀번호 표시 매핑
     const userIdElem = document.getElementById('cur-userid');
     const passwordElem = document.getElementById('cur-password');
-    if (userIdElem) userIdElem.innerText = user.userId || '-';
+    if (userIdElem) userIdElem.innerText = formatPhone(user.phone) || user.userId || '-';
     if (passwordElem) passwordElem.innerText = user.password || '-';
 
-    // 2. 현재 사용 중인 이용권 및 만료 체크
     const todayStr = new Date().toISOString().split('T')[0];
     const hasTicket = Boolean(user.ticketType);
     const isExpired = user.endDate && user.endDate < todayStr;
@@ -245,7 +241,6 @@ function showMemberDetail(id, user) {
             : "-";
     }
 
-    // 3. 하단 수정 Input 양식에 데이터 세팅
     document.getElementById('edit-ticket-type').value = user.ticketType || '';
     document.getElementById('edit-total-count').value = user.totalCount ?? 0;
     document.getElementById('edit-remaining-count').value = user.remainingCount ?? 0;
@@ -299,7 +294,6 @@ window.calculateRegEndDate = () => {
     }
 };
 
-// 4. [기존 회원] 이용권 설정 드롭다운 적용 (누적 합산 로직)
 window.applyTemplateToEdit = () => {
     const select = document.getElementById('edit-template-select');
     if (!select.value) return;
@@ -337,7 +331,6 @@ window.applyTemplateToEdit = () => {
     document.getElementById('edit-end-date').value = addDaysToDate(baseDate, addDays);
 };
 
-// 5. [신규 회원 모달] 드롭다운 적용
 window.applyTemplateToReg = () => {
     const select = document.getElementById('reg-template');
     if (!select.value) return;
@@ -354,7 +347,6 @@ window.applyTemplateToReg = () => {
     document.getElementById('reg-end').value = addDaysToDate(todayStr, parseInt(days, 10));
 };
 
-// 6. 결제/환불 내역 로드 및 관리
 let selectedHistoryIds = [];
 
 async function loadPaymentHistory(userId) {
@@ -484,7 +476,6 @@ window.clearAllPaymentHistory = async () => {
     }
 };
 
-// 7. 이용권 정보 저장/수정
 window.updateUserTicket = async () => {
     if (!activeUserId) return alert("선택된 회원이 없습니다.");
 
@@ -541,7 +532,6 @@ window.updateUserTicket = async () => {
     }
 };
 
-// 8. 이용권 환불/취소
 window.refundUserTicket = async () => {
     if (!activeUserId) return alert("선택된 회원이 없습니다.");
 
@@ -586,7 +576,6 @@ window.refundUserTicket = async () => {
     }
 };
 
-// 9. 이용권 제거(초기화)
 window.resetUserTicket = async () => {
     if(!activeUserId || !confirm("이 회원의 이용권을 만료/제거 상태로 리셋하시겠습니까?")) return;
 
@@ -611,7 +600,6 @@ window.resetUserTicket = async () => {
     }
 };
 
-// 10. 회원 삭제
 window.deleteCurrentMember = async () => {
     if(!activeUserId || !confirm("정말로 이 회원을 데이터베이스에서 삭제하시겠습니까?")) return;
     
@@ -626,7 +614,6 @@ window.deleteCurrentMember = async () => {
     }
 };
 
-// 11. 회원별 전체 예약 내역 로드 및 관리 함수
 async function loadUserReservations(userId, userName) {
     const reservationListContainer = document.getElementById('user-reservation-list');
     const reservationSummary = document.getElementById('reservation-summary');
@@ -700,12 +687,11 @@ async function loadUserReservations(userId, userName) {
     }
 }
 
-// 12. 신규 회원 등록 (아이디, 비밀번호 필드 반영)
+// 12. 신규 회원 등록 (전화번호를 아이디로 반영)
 document.getElementById('register-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const phone = document.getElementById('reg-phone').value.replace(/[^0-9]/g, '');
     const name = document.getElementById('reg-name').value.trim();
-    const userId = document.getElementById('reg-userid').value.trim();
     const password = document.getElementById('reg-password').value.trim();
     const ticketType = document.getElementById('reg-ticket').value.trim();
     const totalCount = parseInt(document.getElementById('reg-count').value) || 0;
@@ -738,18 +724,16 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
                 remCount: totalCount,
                 startDate, 
                 endDate,
-                userId,
                 password,
                 updatedAt: new Date(),
                 ...cancelData
             });
             alert(`이미 가입된 ${name} 회원님의 계정에 이용권이 부여되었습니다.`);
         } else {
-            targetUserId = phone;
+            targetUserId = phone; // 전화번호를 문서 ID(아이디)로 지정
             await setDoc(doc(db, 'users', targetUserId), {
                 name, 
                 phone, 
-                userId,
                 password,
                 ticketType, 
                 totalCount, 
@@ -783,7 +767,6 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
     }
 });
 
-// 전화번호 하이픈(-) 포맷터
 function formatPhone(phone) {
     if (!phone) return '';
     const cleaned = ('' + phone).replace(/\D/g, '');
@@ -796,7 +779,6 @@ function formatPhone(phone) {
     return phone;
 }
 
-// 13. 실시간 이름/연락처 검색 연동
 searchInput.addEventListener('input', async (e) => {
     const keyword = e.target.value.toLowerCase().trim();
     try {
@@ -806,8 +788,7 @@ searchInput.addEventListener('input', async (e) => {
             const data = docSnap.data();
             const name = data.name ? data.name.toLowerCase() : '';
             const phone = data.phone ? data.phone.toLowerCase() : '';
-            const userId = data.userId ? data.userId.toLowerCase() : '';
-            return name.includes(keyword) || phone.includes(keyword) || userId.includes(keyword);
+            return name.includes(keyword) || phone.includes(keyword);
         });
         
         currentPage = 1;
