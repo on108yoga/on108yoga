@@ -42,21 +42,20 @@
         .navbar a {         
             text-decoration: none !important;
             color: white;
-            text-decoration: none;
             font-weight: 500;
-            letter-spacing: 0.08em; /* 🔥 자간 조절 (기존보다 넓게 설정) */
-            padding: 2px 4px;       /* 🔥 글자 주변 미세 여백 추가로 답답함 해소 */
+            letter-spacing: 0.08em;
+            padding: 2px 4px;       
             transition: opacity 0.2s ease;            
         }
 
         .navbar a:hover {
             opacity: 0.8;
             text-decoration: none !important;
-            }
+        }
 
         h1 {
-            background-color: #f4efe6; /* 따뜻하고 세련된 샌드 베이지 */
-            color: #3f4e43;           /* 딥 그린 폰트 컬러 */
+            background-color: #f4efe6;
+            color: #3f4e43;           
             text-align: center;
             letter-spacing: 0.35em;
             margin: 0;
@@ -76,14 +75,13 @@
             padding: 40px 20px;
         }
 
-        /* 클래스명 수정: signup-container -> login-container */
         .login-container {
             background: #ffffff;
             width: 100%;
             max-width: 440px;
             padding: 40px 32px;
             border-radius: 20px;
-            box-shadow: 0 12px 32px rgba(63, 78, 67, 0.08); /* 브랜드 컬러 기반 부드러운 그림자 */
+            box-shadow: 0 12px 32px rgba(63, 78, 67, 0.08);
             border: 1px solid #eae6df;
         }
 
@@ -130,7 +128,7 @@
             box-shadow: 0 0 0 3px rgba(81, 126, 115, 0.15);
         }
 
-        /* Checkbox (로그인 상태 유지) 스타일 추가 */
+        /* Checkbox */
         .remember-box {
             display: flex;
             align-items: center;
@@ -156,7 +154,7 @@
             cursor: pointer;
         }
 
-        /* Submit Button (ID 수정: signupBtn -> loginBtn) */
+        /* Submit Button */
         #loginBtn {
             width: 100%;
             padding: 16px;
@@ -178,7 +176,7 @@
             transform: scale(0.99);
         }
 
-        /* 하단 메뉴 (회원가입 / 비밀번호 찾기) 스타일 추가 */
+        /* 하단 메뉴 */
         .login-menu {
             margin-top: 24px;
             font-size: 13px;
@@ -230,7 +228,6 @@
 </header>
 
 <main>
-    <div class="aside01"></div>
     <section class="login-container">
         <h2>로그인</h2>
         <form id="loginForm">
@@ -267,10 +264,10 @@
         <div class="login-menu">
             <a href="signup.html">회원가입</a>
             <span>|</span>
-            <a href="forgot.html">비밀번호 찾기</a>
+            <!-- 🎯 비밀번호 재설정 페이지 파일명에 맞게 링크 수정 (예: reset-password.html) -->
+            <a href="reset-password.html">비밀번호 재설정</a>
         </div>
     </section>
-    <div class="aside02"></div>
 </main>
 
 <footer>
@@ -283,12 +280,10 @@
 </body>
 </html>
 
-
 <!-- 화면에 콘솔 로그를 띄우는 임시 박스 -->
-<div id="debug-console" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 150px; background: rgba(0,0,0,0.8); color: #00ff00; font-size: 11px; overflow-y: auto; z-index: 99999; padding: 5px; box-sizing: border-box;"></div>
+<div id="debug-console" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 120px; background: rgba(0,0,0,0.85); color: #00ff00; font-size: 11px; overflow-y: auto; z-index: 99999; padding: 5px; box-sizing: border-box;"></div>
 
 <script>
-    // 기존 console.log와 에러를 화면에 같이 출력하도록 가로채기
     const debugBox = document.getElementById('debug-console');
     
     function appendLog(message, color = '#00ff00') {
@@ -296,13 +291,13 @@
         debugBox.scrollTop = debugBox.scrollHeight;
     }
 
+    const originalLog = console.log;
     console.log = function(message) {
+        originalLog(message);
         appendLog(message, '#ffffff');
     };
 
     window.onerror = function(msg, url, line) {
-        appendLog(`[에러] ${msg} (${line행})`, '#ff4444');
+        appendLog(`[에러] ${msg} (${line}행)`, '#ff4444');
     };
 </script>
-
-
