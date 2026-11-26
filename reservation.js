@@ -36,6 +36,23 @@ const weeklySchedule = {
     6: []
 };
 
+// ✅ 특정 날짜 전용 스케줄 (해당 날짜는 요일 기본 스케줄 대신 이 시간만 노출)
+const specialSchedule = {
+    "2026-12-05": ["10:30 토요요가"],
+    "2026-12-19": ["10:30 토요요가"]
+};
+
+// 날짜별 가능 시간 조회 헬퍼
+function getScheduleForDate(dateStr) {
+    if (!dateStr) return [];
+    if (Object.prototype.hasOwnProperty.call(specialSchedule, dateStr)) {
+        return specialSchedule[dateStr];
+    }
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const dayOfWeek = new Date(year, month - 1, day).getDay();
+    return weeklySchedule[dayOfWeek] || [];
+}
+
 // 스플래시 화면을 빠르게 숨기는 함수
 function hideSplash() {
     const splashElement = document.getElementById("appSplash");
@@ -138,13 +155,12 @@ function renderTimeButtons(selectedDateStr) {
     if (!container || !selectedDateStr) return;
 
     const [year, month, day] = selectedDateStr.split('-').map(Number);
-    const dayOfWeek = new Date(year, month - 1, day).getDay();
-    const availableTimes = weeklySchedule[dayOfWeek] || [];
+    const availableTimes = getScheduleForDate(selectedDateStr);
 
     container.innerHTML = '';
 
     if (availableTimes.length === 0) {
-        container.innerHTML = `<p style="color:#9ca3af; font-size:14px; padding:10px 0;">해당 요일은 수업이 없습니다.</p>`;
+        container.innerHTML = `<p style="color:#9ca3af; font-size:14px; padding:10px 0;">해당 날짜는 예약 가능한 수업이 없습니다.</p>`;
         return;
     }
 
@@ -159,7 +175,7 @@ function renderTimeButtons(selectedDateStr) {
         button.innerHTML = `${time} (예약 <span id="count${timeId}">0</span> / ${MAX_PEOPLE}명)`;
 
         // 수업 시작 시각 계산
-        const timeOnly = time.split(" ")[0]; // 예: "10:00"
+        const timeOnly = time.split(" ")[0]; // 예: "10:30"
         const [hours, minutes] = timeOnly.split(":").map(Number);
         const classTime = new Date(year, month - 1, day, hours, minutes, 0);
 
@@ -190,9 +206,7 @@ function loadReservationCounts() {
 
     if (!selectedDate) return;
 
-    const [year, month, day] = selectedDate.split('-').map(Number);
-    const dayOfWeek = new Date(year, month - 1, day).getDay();
-    const targetSchedule = weeklySchedule[dayOfWeek] || [];
+    const targetSchedule = getScheduleForDate(selectedDate);
 
     targetSchedule.forEach(time => {
         const q = query(
